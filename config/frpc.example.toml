@@ -1,0 +1,15 @@
+# Configuración para tu PC de casa (Ubuntu)
+# Pon aquí la IP pública de tu VPS en Rusia
+serverAddr = "IP_DE_TU_VPS_AQUI"
+serverPort = 7000
+
+# El mismo token configurado en frps.toml
+auth.method = "token"
+auth.token = "CAMBIA_ESTO_POR_TU_TOKEN_SECRETO_SEGURO_123"
+
+[[proxies]]
+name = "tvbox"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 5000       # Puerto donde escucha app.py
+remotePort = 8080      # Puerto expuesto en el VPS para acceder desde fuera

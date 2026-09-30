@@ -15,7 +15,9 @@ Diseñada para reproducir tanto enlaces directos de video (`.m3u8`, `.mp4`) como
   - `directo`: Streams HLS (`.m3u8`) o archivos `.mp4` reproducidos al instante en un reproductor interno ultraligero.
   - `web`: Páginas de streaming abiertas en modo Kiosk.
 - 🎮 **Navegación 10-foot UI:** Navegable mediante teclado (flechas `←` `→` y `Enter`) o control remoto inalámbrico.
+- 🔍 **Buscador en tiempo real:** Encuentra cualquier canal o video al instante (atajo `/`).
 - 🤖 **Auto-Play:** Script para hacer clic automático en botones de reproducción rebeldes.
+- 🛡️ **Acceso Remoto Seguro (Offshore VPS + FRP):** [Ver guía de configuración](docs/CONFIGURAR_VPS_FRP.md) para ocultar 100% tu IP de casa usando un túnel privado hacia un VPS fuera de EE.UU.
 
 ---
 

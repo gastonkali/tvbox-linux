@@ -1,0 +1,9 @@
+# Configuración para el VPS (Servidor en Rusia/Offshore)
+bindPort = 7000
+
+# Cambia este token por una clave secreta segura
+auth.method = "token"
+auth.token = "CAMBIA_ESTO_POR_TU_TOKEN_SECRETO_SEGURO_123"
+
+# Puerto público para navegar al catálogo
+vhostHttpPort = 8080
