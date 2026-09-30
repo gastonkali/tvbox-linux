@@ -1,10 +1,17 @@
 # 🛡️ Guía de Configuración: VPS Offshore + FRP (Túnel Privado Seguro)
 
-Esta guía explica cómo conectar tu servidor **TV Box (Ubuntu en casa)** a un **VPS Offshore en el extranjero (por ejemplo, Rusia o Moldavia)** mediante **FRP** (*Fast Reverse Proxy*).
+> ⚠️ **IMPORTANTE: ESTE ES EL ÚLTIMO PASO (FASE 2)**  
+> **Antes de realizar esta configuración, asegúrate de haber probado y verificado la aplicación en modo local en tu PC con Ubuntu (Fase 1 del README).**  
+> Primero comprueba que el catálogo cargue, que tus videos se reproduzcan sin publicidad y que el buscador funcione en tu computadora. Cuando todo esté 100% listo y probado, realiza este paso para habilitar el acceso remoto seguro desde otros dispositivos fuera de casa.
 
-Con esta configuración:
-* **Tu IP real de casa queda 100% oculta:** Los usuarios, curiosos o escaneos solo ven la IP pública del VPS en el extranjero.
-* **0 Puertos abiertos en tu router:** Tu PC crea un túnel saliente cifrado hacia el VPS.
+---
+
+## 🎯 ¿Para qué sirve este paso final?
+
+Por defecto, tu TV Box funciona en tu PC y en tu red Wi-Fi de casa. Si quieres acceder desde tu teléfono móvil con 4G en la calle o desde otra casa sin exponer jamás tu dirección IP real ni tu hogar, conectamos tu Ubuntu a un **servidor VPS Offshore** (por ejemplo, en Moldavia o Rusia).
+
+* **Tu IP real de casa queda 100% oculta:** Curiosos, escáneres o proveedores solo ven la IP pública del VPS en el extranjero.
+* **0 Puertos abiertos en tu router:** Tu PC crea un túnel saliente cifrado hacia el VPS con **FRP** (*Fast Reverse Proxy*).
 * **Fuera de la jurisdicción de EE.UU.:** Control total sin intermediarios corporativos ni registros.
 
 ---
@@ -32,13 +39,39 @@ Con esta configuración:
 
 ---
 
+## 📌 PARTE 0: Dónde y cómo contratar el VPS
+
+No necesitas un servidor costoso. Como el VPS solo hace de "puente" o túnel, el plan más económico es más que suficiente.
+
+### Proveedores recomendados:
+1. **[AlexHost](https://alexhost.com/):**
+   * **Ubicación:** Moldavia (centro de datos en un antiguo búnker militar).
+   * **Fama:** Muy conocido por ignorar reclamos de EE.UU. (*DMCA Ignore*) y por alta privacidad.
+   * **Precio:** Desde ~€3.50 al mes.
+   * **Pago:** Tarjetas internacionales, PayPal, o Criptomonedas (Bitcoin/Monero).
+2. **[PQ.Hosting](https://pq.hosting/es/):**
+   * **Ubicación:** Servidores físicos en **Rusia (Moscú)** o **Moldavia**.
+   * **Precio:** Desde ~€4 al mes.
+   * **Soporte:** En español.
+
+### Especificaciones a elegir durante la compra:
+* **Plan:** El más básico (1 vCPU, 1 GB de RAM, 10-20 GB SSD).
+* **Sistema Operativo:** Selecciona **Ubuntu 22.04 LTS** o **Ubuntu 24.04 LTS**.
+* **Ubicación:** Rusia o Moldavia.
+
+### Conectarte a tu VPS por primera vez:
+Una vez pagado, recibirás por correo la **IP del servidor** y la **contraseña de root**. Conéctate desde la terminal de tu PC con:
+```bash
+ssh root@IP_DE_TU_VPS
+```
+
+---
+
 ## 📌 PARTE 1: Configurar el VPS (Servidor en el Extranjero)
 
-Una vez contratado tu VPS (por ejemplo en AlexHost, VDSina, etc.) y conectado por SSH con usuario `root`:
+Conectado por SSH a tu VPS como `root`:
 
 ### 1. Descargar e instalar FRP Server
-Ejecuta en la terminal de tu VPS:
-
 ```bash
 mkdir -p ~/frp && cd ~/frp
 
@@ -53,14 +86,12 @@ tar -zxvf frp_*_linux_amd64.tar.gz --strip-components=1
 ```
 
 ### 2. Configurar `frps.toml`
-Crea o edita el archivo de configuración:
-
+Crea o edita el archivo:
 ```bash
 nano ~/frp/frps.toml
 ```
 
-Pega el siguiente contenido:
-
+Pega el siguiente contenido (puedes usar de referencia el archivo `config/frps.example.toml`):
 ```toml
 # Puerto donde frps escucha las conexiones privadas desde tu casa
 bindPort = 7000
@@ -99,7 +130,7 @@ sudo systemctl enable --now frps
 sudo systemctl status frps
 ```
 
-*(Si tienes firewall activado en el VPS, permite los puertos 7000 y 8080: `sudo ufw allow 7000 && sudo ufw allow 8080`)*
+*(Si usas firewall en el VPS, permite los puertos 7000 y 8080: `sudo ufw allow 7000 && sudo ufw allow 8080`)*
 
 ---
 
@@ -109,7 +140,6 @@ En tu computadora local donde corre la TV Box:
 
 ### 1. Descargar FRP Client
 Abre una terminal en Ubuntu:
-
 ```bash
 mkdir -p ~/frp && cd ~/frp
 
@@ -124,13 +154,11 @@ tar -zxvf frp_*_linux_amd64.tar.gz --strip-components=1
 
 ### 2. Configurar `frpc.toml`
 Edita la configuración del cliente:
-
 ```bash
 nano ~/frp/frpc.toml
 ```
 
-Pega el siguiente contenido (reemplaza con la IP real de tu VPS y tu token secreto):
-
+Pega lo siguiente (reemplaza con la IP real de tu VPS y tu token secreto):
 ```toml
 # Dirección IP pública de tu VPS en Rusia y puerto de enlace
 serverAddr = "IP_DE_TU_VPS_AQUI"
@@ -149,7 +177,7 @@ localPort = 5000       # El puerto de app.py
 remotePort = 8080      # El puerto en el VPS al que te conectarás
 ```
 
-### 3. Probar la conexión
+### 3. Probar la conexión manual
 ```bash
 cd ~/frp
 ./frpc -c frpc.toml
@@ -161,57 +189,20 @@ Si todo es correcto, verás:
 
 ---
 
-## 📌 PARTE 3: Automatizar el arranque en `ejecutar.sh`
+## 📌 PARTE 3: Automatización integrada con la App
 
-Para que el túnel se conecte automáticamente cada vez que abres tu app en Ubuntu y se cierre al salir, tu archivo `ejecutar.sh` en `tvbox-linux/` puede llamar a `frpc` en segundo plano:
+El archivo `ejecutar.sh` del proyecto ya viene configurado para detectar automáticamente si existe `~/frp/frpc`. 
 
-```bash
-#!/usr/bin/env bash
-
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$DIR"
-
-if [ -d "$DIR/.venv" ]; then
-    source "$DIR/.venv/bin/activate"
-fi
-
-# 1. Iniciar el servidor Flask
-python3 app.py > /dev/null 2>&1 &
-SERVER_PID=$!
-
-# 2. Iniciar el túnel FRP hacia el VPS si está configurado
-if [ -f "$HOME/frp/frpc" ] && [ -f "$HOME/frp/frpc.toml" ]; then
-    $HOME/frp/frpc -c $HOME/frp/frpc.toml > /dev/null 2>&1 &
-    FRP_PID=$!
-fi
-
-sleep 1.2
-
-# 3. Abrir la ventana de la app en Ubuntu
-brave-browser \
-  --user-data-dir="$HOME/.config/tvbox-brave" \
-  --app="http://localhost:5000" \
-  --autoplay-policy=no-user-gesture-required \
-  --disable-session-crashed-bubble \
-  --no-first-run
-
-# 4. Limpieza al cerrar la app
-kill $SERVER_PID 2>/dev/null
-if [ -n "$FRP_PID" ]; then
-    kill $FRP_PID 2>/dev/null
-fi
-```
+Si el archivo existe, **el túnel se conectará automáticamente al abrir la app** y se desconectará al cerrarla, sin que tengas que ejecutar ningún comando adicional.
 
 ---
 
-## 🌐 ¿Cuál es la URL para acceder desde cualquier dispositivo?
+## 🌐 ¿Cuál es la URL final para conectarte desde otros dispositivos?
 
-La dirección que usarás en tu teléfono, tablet o laptop desde cualquier parte del mundo (incluso con datos móviles 4G/5G) es:
+Desde tu teléfono (con datos móviles 4G/5G), tablet o laptop en cualquier parte del mundo, abre el navegador y escribe:
 
-```text
-http://<IP_DE_TU_VPS>:8080
-```
+$$\text{http://} \mathbf{\langle IP\_DE\_TU\_VPS \rangle} \mathbf{:8080}$$
 
-*Donde `<IP_DE_TU_VPS>` es la dirección IP pública que te asigna tu proveedor de hosting (por ejemplo: `http://185.220.101.45:8080`).*
+*(Por ejemplo: `http://185.174.136.25:8080`)*
 
-Nadie en internet podrá ver tu dirección real de casa ni tu proveedor de internet doméstico.
+Nadie en internet podrá ver tu dirección real de casa, tu proveedor de internet doméstico ni tu red local.
