@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "titulo": "Canal 24h Noticias (HLS Directo)",
+    "tipo": "directo",
+    "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+    "categoria": "Noticias",
+    "poster": "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=600"
+  },
+  {
+    "id": 2,
+    "titulo": "Deportes en Vivo (Ejemplo Web)",
+    "tipo": "web",
+    "url": "https://www.youtube.com",
+    "categoria": "Deportes",
+    "poster": "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=600"
+  },
+  {
+    "id": 3,
+    "titulo": "Big Buck Bunny (Video MP4 Directo)",
+    "tipo": "directo",
+    "url": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    "categoria": "Cine",
+    "poster": "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600"
+  }
+]

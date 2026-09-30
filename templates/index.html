@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TV Box Platform</title>
+  <style>
+    :root {
+      --bg-color: #0b0e14;
+      --card-bg: #151b26;
+      --accent: #ff5722;
+      --accent-hover: #ff7043;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --badge-web: #2563eb;
+      --badge-directo: #059669;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      padding: 40px 60px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 35px;
+      border-bottom: 1px solid #1f2937;
+      padding-bottom: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .brand h1 {
+      font-size: 2.2rem;
+      letter-spacing: -0.5px;
+      color: #fff;
+    }
+
+    .brand span {
+      color: var(--accent);
+    }
+
+    .status-badge {
+      background: #1e293b;
+      color: #38bdf8;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .hint-bar {
+      margin-bottom: 25px;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      display: flex;
+      gap: 20px;
+    }
+
+    .hint-bar kbd {
+      background: #1f2937;
+      border: 1px solid #374151;
+      padding: 2px 7px;
+      border-radius: 5px;
+      color: #e5e7eb;
+      font-family: inherit;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 25px;
+      flex: 1;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      overflow: hidden;
+      border: 3px solid transparent;
+      outline: none;
+      cursor: pointer;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                  border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                  box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card:hover,
+    .card:focus,
+    .card.focused {
+      transform: scale(1.05);
+      border-color: var(--accent);
+      box-shadow: 0 12px 30px rgba(255, 87, 34, 0.35);
+      z-index: 10;
+    }
+
+    .thumbnail-wrap {
+      width: 100%;
+      height: 170px;
+      background: #111827;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .thumbnail-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .card:hover .thumbnail-wrap img,
+    .card:focus .thumbnail-wrap img {
+      transform: scale(1.08);
+    }
+
+    .badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #fff;
+    }
+
+    .badge-web { background: var(--badge-web); }
+    .badge-directo { background: var(--badge-directo); }
+
+    .category {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      padding: 4px 9px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      color: #e5e7eb;
+    }
+
+    .card-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1.35;
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--text-muted);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      right: 40px;
+      background: #1e293b;
+      color: #fff;
+      border-left: 4px solid var(--accent);
+      padding: 14px 22px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+      pointer-events: none;
+      font-weight: 500;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <h1>📺 Mi <span>TV Box</span></h1>
+    </div>
+    <div class="status-badge">Linux Edition</div>
+  </header>
+
+  <div class="hint-bar">
+    <span>Navegación: <kbd>←</kbd> <kbd>→</kbd> o <kbd>Tab</kbd></span>
+    <span>Reproducir: <kbd>Enter</kbd></span>
+    <span>Cerrar video: <kbd>Esc</kbd></span>
+  </div>
+
+  <main class="grid" id="grid">
+    {% if canales %}
+      {% for canal in canales %}
+        <div class="card" tabindex="0" onclick="reproducir({{ canal.id }}, '{{ canal.titulo }}')">
+          <div class="thumbnail-wrap">
+            <span class="badge badge-{{ canal.tipo }}">{{ canal.tipo }}</span>
+            {% if canal.categoria %}
+              <span class="category">{{ canal.categoria }}</span>
+            {% endif %}
+            <img src="{{ canal.poster }}" alt="{{ canal.titulo }}" loading="lazy">
+          </div>
+          <div class="card-body">
+            <h2 class="card-title">{{ canal.titulo }}</h2>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <h2>No hay canales configurados</h2>
+        <p>Edita el archivo <code>canales.json</code> para agregar tus fuentes de video.</p>
+      </div>
+    {% endif %}
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    function reproducir(id, titulo) {
+      showToast('Iniciando: ' + titulo + '...');
+      fetch('/play/' + id, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) {
+            showToast('Error: ' + data.error);
+          }
+        })
+        .catch(err => {
+          showToast('Error de conexión');
+        });
+    }
+
+    // Control por teclado (Cruceta de control remoto o flechas)
+    const cards = Array.from(document.querySelectorAll('.card'));
+    let currentIndex = 0;
+
+    if (cards.length > 0) {
+      cards[0].focus();
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (!cards.length) return;
+
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        currentIndex = (currentIndex + 1) % cards.length;
+        cards[currentIndex].focus();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        currentIndex = (currentIndex - 1 + cards.length) % cards.length;
+        cards[currentIndex].focus();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        cards[currentIndex].click();
+      }
+    });
+  </script>
+</body>
+</html>
