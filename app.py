@@ -10,19 +10,58 @@ brave_process = None
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CANALES_FILE = os.path.join(BASE_DIR, "canales.json")
 
+def resolver_url(canal, proveedores):
+    """
+    Resuelve la URL final del canal.
+    - Si tiene 'url' directa, la respeta (canales directos M3U8, YouTube, etc.).
+    - Si tiene 'proveedor' y 'ruta', concatena el dominio base dinámico con la ruta.
+    """
+    if canal.get("url"):
+        return canal["url"]
+
+    proveedor_key = canal.get("proveedor")
+    ruta = canal.get("ruta", "")
+    base_url = proveedores.get(proveedor_key, "")
+
+    if not base_url:
+        return ruta
+
+    return base_url.rstrip("/") + "/" + ruta.lstrip("/")
+
 def cargar_catalogo():
+    """
+    Carga el catálogo soportando:
+    1. Nuevo formato dinámico: { "proveedores": {...}, "canales": [...] }
+    2. Formato clásico: [ {...}, {...} ]
+    """
     if not os.path.exists(CANALES_FILE):
-        return []
+        return {}, []
+
     with open(CANALES_FILE, "r", encoding="utf-8") as f:
         try:
-            return json.load(f)
+            data = json.load(f)
         except json.JSONDecodeError:
-            return []
+            return {}, []
+
+    if isinstance(data, dict):
+        proveedores = data.get("proveedores", {})
+        canales = data.get("canales", [])
+    elif isinstance(data, list):
+        proveedores = {}
+        canales = data
+    else:
+        proveedores, canales = {}, []
+
+    # Asignar la URL final resuelta a cada canal
+    for c in canales:
+        c["url_resuelta"] = resolver_url(c, proveedores)
+
+    return proveedores, canales
 
 @app.route("/")
 def home():
-    canales = cargar_catalogo()
-    return render_template("index.html", canales=canales)
+    proveedores, canales = cargar_catalogo()
+    return render_template("index.html", canales=canales, proveedores=proveedores)
 
 @app.route("/reproductor")
 def reproductor():
@@ -33,17 +72,19 @@ def reproductor():
 @app.route("/play/<int:canal_id>", methods=["POST"])
 def play(canal_id):
     global brave_process
-    canales = cargar_catalogo()
+    proveedores, canales = cargar_catalogo()
     canal = next((c for c in canales if c.get("id") == canal_id), None)
 
     if not canal:
         return jsonify({"error": "Canal no encontrado"}), 404
 
-    # Determinar qué URL abrir
+    target_url = canal.get("url_resuelta") or canal.get("url", "")
+
+    # Determinar si abrir en el reproductor interno o en la web
     if canal.get("tipo") == "directo":
-        target_url = f"http://localhost:5000/reproductor?url={canal['url']}&titulo={canal['titulo']}"
+        final_launch_url = f"http://localhost:5000/reproductor?url={target_url}&titulo={canal['titulo']}"
     else:
-        target_url = canal["url"]
+        final_launch_url = target_url
 
     # Cerrar video en reproducción si ya existe uno abierto
     if brave_process and brave_process.poll() is None:
@@ -59,7 +100,7 @@ def play(canal_id):
         "brave-browser",
         f"--user-data-dir={user_data_dir}",
         "--kiosk",
-        f"--app={target_url}",
+        f"--app={final_launch_url}",
         "--autoplay-policy=no-user-gesture-required",
         "--no-first-run",
         "--disable-session-crashed-bubble"
@@ -67,7 +108,12 @@ def play(canal_id):
 
     try:
         brave_process = subprocess.Popen(cmd)
-        return jsonify({"status": "ok", "tipo": canal.get("tipo"), "url": target_url})
+        return jsonify({
+            "status": "ok", 
+            "tipo": canal.get("tipo"), 
+            "proveedor": canal.get("proveedor"),
+            "url": final_launch_url
+        })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

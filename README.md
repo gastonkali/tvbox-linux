@@ -79,28 +79,47 @@ Puedes abrirla de dos formas:
 * **Cerrar ventana (`X`):** Cierra la app y apaga el servidor en segundo plano.
 
 ### 5. Personalizar tus propios videos (`canales.json`)
-Edita el archivo `canales.json` para agregar tus enlaces y páginas favoritas:
+La app soporta **Dominios Base Dinámicos**. Si un sitio pirata cambia de dominio (ejemplo: de `.lat` a `.vip`), solo cambias la URL en la sección `proveedores` y se actualizan todas las películas automáticamente:
 
 ```json
-[
-  {
-    "id": 1,
-    "titulo": "Noticias 24h",
-    "tipo": "directo",
-    "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
-    "categoria": "Noticias",
-    "poster": "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=600"
+{
+  "proveedores": {
+    "repelis": "https://repelishd.lat",
+    "cuevana": "https://cuevana.biz",
+    "futbol": "https://librefutboltv.net"
   },
-  {
-    "id": 2,
-    "titulo": "Deportes en Vivo Web",
-    "tipo": "web",
-    "url": "https://sitio-streaming.com/partido",
-    "categoria": "Deportes",
-    "poster": "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=600"
-  }
-]
+  "canales": [
+    {
+      "id": 1,
+      "titulo": "Noticias 24h (Stream Directo)",
+      "tipo": "directo",
+      "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+      "categoria": "Noticias",
+      "poster": "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=600"
+    },
+    {
+      "id": 2,
+      "titulo": "Puño de León (Ruta Dinámica)",
+      "tipo": "web",
+      "proveedor": "repelis",
+      "ruta": "/ver-pelicula/25753-puno-de-leon.html",
+      "categoria": "Cine",
+      "poster": "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600"
+    },
+    {
+      "id": 3,
+      "titulo": "Superclásico en Vivo",
+      "tipo": "web",
+      "proveedor": "futbol",
+      "ruta": "/canal-1.html",
+      "categoria": "Deportes",
+      "poster": "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=600"
+    }
+  ]
+}
 ```
+> *Nota: También sigue soportando el formato clásico de lista simple `[ ... ]` con `url` directa para mayor compatibilidad.*
+
 
 ### 6. Automatización de Play en Sitios Web (Opcional)
 Si quieres que las páginas web hagan clic automático en el botón de reproducción:
