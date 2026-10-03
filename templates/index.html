@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TV Box Platform</title>
+  <title>Mi TV Box</title>
   <style>
     :root {
       --bg-color: #0b0e14;
@@ -26,7 +26,7 @@
       background-color: var(--bg-color);
       color: var(--text-main);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      padding: 30px 50px;
+      padding: 25px 40px;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -36,13 +36,19 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
       border-bottom: 1px solid #1f2937;
-      padding-bottom: 18px;
+      padding-bottom: 15px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
     }
 
     .brand h1 {
-      font-size: 2.2rem;
+      font-size: 2.1rem;
       letter-spacing: -0.5px;
       color: #fff;
     }
@@ -51,19 +57,47 @@
       color: var(--accent);
     }
 
-    /* Barra de búsqueda interactiva */
-    .search-section {
+    .catalog-count {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      background: #1f2937;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+
+    .hint-bar {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      display: flex;
+      gap: 16px;
+    }
+
+    .hint-bar kbd {
+      background: #1f2937;
+      border: 1px solid #374151;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #e5e7eb;
+    }
+
+    /* Buscador y categorías */
+    .controls-section {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .search-row {
       display: flex;
       gap: 15px;
       align-items: center;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
     }
 
     .search-box-wrapper {
       position: relative;
       flex: 1;
-      max-width: 500px;
+      max-width: 520px;
     }
 
     .search-box-wrapper input {
@@ -71,7 +105,7 @@
       background: #171d2b;
       border: 2px solid #2d3748;
       border-radius: 12px;
-      padding: 14px 45px 14px 45px;
+      padding: 12px 42px 12px 42px;
       color: #fff;
       font-size: 1.05rem;
       outline: none;
@@ -86,10 +120,10 @@
 
     .search-icon {
       position: absolute;
-      left: 16px;
+      left: 15px;
       top: 50%;
       transform: translateY(-50%);
-      font-size: 1.1rem;
+      font-size: 1rem;
       color: var(--text-muted);
       pointer-events: none;
     }
@@ -102,29 +136,37 @@
       background: #252f42;
       border: 1px solid #374151;
       color: var(--text-muted);
-      font-size: 0.8rem;
-      padding: 3px 8px;
-      border-radius: 6px;
+      font-size: 0.75rem;
+      padding: 2px 7px;
+      border-radius: 5px;
       pointer-events: none;
     }
 
-    /* Pestañas de categorías */
+    .search-status {
+      font-size: 0.9rem;
+      color: #38bdf8;
+      font-weight: 500;
+    }
+
+    /* Pestañas de categorías con scroll suave */
     .categories {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       overflow-x: auto;
-      padding-bottom: 5px;
+      padding-bottom: 6px;
+      scrollbar-width: thin;
     }
 
     .cat-btn {
       background: #171d2b;
       border: 2px solid transparent;
       color: #9ca3af;
-      padding: 8px 18px;
+      padding: 7px 16px;
       border-radius: 20px;
       cursor: pointer;
-      font-size: 0.92rem;
+      font-size: 0.88rem;
       font-weight: 500;
+      white-space: nowrap;
       transition: all 0.2s ease;
       outline: none;
     }
@@ -141,33 +183,17 @@
       font-weight: 600;
     }
 
-    .hint-bar {
-      margin-bottom: 25px;
-      color: var(--text-muted);
-      font-size: 0.88rem;
-      display: flex;
-      gap: 18px;
-    }
-
-    .hint-bar kbd {
-      background: #1f2937;
-      border: 1px solid #374151;
-      padding: 2px 7px;
-      border-radius: 5px;
-      color: #e5e7eb;
-    }
-
     /* Cuadrícula de tarjetas */
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 25px;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 22px;
       flex: 1;
     }
 
     .card {
       background: var(--card-bg);
-      border-radius: 14px;
+      border-radius: 12px;
       overflow: hidden;
       border: 3px solid transparent;
       outline: none;
@@ -175,52 +201,81 @@
       position: relative;
       display: flex;
       flex-direction: column;
-      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
-    }
-
-    .card.hidden {
-      display: none !important;
+      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
     }
 
     .card:hover,
     .card:focus,
     .card.focused {
-      transform: scale(1.05);
+      transform: scale(1.04);
       border-color: var(--accent);
-      box-shadow: 0 12px 30px rgba(255, 87, 34, 0.35);
+      box-shadow: 0 10px 25px rgba(255, 87, 34, 0.35);
       z-index: 10;
     }
 
     .thumbnail-wrap {
       width: 100%;
-      height: 170px;
+      height: 160px;
       background: #111827;
       position: relative;
       overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .thumbnail-wrap img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: transform 0.3s ease;
+      transition: transform 0.25s ease;
     }
 
     .card:hover .thumbnail-wrap img,
     .card:focus .thumbnail-wrap img {
-      transform: scale(1.08);
+      transform: scale(1.06);
+    }
+
+    /* Fallback póster cuando no hay imagen */
+    .poster-fallback {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 15px;
+      text-align: center;
+      color: #64748b;
+    }
+
+    .poster-fallback .icon {
+      font-size: 2.2rem;
+      margin-bottom: 6px;
+      opacity: 0.8;
+    }
+
+    .poster-fallback .fallback-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     .badge {
       position: absolute;
-      top: 12px;
-      left: 12px;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 0.72rem;
+      top: 10px;
+      left: 10px;
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-size: 0.7rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.4px;
       color: #fff;
     }
 
@@ -229,39 +284,73 @@
 
     .category {
       position: absolute;
-      top: 12px;
-      right: 12px;
+      top: 10px;
+      right: 10px;
       background: rgba(0, 0, 0, 0.75);
       backdrop-filter: blur(4px);
-      padding: 4px 9px;
-      border-radius: 6px;
-      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-size: 0.72rem;
       color: #e5e7eb;
+      max-width: 120px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mirrors-badge {
+      position: absolute;
+      bottom: 8px;
+      right: 10px;
+      background: rgba(16, 185, 129, 0.85);
+      color: #fff;
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
     }
 
     .card-body {
-      padding: 16px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
       flex: 1;
     }
 
     .card-title {
-      font-size: 1.15rem;
+      font-size: 1.05rem;
       font-weight: 600;
       color: #fff;
       line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
-    .no-results {
+    /* Estado de carga y mensajes */
+    .loader-wrap {
       grid-column: 1 / -1;
       text-align: center;
-      padding: 80px 20px;
+      padding: 40px;
       color: var(--text-muted);
-      display: none;
+      font-size: 1.1rem;
     }
 
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 70px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state h2 {
+      color: #e2e8f0;
+      margin-bottom: 8px;
+    }
+
+    /* Notificación Toast */
     .toast {
       position: fixed;
       bottom: 30px;
@@ -269,12 +358,12 @@
       background: #1e293b;
       color: #fff;
       border-left: 4px solid var(--accent);
-      padding: 14px 22px;
+      padding: 12px 20px;
       border-radius: 8px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
       opacity: 0;
       transform: translateY(20px);
-      transition: all 0.3s ease;
+      transition: all 0.25s ease;
       pointer-events: none;
       font-weight: 500;
       z-index: 999;
@@ -291,130 +380,220 @@
   <header>
     <div class="brand">
       <h1>📺 Mi <span>TV Box</span></h1>
+      <span class="catalog-count" id="catalogCount">Cargando...</span>
     </div>
     <div class="hint-bar">
       <span>Buscar: <kbd>/</kbd></span>
-      <span>Navegar: <kbd>←</kbd> <kbd>→</kbd> <kbd>Tab</kbd></span>
-      <span>Elegir: <kbd>Enter</kbd></span>
+      <span>Navegar: <kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd></span>
+      <span>Reproducir: <kbd>Enter</kbd></span>
       <span>Cerrar video: <kbd>Esc</kbd></span>
     </div>
   </header>
 
-  <!-- Barra de búsqueda y categorías -->
-  <section class="search-section">
-    <div class="search-box-wrapper">
-      <span class="search-icon">🔍</span>
-      <input type="text" id="searchInput" placeholder="Buscar canal, deporte, película..." autocomplete="off">
-      <span class="search-shortcut">/</span>
+  <section class="controls-section">
+    <div class="search-row">
+      <div class="search-box-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Buscar entre 38.000+ películas y canales..." autocomplete="off">
+        <span class="search-shortcut">/</span>
+      </div>
+      <div class="search-status" id="searchStatus"></div>
     </div>
 
     <div class="categories" id="categoriesContainer">
-      <button class="cat-btn active" data-cat="all">Todos</button>
-      <!-- Categorías dinámicas insertadas por JS -->
+      <button class="cat-btn active" data-cat="Todos">Todos</button>
     </div>
   </section>
 
-  <!-- Cuadrícula de canales -->
   <main class="grid" id="grid">
-    {% if canales %}
-      {% for canal in canales %}
-        <div class="card" 
-             tabindex="0" 
-             data-id="{{ canal.id }}"
-             data-title="{{ canal.titulo | lower }}" 
-             data-category="{{ (canal.categoria or '') | lower }}"
-             onclick="reproducir({{ canal.id }}, '{{ canal.titulo }}')">
-          <div class="thumbnail-wrap">
-            <span class="badge badge-{{ canal.tipo }}">{{ canal.tipo }}</span>
-            {% if canal.categoria %}
-              <span class="category">{{ canal.categoria }}</span>
-            {% endif %}
-            <img src="{{ canal.poster }}" alt="{{ canal.titulo }}" loading="lazy">
-          </div>
-          <div class="card-body">
-            <h2 class="card-title">{{ canal.titulo }}</h2>
-          </div>
-        </div>
-      {% endfor %}
-    {% endif %}
-    
-    <div class="no-results" id="noResults">
-      <h2>No se encontraron canales</h2>
-      <p>Intenta con otra palabra clave o limpia el filtro de búsqueda.</p>
-    </div>
+    <!-- Las tarjetas se generan dinámicamente -->
   </main>
+
+  <div class="loader-wrap" id="loader" style="display: none;">
+    <span>Cargando más contenidos...</span>
+  </div>
 
   <div class="toast" id="toast"></div>
 
   <script>
     const searchInput = document.getElementById('searchInput');
-    const cards = Array.from(document.querySelectorAll('.card'));
-    const noResults = document.getElementById('noResults');
     const categoriesContainer = document.getElementById('categoriesContainer');
-    
-    let activeCategory = 'all';
-    let visibleCards = [...cards];
-    let currentIndex = 0;
+    const grid = document.getElementById('grid');
+    const loader = document.getElementById('loader');
+    const catalogCount = document.getElementById('catalogCount');
+    const searchStatus = document.getElementById('searchStatus');
+    const toast = document.getElementById('toast');
 
-    // 1. Extraer categorías únicas dinámicamente desde las tarjetas
-    const uniqueCategories = new Set();
-    cards.forEach(card => {
-      const cat = card.getAttribute('data-category');
-      if (cat && cat.trim() !== '') {
-        uniqueCategories.add(cat.trim());
+    let currentQuery = '';
+    let currentCategory = 'Todos';
+    let currentPage = 1;
+    let totalPages = 1;
+    let isLoading = false;
+    let searchDebounceTimer = null;
+    let focusedIndex = 0;
+
+    // Toast de notificaciones
+    function showToast(msg) {
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // 1. Cargar Categorías desde la API
+    async function loadCategories() {
+      try {
+        const res = await fetch('/api/categorias');
+        const cats = await res.json();
+        
+        categoriesContainer.innerHTML = '';
+        cats.forEach(cat => {
+          const btn = document.createElement('button');
+          btn.className = `cat-btn ${cat === currentCategory ? 'active' : ''}`;
+          btn.setAttribute('data-cat', cat);
+          btn.innerText = cat;
+          btn.addEventListener('click', () => {
+            if (currentCategory === cat) return;
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentCategory = cat;
+            currentPage = 1;
+            loadItems(true);
+          });
+          categoriesContainer.appendChild(btn);
+        });
+      } catch (err) {
+        console.error('Error cargando categorías:', err);
+      }
+    }
+
+    // 2. Crear el HTML de una tarjeta
+    function createCardElement(item) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.tabIndex = 0;
+      card.setAttribute('data-id', item.id);
+
+      const hasPoster = item.poster && item.poster.trim().length > 0;
+      const posterHtml = hasPoster 
+        ? `<img src="${item.poster}" alt="${item.titulo}" loading="lazy" onerror="this.parentElement.innerHTML = createFallbackPoster('${escapeHtml(item.titulo)}');">`
+        : createFallbackPoster(item.titulo);
+
+      const mirrorCount = item.opciones && item.opciones.length > 1 ? item.opciones.length : 0;
+      const mirrorBadge = mirrorCount > 0 ? `<span class="mirrors-badge">🌐 ${mirrorCount} fuentes</span>` : '';
+      const catBadge = item.categoria ? `<span class="category">${escapeHtml(item.categoria)}</span>` : '';
+
+      card.innerHTML = `
+        <div class="thumbnail-wrap">
+          <span class="badge badge-${item.tipo}">${item.tipo}</span>
+          ${catBadge}
+          ${mirrorBadge}
+          ${posterHtml}
+        </div>
+        <div class="card-body">
+          <h2 class="card-title">${escapeHtml(item.titulo)}</h2>
+        </div>
+      `;
+
+      card.addEventListener('click', () => reproducir(item.id, item.titulo));
+      return card;
+    }
+
+    function createFallbackPoster(title) {
+      return `
+        <div class="poster-fallback">
+          <div class="icon">🎬</div>
+          <div class="fallback-title">${escapeHtml(title)}</div>
+        </div>
+      `;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // 3. Cargar Contenidos desde la API
+    async function loadItems(reset = false) {
+      if (isLoading) return;
+      isLoading = true;
+      loader.style.display = 'block';
+
+      if (reset) {
+        grid.innerHTML = '';
+        currentPage = 1;
+        focusedIndex = 0;
+      }
+
+      const params = new URLSearchParams({
+        page: currentPage,
+        limit: 60,
+        q: currentQuery,
+        categoria: currentCategory
+      });
+
+      try {
+        const res = await fetch(`/api/canales?${params.toString()}`);
+        const data = await res.json();
+
+        totalPages = data.total_pages;
+
+        if (reset) {
+          catalogCount.innerText = `${data.total.toLocaleString()} títulos`;
+          if (currentQuery) {
+            searchStatus.innerText = `Encontrados: ${data.total.toLocaleString()} para "${currentQuery}"`;
+          } else {
+            searchStatus.innerText = '';
+          }
+        }
+
+        if (data.items.length === 0 && reset) {
+          grid.innerHTML = `
+            <div class="empty-state">
+              <h2>No se encontraron resultados</h2>
+              <p>Intenta con otra palabra clave o selecciona la categoría 'Todos'.</p>
+            </div>
+          `;
+        } else {
+          data.items.forEach(item => {
+            const card = createCardElement(item);
+            grid.appendChild(card);
+          });
+        }
+
+        currentPage++;
+      } catch (err) {
+        console.error('Error cargando contenidos:', err);
+        showToast('Error de conexión con el catálogo');
+      } finally {
+        isLoading = false;
+        loader.style.display = 'none';
+      }
+    }
+
+    // 4. Búsqueda instantánea con Debounce
+    searchInput.addEventListener('input', (e) => {
+      clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        currentQuery = e.target.value.trim();
+        loadItems(true);
+      }, 250);
+    });
+
+    // 5. Scroll infinito (Cargar más al llegar al final)
+    window.addEventListener('scroll', () => {
+      if (isLoading || currentPage > totalPages) return;
+      const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+      if (scrollTop + clientHeight >= scrollHeight - 400) {
+        loadItems(false);
       }
     });
 
-    uniqueCategories.forEach(cat => {
-      const btn = document.createElement('button');
-      btn.className = 'cat-btn';
-      btn.setAttribute('data-cat', cat);
-      btn.innerText = cat.charAt(0).toUpperCase() + cat.slice(1);
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        activeCategory = cat;
-        filtrar();
-      });
-      categoriesContainer.appendChild(btn);
-    });
-
-    // 2. Filtro en tiempo real (Búsqueda + Categoría)
-    function filtrar() {
-      const query = searchInput.value.toLowerCase().trim();
-      let matches = 0;
-
-      cards.forEach(card => {
-        const title = card.getAttribute('data-title') || '';
-        const cat = card.getAttribute('data-category') || '';
-
-        const matchText = query === '' || title.includes(query) || cat.includes(query);
-        const matchCat = activeCategory === 'all' || cat === activeCategory;
-
-        if (matchText && matchCat) {
-          card.classList.remove('hidden');
-          matches++;
-        } else {
-          card.classList.add('hidden');
-        }
-      });
-
-      visibleCards = cards.filter(c => !c.classList.contains('hidden'));
-      noResults.style.display = matches === 0 ? 'block' : 'none';
-      currentIndex = 0;
-    }
-
-    searchInput.addEventListener('input', filtrar);
-
-    // Botón "Todos"
-    document.querySelector('.cat-btn[data-cat="all"]').addEventListener('click', (e) => {
-      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-      e.target.classList.add('active');
-      activeCategory = 'all';
-      filtrar();
-    });
-
-    // 3. Control y Atajos de Teclado
+    // 6. Navegación por Teclado / Control Remoto
     window.addEventListener('keydown', (e) => {
       // Presionar '/' enfoca el buscador de inmediato
       if (e.key === '/' && document.activeElement !== searchInput) {
@@ -424,61 +603,93 @@
         return;
       }
 
-      // Si estamos en el buscador y presionamos Flecha Abajo o Enter
+      // Si estamos en el buscador
       if (document.activeElement === searchInput) {
         if (e.key === 'ArrowDown' || e.key === 'Enter') {
           e.preventDefault();
-          if (visibleCards.length > 0) {
-            visibleCards[0].focus();
-            currentIndex = 0;
+          const firstCard = grid.querySelector('.card');
+          if (firstCard) {
+            firstCard.focus();
+            focusedIndex = 0;
           }
         } else if (e.key === 'Escape') {
           searchInput.value = '';
-          filtrar();
+          currentQuery = '';
+          loadItems(true);
           searchInput.blur();
         }
         return;
       }
 
-      // Navegación por las tarjetas visibles
-      if (!visibleCards.length) return;
+      // Navegación dentro de las tarjetas
+      const cards = Array.from(grid.querySelectorAll('.card'));
+      if (!cards.length) return;
+
+      const currentFocused = document.activeElement;
+      let idx = cards.indexOf(currentFocused);
+      if (idx === -1) idx = 0;
+
+      const cardsPerRow = getCardsPerRow();
 
       if (e.key === 'ArrowRight') {
         e.preventDefault();
-        currentIndex = (currentIndex + 1) % visibleCards.length;
-        visibleCards[currentIndex].focus();
+        if (idx + 1 < cards.length) {
+          cards[idx + 1].focus();
+        }
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        currentIndex = (currentIndex - 1 + visibleCards.length) % visibleCards.length;
-        visibleCards[currentIndex].focus();
-      } else if (e.key === 'Enter') {
+        if (idx - 1 >= 0) {
+          cards[idx - 1].focus();
+        }
+      } else if (e.key === 'ArrowDown') {
         e.preventDefault();
-        visibleCards[currentIndex].click();
+        if (idx + cardsPerRow < cards.length) {
+          cards[idx + cardsPerRow].focus();
+        } else if (currentPage <= totalPages && !isLoading) {
+          // Si estamos al fondo de la grilla, cargar más
+          loadItems(false).then(() => {
+            const updatedCards = grid.querySelectorAll('.card');
+            if (updatedCards[idx + cardsPerRow]) updatedCards[idx + cardsPerRow].focus();
+          });
+        }
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (idx - cardsPerRow >= 0) {
+          cards[idx - cardsPerRow].focus();
+        } else {
+          // Si sube al principio, enfocar buscador
+          searchInput.focus();
+        }
+      } else if (e.key === 'Enter' && currentFocused.classList.contains('card')) {
+        e.preventDefault();
+        currentFocused.click();
       }
     });
 
-    // Reproducir canal
+    function getCardsPerRow() {
+      const cards = grid.querySelectorAll('.card');
+      if (cards.length < 2) return 1;
+      const firstTop = cards[0].offsetTop;
+      for (let i = 1; i < cards.length; i++) {
+        if (cards[i].offsetTop > firstTop) return i;
+      }
+      return cards.length;
+    }
+
+    // 7. Reproducir Contenido
     function reproducir(id, titulo) {
-      showToast('Iniciando: ' + titulo + '...');
+      showToast('Lanzando: ' + titulo + '...');
       fetch('/play/' + id, { method: 'POST' })
         .then(res => res.json())
         .then(data => {
           if (data.error) showToast('Error: ' + data.error);
         })
-        .catch(() => showToast('Error de conexión con el reproductor'));
+        .catch(() => showToast('Error al conectar con Brave'));
     }
 
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      toast.innerText = msg;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 3000);
-    }
-
-    // Foco inicial
-    if (cards.length > 0) {
-      cards[0].focus();
-    }
+    // Inicializar app
+    loadCategories();
+    loadItems(true);
   </script>
 </body>
 </html>
