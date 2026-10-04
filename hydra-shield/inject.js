@@ -69,4 +69,37 @@
       });
     }
   } catch(e) {}
+
+  // 5. Interceptar y filtrar temporadas vacías (Temporada 0) en Next.js (PoseidonHD, etc.)
+  function sanitizarNextData(data) {
+    try {
+      if (!data || !data.props || !data.props.pageProps) return data;
+      const serie = data.props.pageProps.thisSerie || data.props.pageProps.thisMovie;
+      if (serie && Array.isArray(serie.seasons)) {
+        // Filtrar temporadas que tengan 0 episodios (ej. Temporada 0 vacía)
+        const conEpisodios = serie.seasons.filter(s => Array.isArray(s.episodes) && s.episodes.length > 0);
+        if (conEpisodios.length > 0) {
+          serie.seasons = conEpisodios;
+        }
+      }
+    } catch(e) {}
+    return data;
+  }
+
+  let _nextDataVal = undefined;
+  try {
+    Object.defineProperty(window, '__NEXT_DATA__', {
+      get: function() {
+        return _nextDataVal;
+      },
+      set: function(val) {
+        _nextDataVal = sanitizarNextData(val);
+      },
+      configurable: true
+    });
+  } catch(e) {}
+
+  if (window.__NEXT_DATA__) {
+    sanitizarNextData(window.__NEXT_DATA__);
+  }
 })();

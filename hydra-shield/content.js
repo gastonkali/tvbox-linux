@@ -337,9 +337,70 @@
     } catch(err) {}
   }
 
+  // 6. Corrección de Temporadas Vacías (Temporada 0) en Series
+  function corregirTemporadas() {
+    try {
+      // A. Dropdown de temporadas (<select id="select-season"> en PoseidonHD o similares)
+      const selectSeasons = document.querySelectorAll('#select-season, select[name*="season" i], select[class*="season" i]');
+      selectSeasons.forEach(selectEl => {
+        const options = Array.from(selectEl.options);
+        if (!options.length) return;
+
+        // Buscar si existe opción 0 o vacía
+        const optCero = options.find(o => o.value === '0' || o.text.toLowerCase().includes('temporada 0') || o.text.toLowerCase().includes('season 0'));
+        const optValida = options.find(o => o.value === '1' || o.text.toLowerCase().includes('temporada 1') || o.text.toLowerCase().includes('season 1'))
+                          || options.find(o => o !== optCero);
+
+        // Contenedor de episodios en pantalla
+        const epContainer = document.querySelector('.all-episodes, .episodes, ul.MovieList, #episodes, .episode-list');
+        const tieneEpisodios = epContainer && epContainer.querySelectorAll('li, .episode-item, article, a').length > 0;
+
+        // Si la temporada actual seleccionada es 0 o está vacía y existe una temporada con contenido
+        if (optCero && optValida) {
+          if (selectEl.value === optCero.value || !tieneEpisodios) {
+            console.warn('[Hydra Shield] Temporada 0 vacía detectada. Cambiando automáticamente a:', optValida.text);
+
+            // Cambiar usando setter nativo para activar el observer de React/Next.js
+            const valueSetter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, 'value')?.set;
+            if (valueSetter) {
+              valueSetter.call(selectEl, optValida.value);
+            } else {
+              selectEl.value = optValida.value;
+            }
+
+            selectEl.dispatchEvent(new Event('input', { bubbles: true }));
+            selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+
+            // Eliminar la opción 0 vacía del menú desplegable para que no aparezca
+            optCero.remove();
+          } else if (tieneEpisodios && selectEl.value !== optCero.value) {
+            // Ya estamos en la temporada 1, eliminar opción 0 residual
+            optCero.remove();
+          }
+        }
+      });
+
+      // B. Botones o pestañas de temporada (ej. [data-season="0"], .season-tab)
+      const tabsCero = document.querySelectorAll('[data-season="0"], .season-item, .season-btn, .seasons li');
+      tabsCero.forEach(tab => {
+        const txt = tab.textContent.toLowerCase();
+        if (txt.includes('temporada 0') || txt.includes('season 0') || tab.getAttribute('data-season') === '0') {
+          tab.style.display = 'none';
+          tab.remove();
+
+          if (tab.classList.contains('active') || tab.classList.contains('current')) {
+            const tabUno = document.querySelector('[data-season="1"], .season-item:nth-child(2), .season-btn:nth-child(2)');
+            if (tabUno) tabUno.click();
+          }
+        }
+      });
+    } catch(err) {}
+  }
+
   inyectarEstilosHydraTV();
   inyectarBarraSuperiorHydra();
   camuflarTextos();
+  corregirTemporadas();
   limpiarCapasYTrampas();
   acelerarReproduccion();
 
@@ -347,6 +408,7 @@
     inyectarEstilosHydraTV();
     inyectarBarraSuperiorHydra();
     camuflarTextos();
+    corregirTemporadas();
     limpiarCapasYTrampas();
     acelerarReproduccion();
   }, 250);
@@ -356,6 +418,7 @@
     const slowInterval = setInterval(() => {
       inyectarBarraSuperiorHydra();
       camuflarTextos();
+      corregirTemporadas();
       limpiarCapasYTrampas();
       acelerarReproduccion();
     }, 1200);
@@ -366,6 +429,7 @@
     inyectarEstilosHydraTV();
     inyectarBarraSuperiorHydra();
     camuflarTextos();
+    corregirTemporadas();
     limpiarCapasYTrampas();
     acelerarReproduccion();
   });
