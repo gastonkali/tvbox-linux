@@ -29,7 +29,7 @@
     {
       "matches": ["*://challenges.cloudflare.com/*"],
       "js": ["turnstile.js"],
-      "run_at": "document_interactive",
+      "run_at": "document_end",
       "all_frames": true
     }
   ]
