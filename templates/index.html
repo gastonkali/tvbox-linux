@@ -246,6 +246,36 @@
       background: #000;
     }
 
+    .hero-video-wrap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity 1.2s ease-in-out;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .hero-video-wrap.active {
+      opacity: 1;
+    }
+
+    .hero-video-wrap iframe {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100vw;
+      height: 56.25vw;
+      min-height: 100%;
+      min-width: 177.77vh;
+      transform: translate(-50%, -50%) scale(1.15);
+      pointer-events: none;
+      filter: brightness(0.72) contrast(1.05);
+    }
+
     .hero-backdrop {
       position: absolute;
       top: 0;
@@ -255,7 +285,12 @@
       object-fit: cover;
       object-position: top center;
       filter: brightness(0.65);
-      transition: opacity 0.6s ease;
+      transition: opacity 1s ease;
+      z-index: 2;
+    }
+
+    .hero-backdrop.fade-out {
+      opacity: 0;
     }
 
     .hero-gradient {
@@ -266,6 +301,7 @@
       height: 100%;
       background: linear-gradient(90deg, rgba(10, 11, 14, 0.95) 0%, rgba(10, 11, 14, 0.7) 45%, rgba(10, 11, 14, 0.2) 100%),
                   linear-gradient(0deg, var(--bg-dark) 0%, rgba(10, 11, 14, 0.4) 40%, transparent 100%);
+      z-index: 3;
     }
 
     .hero-content {
@@ -394,6 +430,193 @@
     .btn-hero-list:focus {
       background: rgba(255, 255, 255, 0.35);
       transform: scale(1.04);
+    }
+
+    .btn-hero-trailer {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      font-size: 1.05rem;
+      font-weight: 600;
+      padding: 12px 22px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    .btn-hero-trailer:hover,
+    .btn-hero-trailer:focus {
+      background: rgba(255, 255, 255, 0.35);
+      border-color: #fff;
+      transform: scale(1.04);
+    }
+
+    .hero-sound-btn {
+      position: absolute;
+      bottom: 60px;
+      right: 48px;
+      z-index: 20;
+      background: rgba(10, 11, 14, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #fff;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      outline: none;
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-sound-btn:hover,
+    .hero-sound-btn:focus {
+      background: var(--accent);
+      border-color: var(--accent);
+      transform: scale(1.12);
+      box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    /* BOTÓN TRAILER EN TARJETAS */
+    .card-trailer-btn {
+      position: absolute;
+      bottom: 60px;
+      left: 8px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 5;
+    }
+
+    .card:hover .card-trailer-btn,
+    .card:focus .card-trailer-btn {
+      opacity: 1;
+    }
+
+    .card-trailer-btn:hover {
+      transform: scale(1.15);
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* MODAL DE TRAILER OFICIAL (OPCIÓN 2) */
+    .trailer-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 3000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .trailer-modal.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .trailer-modal-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .trailer-modal-dialog {
+      position: relative;
+      z-index: 10;
+      width: 90%;
+      max-width: 960px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 25px var(--accent-glow);
+      transform: scale(0.95);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .trailer-modal.open .trailer-modal-dialog {
+      transform: scale(1);
+    }
+
+    .trailer-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .trailer-modal-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .trailer-modal-close {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--border-subtle);
+      color: #fff;
+      font-size: 1.1rem;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .trailer-modal-close:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      transform: scale(1.1);
+    }
+
+    .trailer-modal-player-wrap {
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+      background: #000;
+    }
+
+    .trailer-modal-player-wrap iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
     }
 
     /* FILAS HORIZONTALES (RAILS TIPO NETFLIX) */
@@ -991,6 +1214,10 @@
     <div id="viewHome">
       <!-- HERO BILLBOARD DESTACADO -->
       <section class="hero" id="heroBillboard">
+        <!-- Fondo de video dinámico para trailers estilo Netflix -->
+        <div class="hero-video-wrap" id="heroVideoWrap">
+          <iframe id="heroVideoFrame" src="" allow="autoplay; encrypted-media" frameborder="0"></iframe>
+        </div>
         <img class="hero-backdrop" id="heroBackdrop" src="" alt="Portada Destacada">
         <div class="hero-gradient"></div>
         <div class="hero-content">
@@ -1005,9 +1232,12 @@
           <div class="hero-actions">
             <button class="btn-hero-play" id="heroBtnPlay">▶ Reproducir</button>
             <button class="btn-hero-tv" id="heroBtnTv">📺 Enviar a la TV</button>
+            <button class="btn-hero-trailer" id="heroBtnTrailer">🎬 Ver Trailer</button>
             <button class="btn-hero-list" id="heroBtnList">+ Mi Lista</button>
           </div>
         </div>
+        <!-- Botón flotante de control de sonido del trailer -->
+        <button class="hero-sound-btn" id="heroSoundBtn" title="Activar sonido" style="display: none;">🔇</button>
       </section>
 
       <!-- FILAS TEMÁTICAS TIPO NETFLIX -->
@@ -1054,6 +1284,22 @@
     </div>
   </main>
 
+  <!-- MODAL DE TRAILER OFICIAL (OPCIÓN 2) -->
+  <div class="trailer-modal" id="trailerModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="trailerModalTitle">
+    <div class="trailer-modal-backdrop" id="trailerModalBackdrop"></div>
+    <div class="trailer-modal-dialog">
+      <div class="trailer-modal-header">
+        <h3 class="trailer-modal-title" id="trailerModalTitle">🎬 Trailer Oficial</h3>
+        <button class="trailer-modal-close" id="trailerModalClose" title="Cerrar (Esc)">✕</button>
+      </div>
+      <div class="trailer-modal-body">
+        <div class="trailer-modal-player-wrap">
+          <iframe id="trailerModalFrame" src="" allow="autoplay; encrypted-media; fullscreen" allowfullscreen frameborder="0"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST FLOTANTE -->
   <div class="toast" id="toast"></div>
 
@@ -1073,6 +1319,8 @@
       totalItems: 0,
       playbackTarget: (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'tv' : 'here',
       heroItem: null,
+      heroTrailerTimer: null,
+      heroSoundMuted: true,
       myList: new Set(JSON.parse(localStorage.getItem('hydra_my_list') || '[]'))
     };
 
@@ -1090,13 +1338,23 @@
       btnPlayTv: document.getElementById('btnPlayTv'),
       viewHome: document.getElementById('viewHome'),
       viewGrid: document.getElementById('viewGrid'),
+      heroBillboard: document.getElementById('heroBillboard'),
+      heroVideoWrap: document.getElementById('heroVideoWrap'),
+      heroVideoFrame: document.getElementById('heroVideoFrame'),
       heroBackdrop: document.getElementById('heroBackdrop'),
       heroTitle: document.getElementById('heroTitle'),
       heroYear: document.getElementById('heroYear'),
       heroDesc: document.getElementById('heroDesc'),
       heroBtnPlay: document.getElementById('heroBtnPlay'),
       heroBtnTv: document.getElementById('heroBtnTv'),
+      heroBtnTrailer: document.getElementById('heroBtnTrailer'),
       heroBtnList: document.getElementById('heroBtnList'),
+      heroSoundBtn: document.getElementById('heroSoundBtn'),
+      trailerModal: document.getElementById('trailerModal'),
+      trailerModalBackdrop: document.getElementById('trailerModalBackdrop'),
+      trailerModalTitle: document.getElementById('trailerModalTitle'),
+      trailerModalClose: document.getElementById('trailerModalClose'),
+      trailerModalFrame: document.getElementById('trailerModalFrame'),
       railsContainer: document.getElementById('railsContainer'),
       gridTitle: document.getElementById('gridTitle'),
       gridSubtitle: document.getElementById('gridSubtitle'),
@@ -1191,6 +1449,7 @@
         el.viewGrid.style.display = 'none';
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
+        detenerHeroTrailer();
         el.viewHome.style.display = 'none';
         el.viewGrid.style.display = 'block';
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1219,6 +1478,7 @@
           el.heroYear.innerText = data.hero.anio || '2026';
           el.heroBackdrop.src = data.hero.poster ? data.hero.poster.replace('/w500/', '/original/') : '';
           updateHeroListBtn();
+          iniciarHeroTrailer(data.hero);
         }
 
         // Renderizar Filas Temáticas
@@ -1293,6 +1553,7 @@
           ${yearBadge}
           ${typeBadge}
           <img class="card-poster" src="${posterUrl}" alt="${escapeHtml(item.titulo)}" loading="lazy">
+          <button class="card-trailer-btn" title="Ver Trailer Oficial">🎬</button>
           <button class="card-fav-btn" title="${isFav ? 'Quitar de Mi Lista' : 'Agregar a Mi Lista'}">${isFav ? '★' : '☆'}</button>
         </div>
         <div class="card-info">
@@ -1306,7 +1567,7 @@
 
       // Clic para reproducir
       card.addEventListener('click', (e) => {
-        if (e.target.closest('.card-fav-btn')) return;
+        if (e.target.closest('.card-fav-btn') || e.target.closest('.card-trailer-btn')) return;
         ejecutarReproduccion(item);
       });
 
@@ -1325,7 +1586,120 @@
         toggleFavorito(item, favBtn);
       });
 
+      // Botón ver trailer
+      const trailerBtn = card.querySelector('.card-trailer-btn');
+      trailerBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        abrirModalTrailer(item.titulo, item.anio);
+      });
+
       return card;
+    }
+
+    // 3.1 SISTEMA DE TRAILERS DINÁMICOS (ESTILO NETFLIX HERO & MODAL)
+    function iniciarHeroTrailer(item) {
+      detenerHeroTrailer();
+      if (!item || !item.titulo) return;
+
+      // Esperar 2.2 segundos para no sobrecargar si el usuario sólo pasa de largo
+      state.heroTrailerTimer = setTimeout(async () => {
+        if (state.view !== 'home' || window.scrollY > 250) return;
+
+        try {
+          const res = await fetch(`/api/trailer?q=${encodeURIComponent(item.titulo)}&anio=${item.anio || ''}`);
+          const data = await res.json();
+
+          if (data && data.videoId && state.view === 'home' && window.scrollY < 250) {
+            state.heroTrailerVideoId = data.videoId;
+            state.heroSoundMuted = true;
+            el.heroSoundBtn.innerText = '🔇';
+            el.heroSoundBtn.title = 'Activar sonido';
+
+            // Cargar iframe de YouTube en bucle silencioso
+            const embedUrl = `https://www.youtube-nocookie.com/embed/${data.videoId}?enablejsapi=1&autoplay=1&mute=1&controls=0&loop=1&playlist=${data.videoId}&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3`;
+            el.heroVideoFrame.src = embedUrl;
+
+            el.heroVideoFrame.onload = () => {
+              setTimeout(() => {
+                if (state.view === 'home' && el.heroVideoFrame.src) {
+                  el.heroVideoWrap.classList.add('active');
+                  el.heroBackdrop.classList.add('fade-out');
+                  el.heroSoundBtn.style.display = 'flex';
+                }
+              }, 600);
+            };
+          }
+        } catch (e) {
+          console.warn('Trailer en marquesina no disponible:', e);
+        }
+      }, 2200);
+    }
+
+    function detenerHeroTrailer() {
+      if (state.heroTrailerTimer) {
+        clearTimeout(state.heroTrailerTimer);
+        state.heroTrailerTimer = null;
+      }
+      if (el.heroVideoWrap) el.heroVideoWrap.classList.remove('active');
+      if (el.heroBackdrop) el.heroBackdrop.classList.remove('fade-out');
+      if (el.heroSoundBtn) el.heroSoundBtn.style.display = 'none';
+      if (el.heroVideoFrame && el.heroVideoFrame.src) {
+        el.heroVideoFrame.src = '';
+      }
+      state.heroTrailerVideoId = null;
+    }
+
+    function toggleHeroSound() {
+      if (!el.heroVideoFrame || !el.heroVideoFrame.contentWindow) return;
+      state.heroSoundMuted = !state.heroSoundMuted;
+
+      if (state.heroSoundMuted) {
+        el.heroVideoFrame.contentWindow.postMessage('{"event":"command","func":"mute","args":""}', '*');
+        el.heroSoundBtn.innerText = '🔇';
+        el.heroSoundBtn.title = 'Activar sonido';
+        showToast('Trailer en silencio 🔇');
+      } else {
+        el.heroVideoFrame.contentWindow.postMessage('{"event":"command","func":"unMute","args":""}', '*');
+        el.heroVideoFrame.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[100]}', '*');
+        el.heroSoundBtn.innerText = '🔊';
+        el.heroSoundBtn.title = 'Silenciar';
+        showToast('Sonido activado 🔊');
+      }
+    }
+
+    // MODAL DE TRAILER OFICIAL (OPCIÓN 2)
+    async function abrirModalTrailer(titulo, anio) {
+      if (!titulo) return;
+      detenerHeroTrailer(); // Silenciar trailer de marquesina
+
+      el.trailerModalTitle.innerText = `🎬 Trailer Oficial: ${titulo}`;
+      el.trailerModalFrame.src = '';
+      el.trailerModal.style.display = 'flex';
+      setTimeout(() => el.trailerModal.classList.add('open'), 10);
+      showToast(`Buscando trailer de: ${titulo}...`);
+
+      try {
+        const res = await fetch(`/api/trailer?q=${encodeURIComponent(titulo)}&anio=${anio || ''}`);
+        const data = await res.json();
+
+        if (data && data.videoId) {
+          el.trailerModalFrame.src = `https://www.youtube-nocookie.com/embed/${data.videoId}?autoplay=1&controls=1&modestbranding=1&rel=0`;
+        } else {
+          showToast('No se encontró trailer disponible para este título');
+          cerrarModalTrailer();
+        }
+      } catch (e) {
+        showToast('Error de conexión cargando trailer');
+        cerrarModalTrailer();
+      }
+    }
+
+    function cerrarModalTrailer() {
+      el.trailerModal.classList.remove('open');
+      setTimeout(() => {
+        el.trailerModal.style.display = 'none';
+        el.trailerModalFrame.src = '';
+      }, 300);
     }
 
     // 4. VISTA DE CUADRÍCULA PAGINADA (SIN SCROLL INFINITO)
@@ -1703,6 +2077,31 @@
           updateHeroListBtn();
         }
       });
+      el.heroBtnTrailer.addEventListener('click', () => {
+        if (state.heroItem) abrirModalTrailer(state.heroItem.titulo, state.heroItem.anio);
+      });
+      el.heroSoundBtn.addEventListener('click', toggleHeroSound);
+
+      // Eventos del Modal de Trailer Oficial
+      el.trailerModalClose.addEventListener('click', cerrarModalTrailer);
+      el.trailerModalBackdrop.addEventListener('click', cerrarModalTrailer);
+
+      // Pausar trailer de marquesina al hacer scroll hacia abajo
+      let scrollTimer;
+      window.addEventListener('scroll', () => {
+        if (state.view === 'home') {
+          if (window.scrollY > 260) {
+            detenerHeroTrailer();
+          } else if (window.scrollY < 60 && !el.heroVideoFrame.src && state.heroItem) {
+            clearTimeout(scrollTimer);
+            scrollTimer = setTimeout(() => {
+              if (window.scrollY < 60 && state.view === 'home' && state.heroItem) {
+                iniciarHeroTrailer(state.heroItem);
+              }
+            }, 800);
+          }
+        }
+      }, { passive: true });
 
       // Target Switcher
       el.btnPlayHere.addEventListener('click', () => {
@@ -1773,8 +2172,12 @@
           return;
         }
 
-        // Tecla Escape para salir del buscador
+        // Tecla Escape para salir del buscador o cerrar el modal de trailer
         if (e.key === 'Escape') {
+          if (el.trailerModal.classList.contains('open')) {
+            cerrarModalTrailer();
+            return;
+          }
           if (document.activeElement === el.searchInput) {
             el.searchInput.blur();
           } else if (state.view === 'grid') {

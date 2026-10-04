@@ -3,6 +3,8 @@ import os
 import subprocess
 import unicodedata
 import re
+import urllib.request
+import urllib.parse
 from collections import defaultdict
 from flask import Flask, render_template, jsonify, request
 
@@ -116,12 +118,13 @@ def formatear_item_api(item):
 
 GENRES_MAP = {
     "accion": [
-        "accion", "action", "mision", "mission", "rapidos", "furious", "fast", "bad boys", "venganza",
+        "accion", "action", "mision imposible", "mision rescate", "rapidos", "furious", "fast", "bad boys", "venganza",
         "revenge", "batman", "spider", "avengers", "gladiador", "gladiator", "furia", "fury", "rescat",
-        "rescue", "arma", "weapon", "policia", "cop", "pelea", "fight", "combate", "combat", "guerra",
+        "rescue", "arma mortal", "armas de fuego", "policia", "cop", "pelea", "fight", "combate", "combat", "guerra",
         "war", "soldier", "soldado", "sniper", "francotirador", "john wick", "hitman", "asesino",
-        "fuerza", "comando", "fuerzas especiales", "operacion", "tactica", "infiltrado", "fuego", "fire",
-        "bullet", "bala", "golpe", "strike", "ataque", "attack", "ninja", "samurai", "mercenario", "die hard",
+        "fuerzas especiales", "fuerza delta", "comando", "operacion militar", "operacion rescate", "operacion especial",
+        "black ops", "tactica", "infiltrado", "fuego cruzado", "bajo fuego", "bullet", "bala", "golpe letal", "golpe maestro",
+        "strike", "ataque", "attack", "ninja", "samurai", "mercenario", "die hard",
         "superman", "iron man", "hulk", "thor", "wolverine", "deadpool"
     ],
     "ciencia-ficcion": [
@@ -137,10 +140,10 @@ GENRES_MAP = {
         "resident evil", "saw", "exorcista", "exorcist", "warren", "muerte", "death", "dead", "miedo",
         "fear", "panico", "panic", "insidious", "pesadilla", "nightmare", "demonio", "demon", "devil",
         "siniestro", "sinister", "monstruo", "monster", "zombie", "halloween", "terror", "horror",
-        "espanto", "grito", "scream", "noche", "night", "sangre", "blood", "maldicion", "curse",
-        "fantasma", "ghost", "posesion", "possession", "bruja", "witch", "infierno", "hell", "oscuro",
-        "dark", "evil", "parafisico", "paranormal", "gore", "carnicero", "cementerio", "tumba", "silence",
-        "dracula", "vampir", "licantropo"
+        "espanto", "grito", "scream", "noche de terror", "noche sangrienta", "noche de los muertos", "noche de brujas", "noche eterna",
+        "sangre", "blood", "maldicion", "curse", "fantasma", "ghost", "posesion", "possession", "bruja", "witch",
+        "infierno", "hell", "oscuro", "dark", "evil", "parafisico", "paranormal", "gore", "carnicero", "cementerio",
+        "tumba", "silence", "dracula", "vampir", "licantropo"
     ],
     "comedia": [
         "comedia", "comedy", "risa", "laugh", "loco", "crazy", "fiesta", "party", "tonto", "dumb",
@@ -150,7 +153,7 @@ GENRES_MAP = {
         "chicas", "amiga", "locura", "desastre"
     ],
     "drama": [
-        "drama", "vida", "life", "historia", "story", "verdad", "truth", "dolor", "pain", "destino",
+        "drama", "vida de", "vida real", "historia real", "vida o muerte", "historia", "story", "verdad", "truth", "dolor", "pain", "destino",
         "destiny", "promesa", "promise", "adios", "goodbye", "recuerdos", "memories", "hijo", "hija",
         "madre", "padre", "hermano", "perdon", "silencio", "lagrimas", "secreto", "secret", "pasion",
         "pobreza", "justicia", "juicio", "tribunal", "enfermedad", "hospital", "amor imposible", "olvidada",
@@ -161,7 +164,8 @@ GENRES_MAP = {
         "intensamente", "moana", "animacion", "animation", "anime", "nino", "kids", "infantil", "dibujo",
         "cartoon", "pokemon", "naruto", "dragon ball", "encanto", "coco", "nemo", "dory", "cars",
         "monsters", "era de hielo", "ice age", "madagascar", "panda", "sonic", "mickey", "reino magico",
-        "peter pan", "aladdin", "cenicienta", "pinocho", "mulan"
+        "peter pan", "aladdin", "cenicienta", "pinocho", "mulan", "castor", "bob esponja", "spongebob",
+        "mi villano favorito", "paw patrol", "zootopia", "zootropolis", "garfield"
     ],
     "crimen-suspenso": [
         "crimen", "crime", "misterio", "mystery", "mafia", "detective", "robo", "heist", "robbery",
@@ -184,6 +188,15 @@ GENRES_MAP = {
         "hobbit", "senor de los anillos", "harry potter", "narnia"
     ]
 }
+
+# Palabras clave exclusivas de animación/infantil para evitar falsos positivos en Acción, Terror o Crimen
+KEYWORDS_ANIMACION_EXCLUSION = [
+    "pixar", "disney", "minions", "shrek", "toy story", "kung fu panda", "castor",
+    "dibujo", "cartoon", "infantil", "nemo", "dory", "frozen", "moana", "encanto",
+    "coco", "intensamente", "cars", "era de hielo", "ice age", "madagascar", "aladdin",
+    "pinocho", "cenicienta", "mario bros", "bob esponja", "spongebob", "peppa pig",
+    "mi villano favorito", "paw patrol", "zootopia", "zootropolis", "garfield"
+]
 
 def construir_home_feed():
     global HOME_FEED_CACHE
@@ -555,6 +568,10 @@ def api_canales():
         kws = GENRES_MAP[genero]
         filtrados = [x for x in filtrados if any(k in (x.get("titulo", "") + " " + x.get("url", "")).lower() for k in kws)]
 
+        # Si el usuario busca acción, terror o crimen, excluir películas puramente infantiles o animadas
+        if genero in ["accion", "terror", "crimen-suspenso"]:
+            filtrados = [x for x in filtrados if not any(k in (x.get("titulo", "") + " " + x.get("url", "")).lower() for k in KEYWORDS_ANIMACION_EXCLUSION)]
+
     total = len(filtrados)
     total_pages = (total + limit - 1) // limit if total > 0 else 1
     start = (page - 1) * limit
@@ -572,6 +589,46 @@ def api_canales():
         "genero": genero,
         "items": resultado
     })
+
+TRAILERS_CACHE = {}
+
+@app.route("/api/trailer")
+def api_trailer():
+    """Devuelve el ID y URL del trailer oficial de YouTube en español latino."""
+    query = request.args.get("q", "").strip()
+    anio = request.args.get("anio", "").strip()
+    if not query:
+        return jsonify({"videoId": None, "error": "Query requerido"}), 400
+
+    cache_key = f"{query.lower()}_{anio}"
+    if cache_key in TRAILERS_CACHE:
+        return jsonify(TRAILERS_CACHE[cache_key])
+
+    q_search = f"{query} {anio} trailer oficial latino" if anio else f"{query} trailer oficial latino"
+    yt_url = "https://www.youtube.com/results?search_query=" + urllib.parse.quote(q_search)
+    req = urllib.request.Request(
+        yt_url,
+        headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept-Language": "es-419,es;q=0.9,en;q=0.8"
+        }
+    )
+    try:
+        html = urllib.request.urlopen(req, timeout=4).read().decode("utf-8", errors="ignore")
+        vids = list(dict.fromkeys(re.findall(r'\/watch\?v=([a-zA-Z0-9_-]{11})', html)))
+        if vids:
+            video_id = vids[0]
+            res_data = {
+                "videoId": video_id,
+                "embedUrl": f"https://www.youtube-nocookie.com/embed/{video_id}",
+                "query": query
+            }
+            TRAILERS_CACHE[cache_key] = res_data
+            return jsonify(res_data)
+        else:
+            return jsonify({"videoId": None, "error": "No se encontró trailer"})
+    except Exception as e:
+        return jsonify({"videoId": None, "error": str(e)})
 
 @app.route("/reproductor")
 def reproductor():
