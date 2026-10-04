@@ -277,6 +277,13 @@ def buscar_catalogo(query_str, categoria_filtro=None):
         if tokens_hit == num_tokens and num_tokens > 1:
             score += 800  # Gran bono si todos los términos de búsqueda están presentes
 
+        # Bonus por año reciente (los estrenos y versiones modernas se posicionan primero)
+        year_match = re.search(r'\b(19\d\d|20\d\d)\b', item.get("titulo", ""))
+        if year_match:
+            year_val = int(year_match.group(1))
+            if 1970 <= year_val <= 2030:
+                score += (year_val - 1970) * 20
+
         # Penalización suave por longitud excesiva para favorecer títulos más concisos
         score -= min(100, len(title) * 0.3)
         scored.append((score, item))
