@@ -1706,8 +1706,11 @@
         el.gridTitle.innerText = `Búsqueda: "${query}"`;
         el.gridSubtitle.innerText = 'Buscando en más de 32,000 títulos...';
       } else if (seccion === 'estrenos') {
-        el.gridTitle.innerText = '🔥 Últimos Estrenos (2026 - 2024)';
-        el.gridSubtitle.innerText = 'Los lanzamientos más recientes del cine y streaming';
+        el.gridTitle.innerText = '🔥 Últimos Estrenos (2026)';
+        el.gridSubtitle.innerText = 'Lanzamientos del año en cines y plataformas de streaming';
+      } else if (seccion === 'ultimos_agregados') {
+        el.gridTitle.innerText = '✨ Agregados Recientemente';
+        el.gridSubtitle.innerText = 'Nuevas incorporaciones añadidas al catálogo';
       } else if (seccion === 'peliculas') {
         el.gridTitle.innerText = `🎬 Catálogo de Películas${generoLabel}`;
         el.gridSubtitle.innerText = state.genre === 'todos' ? 'Más de 24,000 títulos disponibles' : `Filtrando por ${currGenObj ? currGenObj.label : state.genre}`;

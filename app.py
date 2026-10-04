@@ -218,10 +218,13 @@ def construir_home_feed():
             peliculas.append(x)
 
         anio = extraer_anio(x)
-        if anio in [2026, 2025, 2024]:
+        if anio == 2026:
             estrenos.append(x)
 
-    estrenos.sort(key=lambda x: (extraer_anio(x), x.get("id", 0)), reverse=True)
+    estrenos.sort(key=lambda x: x.get("id", 0), reverse=True)
+
+    ultimos_agregados = [x for x in CATALOGO_CACHE if x.get("poster") and "ultrapeli" not in x.get("poster", "")]
+    ultimos_agregados.sort(key=lambda x: x.get("id", 0), reverse=True)
 
     def filtrar_palabras(pool, kws, limit=25, excl=None):
         out = []
@@ -263,9 +266,15 @@ def construir_home_feed():
         "filas": [
             {
                 "id": "estrenos",
-                "titulo": "🔥 Últimos Estrenos (2026 - 2025)",
-                "subtitulo": "Los lanzamientos más recientes del cine y streaming",
+                "titulo": "🔥 Últimos Estrenos (2026)",
+                "subtitulo": "Lanzamientos del año en cines y plataformas",
                 "items": [formatear_item_api(x) for x in estrenos[:25]]
+            },
+            {
+                "id": "ultimos_agregados",
+                "titulo": "✨ Agregados Recientemente",
+                "subtitulo": "Nuevas incorporaciones añadidas al catálogo",
+                "items": [formatear_item_api(x) for x in ultimos_agregados[:25]]
             },
             {
                 "id": "series_populares",
@@ -580,7 +589,10 @@ def api_canales():
     elif seccion == "peliculas":
         filtrados = [x for x in filtrados if not es_serie(x)]
     elif seccion == "estrenos":
-        filtrados = [x for x in filtrados if extraer_anio(x) in [2026, 2025, 2024]]
+        filtrados = [x for x in filtrados if extraer_anio(x) == 2026]
+        filtrados.sort(key=lambda x: x.get("id", 0), reverse=True)
+    elif seccion == "ultimos_agregados":
+        filtrados = sorted(filtrados, key=lambda x: x.get("id", 0), reverse=True)
 
     # 2. Filtro por género específico si se seleccionó
     if genero and genero != "todos" and genero in GENRES_MAP:
