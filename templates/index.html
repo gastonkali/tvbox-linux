@@ -514,7 +514,7 @@
 
       const hasPoster = item.poster && item.poster.trim().length > 0;
       const posterHtml = hasPoster 
-        ? `<img src="${item.poster}" alt="${item.titulo}" loading="lazy" onerror="this.parentElement.innerHTML = createFallbackPoster('${escapeHtml(item.titulo)}');">`
+        ? `<img src="${item.poster}" alt="${item.titulo}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentElement.innerHTML = createFallbackPoster('${escapeHtml(item.titulo)}');">`
         : createFallbackPoster(item.titulo);
 
       const mirrorCount = item.opciones && item.opciones.length > 1 ? item.opciones.length : 0;

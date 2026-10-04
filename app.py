@@ -123,6 +123,8 @@ def inicializar_catalogo():
                     for m in maestro:
                         m_id = m.get("id")
                         if m_id is not None and m_id not in ids_registrados:
+                            if not m.get("poster") or not str(m.get("poster")).strip() or "ultrapeli.com" in m.get("poster", ""):
+                                continue
                             m["url_resuelta"] = m.get("url", "")
                             items_combinados.append(m)
                             ids_registrados.add(m_id)
