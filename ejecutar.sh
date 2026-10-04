@@ -23,9 +23,10 @@ fi
 # Esperar a que el servidor esté listo
 sleep 1.2
 
-# 2. Abrir la ventana de la aplicación con perfil aislado
+# 2. Abrir la ventana de la aplicación con perfil aislado y Hydra Shield
 brave-browser \
   --user-data-dir="$HOME/.config/tvbox-brave" \
+  --load-extension="$DIR/hydra-shield" \
   --app="http://localhost:5000" \
   --autoplay-policy=no-user-gesture-required \
   --disable-session-crashed-bubble \
