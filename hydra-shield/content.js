@@ -16,17 +16,25 @@
     style.id = 'hydra-brand-cloak-style';
     style.textContent = `
       /* Ocultar marcas de terceros, barras de navegación, anuncios y logos */
-      header, .Header, #header,
-      nav, .Menu, .navbar, .nav-menu,
-      .logo, a.logo, .logo-ft,
-      img[alt*="Poseidon" i], img[alt*="Cinemitas" i], img[alt*="Pelicine" i], img[src*="logo" i],
-      a[href="/"][class*="logo"], a[href="/"][title*="Poseidon"],
-      .search, .buscador, form[action*="search"],
-      .alert-danger, .adang, .alert, .notice, .warning-box, .aviso, .notice-box,
+      header, .Header, #header, #menu_top, .menu_top, .top-bar, .topbar,
+      nav, .Menu, .navbar, .nav-menu, #main_nav, .header-container, .barColor,
+      #nav_toggle, .nav-toggle, .nav_menu,
+
+      .logo, #logo, a.logo, a#logo, .logo-ft, [id*="logo" i], [class*="logo" i],
+      img[alt*="Poseidon" i], img[alt*="Cinemitas" i], img[alt*="Pelicine" i], img[alt*="Pelicula" i],
+      img[alt*="Repelis" i], img[alt*="Argflix" i], img[src*="logo" i],
+      a[href*="maspeliculashd" i], a[href*="poseidon" i][class*="logo" i],
+      a[href="/"][class*="logo"], a[href="/"][id*="logo"], a[href="/"][title*="Poseidon" i],
+      a[href="/"][title*="Peliculas" i],
+      a:has(i.fa-plus), h1:has(i.fa-plus),
+
+      .search, .buscador, form[action*="search" i], form[action*="buscar" i], #search_form, .search-form,
+      .alert-danger, .adang, .alert, .notice, .warning-box, .aviso, .notice-box, .tip,
       .share, .social, .btn-share, .compartir, a[href*="facebook" i], a[href*="twitter" i],
       .comments, #comments, .disqus, #disqus_thread,
       footer, .footer, #footer, .copyright,
-      .col-right, aside, .sidebar,
+      .col-right, aside.movie-sidebar-right, .movie-sidebar-right,
+      .related-movies, .top-movies, .s-related, .movie-stats,
       .breadcrumb, .breadcrumbs, .nav-links, .menu-links, .user-menu,
       .login-btn, .register-btn, .btn-login, .btn-register,
       .rating-stars, .votes, .report-btn, .btn-report, .reportar, a[href*="report"],
@@ -41,6 +49,18 @@
         margin: 0 !important;
         padding: 0 !important;
         overflow: hidden !important;
+      }
+
+      .movie-layout {
+        display: flex !important;
+        justify-content: center !important;
+        max-width: 1200px !important;
+        margin: 0 auto !important;
+      }
+
+      .movie-main {
+        flex: 1 !important;
+        max-width: 900px !important;
       }
 
       body, html {
@@ -113,14 +133,22 @@
     (document.head || document.documentElement).appendChild(style);
   }
 
-  // 1.1 Limpieza y Reemplazo de Textos de Terceros (Poseidon, Cinemitas, etc.)
+  // 1.1 Limpieza y Reemplazo de Textos de Terceros (Poseidon, PeliculasHD, Cinemitas, etc.)
   function camuflarTextos() {
     try {
       if (document.title) {
         document.title = document.title
+          .replace(/peliculashd/gi, 'Hydra TV')
+          .replace(/maspeliculashd/gi, 'Hydra TV')
           .replace(/poseidonhd\s*2?/gi, 'Hydra TV')
-          .replace(/cinemitas/gi, 'Hydra TV')
+          .replace(/poseidon/gi, 'Hydra TV')
+          .replace(/cinemitas\s*(hd)?/gi, 'Hydra TV')
           .replace(/pelicinehd/gi, 'Hydra TV')
+          .replace(/pelicine/gi, 'Hydra TV')
+          .replace(/repelishd/gi, 'Hydra TV')
+          .replace(/repelis/gi, 'Hydra TV')
+          .replace(/argflix/gi, 'Hydra TV')
+          .replace(/verpel[ií]culas/gi, 'Hydra TV')
           .replace(/cuevana\s*\d*/gi, 'Hydra TV');
       }
 
@@ -133,7 +161,19 @@
         false
       );
 
-      const bannedRegexes = [/poseidonhd\s*2?/gi, /cinemitas/gi, /pelicinehd/gi, /cuevana\s*\d*/gi];
+      const bannedRegexes = [
+        /peliculashd/gi,
+        /maspeliculashd/gi,
+        /poseidonhd\s*2?/gi,
+        /cinemitas\s*(hd)?/gi,
+        /pelicinehd/gi,
+        /repelishd/gi,
+        /repelis/gi,
+        /argflix/gi,
+        /verpel[ií]culas/gi,
+        /cuevana\s*\d*/gi,
+        /tuanime/gi
+      ];
       let node;
       while (node = walker.nextNode()) {
         const val = node.nodeValue;
@@ -145,9 +185,11 @@
             lower.includes('servidores gratuitos de terceros') ||
             lower.includes('reportar link caido') ||
             lower.includes('donaciones') ||
-            lower.includes('donar')) {
+            lower.includes('donar') ||
+            lower.includes('bienvenido a verpelículas') ||
+            lower.includes('tuanime.net')) {
           const parent = node.parentElement;
-          if (parent && !parent.closest('#player') && !parent.closest('#reproductor')) {
+          if (parent && !parent.closest('#player') && !parent.closest('#reproductor') && !parent.closest('#video')) {
             parent.style.display = 'none';
           }
           continue;
@@ -162,6 +204,26 @@
         if (updatedVal !== val) {
           node.nodeValue = updatedVal;
         }
+      }
+    } catch(e) {}
+  }
+
+  // 1.2 Purgador físico de elementos de marcas y cabeceras de terceros
+  function purgarMarcasTerceros() {
+    try {
+      const selectores = [
+        '#menu_top', '.header-container', '#logo', 'a#logo', '#main_nav', '#search_form', '.barColor',
+        '#nav_toggle', '.movie-sidebar-right', 'aside.movie-sidebar-right', '.related-movies', '.top-movies',
+        '.movie-stats', '.s-related', 'header:not(#hydra-tv-topbar)', '.Header', '#header:not(#hydra-tv-topbar)',
+        'footer', '#footer'
+      ];
+      for (const sel of selectores) {
+        const elems = document.querySelectorAll(sel);
+        elems.forEach(el => {
+          if (el.id === 'hydra-tv-topbar' || el.closest('#hydra-tv-topbar')) return;
+          if (el.id === 'player' || el.id === 'video' || el.id === 'reproductor' || el.closest('#video')) return;
+          el.remove();
+        });
       }
     } catch(e) {}
   }
@@ -323,7 +385,16 @@
         if (el.style.opacity === '0') el.style.opacity = '1';
       });
 
-      // E. Auto-clic en botones Play
+      // E. PeliculasHD / MasPeliculasHD
+      if (host.includes('peliculashd') || document.querySelector('.play-button, .player-placeholder')) {
+        const btnPlayMaspeli = document.querySelector('.play-button, .player-placeholder');
+        if (btnPlayMaspeli && !btnPlayMaspeli.dataset.hydraClicked) {
+          btnPlayMaspeli.dataset.hydraClicked = 'true';
+          btnPlayMaspeli.click();
+        }
+      }
+
+      // F. Auto-clic en botones Play genéricos
       const playButtons = document.querySelectorAll(
         '.jw-display-icon-container, .vjs-big-play-button, .play-btn, #btn-play, .btn-play, button.play, div.play, svg.play'
       );
@@ -399,6 +470,7 @@
 
   inyectarEstilosHydraTV();
   inyectarBarraSuperiorHydra();
+  purgarMarcasTerceros();
   camuflarTextos();
   corregirTemporadas();
   limpiarCapasYTrampas();
@@ -407,6 +479,7 @@
   const intervalId = setInterval(() => {
     inyectarEstilosHydraTV();
     inyectarBarraSuperiorHydra();
+    purgarMarcasTerceros();
     camuflarTextos();
     corregirTemporadas();
     limpiarCapasYTrampas();
@@ -417,6 +490,7 @@
     clearInterval(intervalId);
     const slowInterval = setInterval(() => {
       inyectarBarraSuperiorHydra();
+      purgarMarcasTerceros();
       camuflarTextos();
       corregirTemporadas();
       limpiarCapasYTrampas();
@@ -428,6 +502,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     inyectarEstilosHydraTV();
     inyectarBarraSuperiorHydra();
+    purgarMarcasTerceros();
     camuflarTextos();
     corregirTemporadas();
     limpiarCapasYTrampas();
