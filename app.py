@@ -685,14 +685,24 @@ def asegurar_perfil_brave(user_data_dir):
     except Exception as e:
         print(f"[Hydra] Error configurando preferencias de Brave: {e}")
 
-def lanzar_brave(url):
-    """Lanza Brave Browser en modo TV Kiosk con Hydra TV Shield activo y bloqueo total de popups."""
+def cerrar_brave():
+    """Cierra limpiamente cualquier proceso de Brave en ejecución del reproductor TV."""
     global brave_process
-    if brave_process and brave_process.poll() is None:
+    if brave_process:
         try:
             brave_process.terminate()
         except Exception:
             pass
+    try:
+        subprocess.run(["pkill", "-f", "tvbox-brave"], check=False)
+    except Exception:
+        pass
+    brave_process = None
+
+def lanzar_brave(url):
+    """Lanza Brave Browser en modo TV Kiosk con Hydra TV Shield activo y bloqueo total de popups."""
+    global brave_process
+    cerrar_brave()
 
     user_data_dir = os.path.expanduser("~/.config/tvbox-brave")
     asegurar_perfil_brave(user_data_dir)
@@ -780,14 +790,11 @@ def play(canal_id):
 
 @app.route("/stop", methods=["POST"])
 def stop():
-    global brave_process
-    if brave_process and brave_process.poll() is None:
-        try:
-            brave_process.terminate()
-            brave_process = None
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
-    return jsonify({"status": "detenido"})
+    try:
+        cerrar_brave()
+        return jsonify({"status": "detenido"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=False)
