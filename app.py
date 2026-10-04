@@ -367,10 +367,13 @@ def play(canal_id):
             pass
 
     user_data_dir = os.path.expanduser("~/.config/tvbox-brave")
+    extension_dir = os.path.join(BASE_DIR, "hydra-shield")
 
     cmd = [
         "brave-browser",
         f"--user-data-dir={user_data_dir}",
+        f"--load-extension={extension_dir}",
+        "--disable-popup-blocking=false",
         "--kiosk",
         f"--app={final_launch_url}",
         "--autoplay-policy=no-user-gesture-required",
