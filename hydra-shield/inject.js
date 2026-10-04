@@ -15,7 +15,8 @@
     'pelicine', 'poseidon', 'series24', 'repelis', 'cinemitas', 
     'ultrapeli', 'dramafuntv', 'gnula', 'maspelicula', 'argflix',
     'stream', 'movie', 'pelicula', 'serie', 'watch', 'play', 'embed',
-    'wish', 'moon', 'dood', 'voe', 'netu', 'waaw', 'uqload', 'mixdrop'
+    'wish', 'moon', 'dood', 'voe', 'netu', 'waaw', 'uqload', 'mixdrop',
+    'peelink'
   ];
 
   const esSitioStreaming = STREAMING_KEYWORDS.some(k => host.includes(k) || window.location.pathname.includes(k));
@@ -27,19 +28,22 @@
 
   // Anular window.open para scripts publicitarios en sitios de películas
   window.open = function(url, target, features) {
-    console.warn('[Hydra Shield] Ventana emergente bloqueada en reproductor:', url);
+    console.warn('[Hydra Shield] Ventana emergente bloqueada en reproductor (simulando éxito inmediato):', url);
 
+    // IMPORTANTE: closed debe ser FALSE. Si es true, el script de anuncios cree que el usuario
+    // cerró la publicidad y entra en un bucle de reintento con setTimeout de 2 minutos.
     return {
-      closed: true,
+      closed: false,
       name: target || '',
       location: { href: url || '' },
-      document: {},
+      document: { readyState: 'complete' },
       focus: function() {},
       blur: function() {},
       close: function() {},
       postMessage: function() {},
       addEventListener: function() {},
-      removeEventListener: function() {}
+      removeEventListener: function() {},
+      opener: window
     };
   };
 

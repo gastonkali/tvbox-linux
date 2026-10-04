@@ -14,7 +14,8 @@
     'pelicine', 'poseidon', 'series24', 'repelis', 'cinemitas', 
     'ultrapeli', 'dramafuntv', 'gnula', 'maspelicula', 'argflix',
     'stream', 'movie', 'pelicula', 'serie', 'watch', 'play', 'embed',
-    'wish', 'moon', 'dood', 'voe', 'netu', 'waaw', 'uqload', 'mixdrop'
+    'wish', 'moon', 'dood', 'voe', 'netu', 'waaw', 'uqload', 'mixdrop',
+    'peelink'
   ];
 
   const esSitioStreaming = STREAMING_KEYWORDS.some(k => host.includes(k) || window.location.pathname.includes(k));
@@ -65,10 +66,31 @@
           }
         }
       }
+
+      // 3. Forzar revelación inmediata del reproductor de video
+      const playerContainers = document.querySelectorAll('#player, #reproductor, .player, .play-box, .video-player, iframe[src*="embed"], iframe[src*="stream"]');
+      playerContainers.forEach(el => {
+        if (el.style.display === 'none') el.style.display = 'block';
+        if (el.style.visibility === 'hidden') el.style.visibility = 'visible';
+        if (el.style.opacity === '0') el.style.opacity = '1';
+      });
+
+      // Auto-clic en botones de salto de cuenta regresiva o continuar ("Saltar", "Omitir", "Ver video")
+      const buttons = document.querySelectorAll('button, a, div[role="button"]');
+      for (const b of buttons) {
+        const text = (b.innerText || '').trim().toLowerCase();
+        if (text.includes('saltar') || text.includes('skip') || text.includes('continuar al video') || text.includes('ver pelicula')) {
+          if (b.offsetParent !== null) {
+            console.log('[Hydra Shield] Auto-clic en botón continuar:', text);
+            b.click();
+            break;
+          }
+        }
+      }
     } catch(e) {}
   }
 
-  const interval = setInterval(eliminarCapasTransparentes, 800);
+  const interval = setInterval(eliminarCapasTransparentes, 500);
   setTimeout(() => clearInterval(interval), 15000);
   document.addEventListener('DOMContentLoaded', eliminarCapasTransparentes);
 })();
