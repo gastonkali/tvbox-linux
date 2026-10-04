@@ -1,51 +1,62 @@
-// Hydra TV Shield - Interceptor en el contexto principal de la página (MAIN world)
+// Hydra TV Shield - Interceptor Global en el contexto de página (MAIN world)
 (function() {
   'use strict';
 
   const host = window.location.hostname.toLowerCase();
   
-  // No intervenir en páginas del sistema, buscadores o localhost
+  // No intervenir en localhost, YouTube oficial o páginas de configuración
   if (host === 'localhost' || host === '127.0.0.1' || window.location.port === '5000' ||
       host.includes('brave') || host.includes('google') || host.includes('youtube') || host.includes('github')) {
     return;
   }
 
-  // Lista de patrones de sitios de streaming y reproductores
-  const STREAMING_KEYWORDS = [
-    'pelicine', 'poseidon', 'series24', 'repelis', 'cinemitas', 
-    'ultrapeli', 'dramafuntv', 'gnula', 'maspelicula', 'argflix',
-    'stream', 'movie', 'pelicula', 'serie', 'watch', 'play', 'embed',
-    'wish', 'moon', 'dood', 'voe', 'netu', 'waaw', 'uqload', 'mixdrop',
-    'peelink'
-  ];
-
-  const esSitioStreaming = STREAMING_KEYWORDS.some(k => host.includes(k) || window.location.pathname.includes(k));
-  if (!esSitioStreaming) {
-    return; // Dejar la navegación cotidiana del usuario 100% normal
-  }
-
-  console.log('[Hydra Shield] Protección de video activa en:', host);
-
-  // Anular window.open para scripts publicitarios en sitios de películas
-  window.open = function(url, target, features) {
-    console.warn('[Hydra Shield] Ventana emergente bloqueada en reproductor (simulando éxito inmediato):', url);
-
-    // IMPORTANTE: closed debe ser FALSE. Si es true, el script de anuncios cree que el usuario
-    // cerró la publicidad y entra en un bucle de reintento con setTimeout de 2 minutos.
-    return {
-      closed: false,
-      name: target || '',
-      location: { href: url || '' },
-      document: { readyState: 'complete' },
-      focus: function() {},
-      blur: function() {},
-      close: function() {},
-      postMessage: function() {},
-      addEventListener: function() {},
-      removeEventListener: function() {},
-      opener: window
-    };
+  // 1. Anular window.open incondicionalmente en todos los reproductores y frames
+  const dummyWindow = {
+    closed: false,
+    name: '',
+    location: { href: '' },
+    document: { readyState: 'complete' },
+    focus: function() {},
+    blur: function() {},
+    close: function() {},
+    postMessage: function() {},
+    addEventListener: function() {},
+    removeEventListener: function() {},
+    opener: window
   };
 
+  try {
+    Object.defineProperty(window, 'open', {
+      value: function(url, target, features) {
+        console.warn('[Hydra Shield MAIN] window.open bloqueado:', url);
+        return dummyWindow;
+      },
+      writable: false,
+      configurable: false
+    });
+  } catch(e) {
+    window.open = function() { return dummyWindow; };
+  }
+
+  // 2. Neutralizar alertas intrusivas que bloquean la pantalla
+  window.alert = function() {};
+  window.confirm = function() { return true; };
+  window.prompt = function() { return null; };
   window.onbeforeunload = null;
+
+  // 3. Neutralizar llamadas sintéticas a click() en enlaces publicitarios con target="_blank"
+  try {
+    const originalAnchorClick = HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click = function() {
+      const target = (this.getAttribute('target') || '').toLowerCase();
+      const href = (this.getAttribute('href') || '').toLowerCase();
+      if (target === '_blank' || target === '_new' || href.startsWith('javascript:')) {
+        if (!href.startsWith(window.location.origin) && !href.startsWith('/') && !href.startsWith('#')) {
+          console.warn('[Hydra Shield MAIN] Enlace publicitario simulado bloqueado:', href);
+          return;
+        }
+      }
+      return originalAnchorClick.apply(this, arguments);
+    };
+  } catch(e) {}
 })();

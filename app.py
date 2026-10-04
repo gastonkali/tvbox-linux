@@ -650,17 +650,44 @@ def api_trailer():
     except Exception as e:
         return jsonify({"videoId": None, "error": str(e)})
 
-@app.route("/play_url", methods=["POST"])
-def play_url():
-    """Reproduce cualquier URL directa (como un trailer de YouTube) en pantalla completa en Brave en la TV."""
-    global brave_process
-    datos = request.get_json(silent=True) or {}
-    url = datos.get("url", "").strip()
-    titulo = datos.get("titulo", "Video")
-    if not url:
-        return jsonify({"error": "URL requerida"}), 400
+def asegurar_perfil_brave(user_data_dir):
+    """Asegura que el perfil de Brave para TV tenga bloqueo estricto de popups y sin bloqueos residuales."""
+    try:
+        # 1. Limpiar locks residuales si Brave previo fue cerrado o murió
+        for lock_file in ["SingletonLock", "SingletonCookie", "SingletonSocket"]:
+            lp = os.path.join(user_data_dir, lock_file)
+            if os.path.lexists(lp):
+                try:
+                    os.unlink(lp)
+                except Exception:
+                    pass
 
-    # Cerrar proceso anterior si existe
+        # 2. Configurar Preferences para bloqueo estricto de popups y anuncios
+        default_dir = os.path.join(user_data_dir, "Default")
+        os.makedirs(default_dir, exist_ok=True)
+        pref_file = os.path.join(default_dir, "Preferences")
+        prefs = {}
+        if os.path.exists(pref_file):
+            try:
+                with open(pref_file, "r", encoding="utf-8") as f:
+                    prefs = json.load(f)
+            except Exception:
+                prefs = {}
+
+        profile_sec = prefs.setdefault("profile", {})
+        content_settings = profile_sec.setdefault("default_content_setting_values", {})
+        content_settings["popups"] = 2  # 2 = Blocked
+        content_settings["notifications"] = 2
+        content_settings["automatic_downloads"] = 2
+
+        with open(pref_file, "w", encoding="utf-8") as f:
+            json.dump(prefs, f)
+    except Exception as e:
+        print(f"[Hydra] Error configurando preferencias de Brave: {e}")
+
+def lanzar_brave(url):
+    """Lanza Brave Browser en modo TV Kiosk con Hydra TV Shield activo y bloqueo total de popups."""
+    global brave_process
     if brave_process and brave_process.poll() is None:
         try:
             brave_process.terminate()
@@ -668,7 +695,10 @@ def play_url():
             pass
 
     user_data_dir = os.path.expanduser("~/.config/tvbox-brave")
+    asegurar_perfil_brave(user_data_dir)
+
     extension_dir = os.path.join(BASE_DIR, "hydra-shield")
+
     cmd = [
         "brave-browser",
         f"--user-data-dir={user_data_dir}",
@@ -677,10 +707,29 @@ def play_url():
         f"--app={url}",
         "--autoplay-policy=no-user-gesture-required",
         "--no-first-run",
-        "--disable-session-crashed-bubble"
+        "--disable-session-crashed-bubble",
+        "--no-default-browser-check",
+        "--disable-features=Translate,OptimizationHints"
     ]
+
+    env = os.environ.copy()
+    if "DISPLAY" not in env:
+        env["DISPLAY"] = ":0"
+
+    brave_process = subprocess.Popen(cmd, env=env)
+    return brave_process
+
+@app.route("/play_url", methods=["POST"])
+def play_url():
+    """Reproduce cualquier URL directa (como un trailer de YouTube) en pantalla completa en Brave en la TV."""
+    datos = request.get_json(silent=True) or {}
+    url = datos.get("url", "").strip()
+    titulo = datos.get("titulo", "Video")
+    if not url:
+        return jsonify({"error": "URL requerida"}), 400
+
     try:
-        brave_process = subprocess.Popen(cmd)
+        lanzar_brave(url)
         return jsonify({"status": "ok", "url": url, "titulo": titulo})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -693,13 +742,11 @@ def reproductor():
 
 @app.route("/play/<int:canal_id>", methods=["POST"])
 def play(canal_id):
-    global brave_process
     canal = ITEMS_BY_ID.get(canal_id)
 
     if not canal:
         return jsonify({"error": "Canal o película no encontrado"}), 404
 
-    # Permitir al cliente especificar qué opción o servidor desea reproducir
     datos = request.get_json(silent=True) or {}
     opcion_url = datos.get("opcion_url")
 
@@ -712,36 +759,13 @@ def play(canal_id):
     if not target_url:
         return jsonify({"error": "El título no tiene URL válida"}), 400
 
-    # Si es directo (.m3u8 / .mp4), usamos el reproductor interno
     if canal.get("tipo") == "directo":
         final_launch_url = f"http://localhost:5000/reproductor?url={target_url}&titulo={canal.get('titulo_limpio', canal.get('titulo', ''))}"
     else:
         final_launch_url = target_url
 
-    # Cerrar video en reproducción anterior
-    if brave_process and brave_process.poll() is None:
-        try:
-            brave_process.terminate()
-        except Exception:
-            pass
-
-    user_data_dir = os.path.expanduser("~/.config/tvbox-brave")
-    extension_dir = os.path.join(BASE_DIR, "hydra-shield")
-
-    cmd = [
-        "brave-browser",
-        f"--user-data-dir={user_data_dir}",
-        f"--load-extension={extension_dir}",
-        "--disable-popup-blocking=false",
-        "--kiosk",
-        f"--app={final_launch_url}",
-        "--autoplay-policy=no-user-gesture-required",
-        "--no-first-run",
-        "--disable-session-crashed-bubble"
-    ]
-
     try:
-        brave_process = subprocess.Popen(cmd)
+        lanzar_brave(final_launch_url)
         return jsonify({
             "status": "ok",
             "titulo": canal.get("titulo_limpio", canal.get("titulo")),
