@@ -80,6 +80,38 @@
       color: #e5e7eb;
     }
 
+    /* Selector de destino de reproducción */
+    .playback-toggle {
+      display: flex;
+      background: #171d2b;
+      padding: 3px;
+      border-radius: 20px;
+      gap: 3px;
+      border: 1px solid #2d3748;
+    }
+
+    .toggle-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      padding: 6px 14px;
+      border-radius: 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      outline: none;
+    }
+
+    .toggle-btn.active {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(255, 87, 34, 0.4);
+    }
+
     /* Buscador y categorías */
     .controls-section {
       display: flex;
@@ -379,9 +411,16 @@
 
   <header>
     <div class="brand">
-      <h1>📺 Mi <span>TV Box</span></h1>
+      <h1>📺 Hydra <span>Tv</span></h1>
       <span class="catalog-count" id="catalogCount">Cargando...</span>
     </div>
+
+    <!-- Selector de destino de reproducción -->
+    <div class="playback-toggle">
+      <button id="btnPlayHere" class="toggle-btn active" title="Ver en este navegador">💻 Ver en este equipo</button>
+      <button id="btnPlayTv" class="toggle-btn" title="Lanzar en la pantalla de la TV (Ubuntu)">📺 Enviar a la TV</button>
+    </div>
+
     <div class="hint-bar">
       <span>Buscar: <kbd>/</kbd></span>
       <span>Navegar: <kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd></span>
@@ -494,7 +533,7 @@
         </div>
       `;
 
-      card.addEventListener('click', () => reproducir(item.id, item.titulo));
+      card.addEventListener('click', () => reproducir(item));
       return card;
     }
 
@@ -676,15 +715,59 @@
       return cards.length;
     }
 
+    // Gestión del destino de reproducción
+    const isLocalHost = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    let playbackTarget = isLocalHost ? 'tv' : 'here';
+
+    const btnPlayHere = document.getElementById('btnPlayHere');
+    const btnPlayTv = document.getElementById('btnPlayTv');
+
+    function updateToggleUI() {
+      if (playbackTarget === 'here') {
+        btnPlayHere.classList.add('active');
+        btnPlayTv.classList.remove('active');
+      } else {
+        btnPlayTv.classList.add('active');
+        btnPlayHere.classList.remove('active');
+      }
+    }
+
+    if (btnPlayHere && btnPlayTv) {
+      btnPlayHere.addEventListener('click', () => {
+        playbackTarget = 'here';
+        updateToggleUI();
+        showToast('Modo: Los videos se abrirán en este navegador (Brave)');
+      });
+
+      btnPlayTv.addEventListener('click', () => {
+        playbackTarget = 'tv';
+        updateToggleUI();
+        showToast('Modo: Los videos se lanzarán en la TV (Ubuntu)');
+      });
+
+      updateToggleUI();
+    }
+
     // 7. Reproducir Contenido
-    function reproducir(id, titulo) {
-      showToast('Lanzando: ' + titulo + '...');
-      fetch('/play/' + id, { method: 'POST' })
-        .then(res => res.json())
-        .then(data => {
-          if (data.error) showToast('Error: ' + data.error);
-        })
-        .catch(() => showToast('Error al conectar con Brave'));
+    function reproducir(item) {
+      if (playbackTarget === 'here') {
+        // Abrir en este navegador / equipo
+        showToast('Abriendo aquí: ' + item.titulo);
+        if (item.tipo === 'directo') {
+          window.open('/reproductor?url=' + encodeURIComponent(item.url) + '&titulo=' + encodeURIComponent(item.titulo), '_blank');
+        } else {
+          window.open(item.url, '_blank');
+        }
+      } else {
+        // Enviar a la pantalla de la TV (Ubuntu)
+        showToast('Enviando a la TV: ' + item.titulo + '...');
+        fetch('/play/' + item.id, { method: 'POST' })
+          .then(res => res.json())
+          .then(data => {
+            if (data.error) showToast('Error: ' + data.error);
+          })
+          .catch(() => showToast('Error al conectar con la TV'));
+      }
     }
 
     // Inicializar app
