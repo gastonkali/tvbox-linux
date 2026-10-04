@@ -114,6 +114,77 @@ def formatear_item_api(item):
         "es_serie": es_serie(item)
     }
 
+GENRES_MAP = {
+    "accion": [
+        "accion", "action", "mision", "mission", "rapidos", "furious", "fast", "bad boys", "venganza",
+        "revenge", "batman", "spider", "avengers", "gladiador", "gladiator", "furia", "fury", "rescat",
+        "rescue", "arma", "weapon", "policia", "cop", "pelea", "fight", "combate", "combat", "guerra",
+        "war", "soldier", "soldado", "sniper", "francotirador", "john wick", "hitman", "asesino",
+        "fuerza", "comando", "fuerzas especiales", "operacion", "tactica", "infiltrado", "fuego", "fire",
+        "bullet", "bala", "golpe", "strike", "ataque", "attack", "ninja", "samurai", "mercenario", "die hard",
+        "superman", "iron man", "hulk", "thor", "wolverine", "deadpool"
+    ],
+    "ciencia-ficcion": [
+        "alien", "matrix", "star wars", "avatar", "jurassic", "transformers", "dune", "planeta",
+        "planet", "interstellar", "marvel", "dc", "cyber", "futuro", "future", "espacio", "space",
+        "galaxia", "galaxy", "robot", "cyborg", "maquina", "machine", "clon", "clone", "mutante",
+        "mutant", "tiempo", "time", "viaje en el tiempo", "apocalipsis", "apocalypse", "distopia",
+        "quantum", "gravedad", "gravity", "invasion", "universo", "universe", "scifi", "sci-fi",
+        "dimension", "multiverso", "terminator", "predator", "depredador", "sol", "luna", "marte", "mars",
+        "astronave", "interestelar"
+    ],
+    "terror": [
+        "resident evil", "saw", "exorcista", "exorcist", "warren", "muerte", "death", "dead", "miedo",
+        "fear", "panico", "panic", "insidious", "pesadilla", "nightmare", "demonio", "demon", "devil",
+        "siniestro", "sinister", "monstruo", "monster", "zombie", "halloween", "terror", "horror",
+        "espanto", "grito", "scream", "noche", "night", "sangre", "blood", "maldicion", "curse",
+        "fantasma", "ghost", "posesion", "possession", "bruja", "witch", "infierno", "hell", "oscuro",
+        "dark", "evil", "parafisico", "paranormal", "gore", "carnicero", "cementerio", "tumba", "silence",
+        "dracula", "vampir", "licantropo"
+    ],
+    "comedia": [
+        "comedia", "comedy", "risa", "laugh", "loco", "crazy", "fiesta", "party", "tonto", "dumb",
+        "broma", "joke", "amigos", "friends", "vacaciones", "vacation", "parodia", "boda", "wedding",
+        "chistoso", "divertido", "funny", "ted", "hangover", "desmadre", "padre", "mama", "familia",
+        "escuela", "colegio", "universidad", "vecinos", "bebe", "baby", "perro", "gato", "juerga",
+        "chicas", "amiga", "locura", "desastre"
+    ],
+    "drama": [
+        "drama", "vida", "life", "historia", "story", "verdad", "truth", "dolor", "pain", "destino",
+        "destiny", "promesa", "promise", "adios", "goodbye", "recuerdos", "memories", "hijo", "hija",
+        "madre", "padre", "hermano", "perdon", "silencio", "lagrimas", "secreto", "secret", "pasion",
+        "pobreza", "justicia", "juicio", "tribunal", "enfermedad", "hospital", "amor imposible", "olvidada",
+        "esperanza", "triste", "lucha", "separacion"
+    ],
+    "animacion": [
+        "toy story", "shrek", "minions", "kung fu", "dragon", "frozen", "mario", "pixar", "disney",
+        "intensamente", "moana", "animacion", "animation", "anime", "nino", "kids", "infantil", "dibujo",
+        "cartoon", "pokemon", "naruto", "dragon ball", "encanto", "coco", "nemo", "dory", "cars",
+        "monsters", "era de hielo", "ice age", "madagascar", "panda", "sonic", "mickey", "reino magico",
+        "peter pan", "aladdin", "cenicienta", "pinocho", "mulan"
+    ],
+    "crimen-suspenso": [
+        "crimen", "crime", "misterio", "mystery", "mafia", "detective", "robo", "heist", "robbery",
+        "estafa", "cartel", "caso", "case", "investigacion", "pista", "clue", "sospechoso", "suspect",
+        "testigo", "witness", "abogado", "lawyer", "juez", "prision", "carcel", "prison", "narco",
+        "drogas", "mafioso", "gangster", "thriller", "suspenso", "psicopata", "desaparicion", "secuestro",
+        "policial", "padrino", "corrupcion"
+    ],
+    "romance": [
+        "amor", "love", "romance", "romantic", "enamorado", "beso", "kiss", "corazon", "heart",
+        "novio", "novia", "boda", "matrimonio", "pareja", "cita", "date", "siempre", "forever",
+        "juntos", "together", "pasion", "quiero", "amarte", "quererte", "cancion de amor", "san valentin",
+        "querido", "querida", "primer amor"
+    ],
+    "aventura-fantasia": [
+        "aventura", "adventure", "fantasia", "fantasy", "magia", "magic", "espada", "sword", "rey",
+        "king", "reino", "kingdom", "reina", "queen", "tesoro", "treasure", "viaje", "journey", "trip",
+        "leyenda", "legend", "caballero", "knight", "castillo", "castle", "imperio", "empire", "isla",
+        "island", "selva", "jungle", "montana", "mountain", "mar", "oceano", "piratas", "pirates", "odisea",
+        "hobbit", "senor de los anillos", "harry potter", "narnia"
+    ]
+}
+
 def construir_home_feed():
     global HOME_FEED_CACHE
     series = []
@@ -132,16 +203,11 @@ def construir_home_feed():
 
     estrenos.sort(key=lambda x: (extraer_anio(x), x.get("id", 0)), reverse=True)
 
-    KEYWORDS_ACCION = ['john wick', 'mision imposible', 'rapidos', 'furious', 'bad boys', 'venganza', 'batman', 'spider', 'avengers', 'gladiador', 'furia', 'rescat', 'arma', 'policia']
-    KEYWORDS_TERROR = ['resident evil', 'saw', 'exorcista', 'warren', 'muerte', 'miedo', 'panico', 'insidious', 'pesadilla', 'demonio', 'siniestro', 'monstruo', 'zombie', 'halloween']
-    KEYWORDS_SCIFI = ['alien', 'matrix', 'star wars', 'avatar', 'jurassic', 'transformers', 'dune', 'planeta', 'interstellar', 'marvel', 'dc', 'cyber', 'futuro']
-    KEYWORDS_ANIMACION = ['toy story', 'shrek', 'minions', 'kung fu', 'dragon', 'frozen', 'mario', 'pixar', 'disney', 'intensamente', 'moana', 'spiderman']
-
     def filtrar_palabras(pool, kws, limit=25):
         out = []
         vistos = set()
         for it in pool:
-            t = it.get("titulo", "").lower()
+            t = (it.get("titulo", "") + " " + it.get("url", "")).lower()
             if any(k in t for k in kws) and it["id"] not in vistos:
                 vistos.add(it["id"])
                 out.append(formatear_item_api(it))
@@ -185,25 +251,25 @@ def construir_home_feed():
                 "id": "accion",
                 "titulo": "💥 Adrenalina y Acción",
                 "subtitulo": "Persecuciones, combates y héroes",
-                "items": filtrar_palabras(peliculas, KEYWORDS_ACCION, 25)
+                "items": filtrar_palabras(peliculas, GENRES_MAP["accion"], 25)
             },
             {
                 "id": "terror",
                 "titulo": "👻 Noche de Terror y Suspenso",
                 "subtitulo": "Pesadillas, suspenso y misterio",
-                "items": filtrar_palabras(peliculas, KEYWORDS_TERROR, 25)
+                "items": filtrar_palabras(peliculas, GENRES_MAP["terror"], 25)
             },
             {
                 "id": "scifi",
                 "titulo": "🚀 Ciencia Ficción y Futuro",
                 "subtitulo": "Universos lejanos y tecnología",
-                "items": filtrar_palabras(peliculas, KEYWORDS_SCIFI, 25)
+                "items": filtrar_palabras(peliculas, GENRES_MAP["ciencia-ficcion"], 25)
             },
             {
                 "id": "animacion",
                 "titulo": "🎨 Animación y Familia",
                 "subtitulo": "Diversión para todas las edades",
-                "items": filtrar_palabras(peliculas, KEYWORDS_ANIMACION, 25)
+                "items": filtrar_palabras(peliculas, GENRES_MAP["animacion"], 25)
             }
         ]
     }
@@ -435,32 +501,59 @@ def api_categorias():
 def api_inicio():
     return jsonify(HOME_FEED_CACHE)
 
+@app.route("/api/generos")
+def api_generos():
+    """Devuelve los géneros temáticos disponibles para Películas y Series."""
+    return jsonify({
+        "peliculas": [
+            {"id": "todos", "label": "Todas las Películas", "icon": "🎬"},
+            {"id": "accion", "label": "Acción", "icon": "💥"},
+            {"id": "ciencia-ficcion", "label": "Ciencia Ficción", "icon": "🚀"},
+            {"id": "terror", "label": "Terror y Suspenso", "icon": "👻"},
+            {"id": "comedia", "label": "Comedia", "icon": "😂"},
+            {"id": "drama", "label": "Drama", "icon": "🎭"},
+            {"id": "aventura-fantasia", "label": "Aventura y Fantasía", "icon": "⚔️"},
+            {"id": "animacion", "label": "Animación y Familia", "icon": "🎨"},
+            {"id": "crimen-suspenso", "label": "Crimen y Misterio", "icon": "🔍"},
+            {"id": "romance", "label": "Romance", "icon": "❤️"}
+        ],
+        "series": [
+            {"id": "todos", "label": "Todas las Series", "icon": "📺"},
+            {"id": "accion", "label": "Acción y Aventura", "icon": "💥"},
+            {"id": "ciencia-ficcion", "label": "Ciencia Ficción", "icon": "🚀"},
+            {"id": "terror", "label": "Terror y Misterio", "icon": "👻"},
+            {"id": "drama", "label": "Drama", "icon": "🎭"},
+            {"id": "comedia", "label": "Comedia", "icon": "😂"},
+            {"id": "crimen-suspenso", "label": "Crimen y Policial", "icon": "🔍"},
+            {"id": "animacion", "label": "Animación y Anime", "icon": "🎨"},
+            {"id": "romance", "label": "Romance", "icon": "❤️"}
+        ]
+    })
+
 @app.route("/api/canales")
 def api_canales():
     """Búsqueda difusa y paginación ultra rápida en memoria (en menos de 30ms)."""
     query = request.args.get("q", "").strip()
     categoria = request.args.get("categoria", "").strip()
     seccion = request.args.get("seccion", "todos").strip().lower()
+    genero = request.args.get("genero", "todos").strip().lower()
     page = max(1, int(request.args.get("page", 1)))
     limit = min(100, max(1, int(request.args.get("limit", 36))))
 
     filtrados = buscar_catalogo(query, categoria)
 
+    # 1. Filtro por sección principal
     if seccion == "series":
         filtrados = [x for x in filtrados if es_serie(x)]
     elif seccion == "peliculas":
         filtrados = [x for x in filtrados if not es_serie(x)]
     elif seccion == "estrenos":
         filtrados = [x for x in filtrados if extraer_anio(x) in [2026, 2025, 2024]]
-    elif seccion in ["accion", "terror", "scifi", "animacion"]:
-        keywords_map = {
-            "accion": ['john wick', 'mision imposible', 'rapidos', 'furious', 'bad boys', 'venganza', 'batman', 'spider', 'avengers', 'gladiador', 'furia', 'rescat', 'arma', 'policia'],
-            "terror": ['resident evil', 'saw', 'exorcista', 'warren', 'muerte', 'miedo', 'panico', 'insidious', 'pesadilla', 'demonio', 'siniestro', 'monstruo', 'zombie', 'halloween'],
-            "scifi": ['alien', 'matrix', 'star wars', 'avatar', 'jurassic', 'transformers', 'dune', 'planeta', 'interstellar', 'marvel', 'dc', 'cyber', 'futuro'],
-            "animacion": ['toy story', 'shrek', 'minions', 'kung fu', 'dragon', 'frozen', 'mario', 'pixar', 'disney', 'intensamente', 'moana', 'spiderman']
-        }
-        kws = keywords_map[seccion]
-        filtrados = [x for x in filtrados if any(k in x.get("titulo", "").lower() for k in kws)]
+
+    # 2. Filtro por género específico si se seleccionó
+    if genero and genero != "todos" and genero in GENRES_MAP:
+        kws = GENRES_MAP[genero]
+        filtrados = [x for x in filtrados if any(k in (x.get("titulo", "") + " " + x.get("url", "")).lower() for k in kws)]
 
     total = len(filtrados)
     total_pages = (total + limit - 1) // limit if total > 0 else 1
@@ -475,6 +568,8 @@ def api_canales():
         "page": page,
         "limit": limit,
         "total_pages": total_pages,
+        "seccion": seccion,
+        "genero": genero,
         "items": resultado
     })
 

@@ -687,6 +687,60 @@
       border-color: #fff;
     }
 
+    /* BARRA DE FILTROS DE CATEGORÍAS / GÉNEROS */
+    .genre-pills-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+      padding: 4px 4px 14px 4px;
+      scrollbar-width: none;
+      scroll-behavior: smooth;
+    }
+
+    .genre-pills-bar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .genre-pill {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      font-weight: 600;
+      padding: 8px 18px;
+      border-radius: 22px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      outline: none;
+      user-select: none;
+    }
+
+    .genre-pill:hover,
+    .genre-pill:focus {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .genre-pill.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      box-shadow: 0 2px 14px var(--accent-glow);
+      transform: translateY(-2px);
+    }
+
+    .genre-pill-icon {
+      font-size: 1rem;
+    }
+
     /* GRID LAYOUT (6 COLUMNAS) */
     .catalog-grid {
       display: grid;
@@ -978,6 +1032,9 @@
         </div>
       </div>
 
+      <!-- Barra interactiva de filtros de categorías / géneros -->
+      <div class="genre-pills-bar" id="genrePillsBar" style="display: none;" role="tablist" aria-label="Filtros por categoría"></div>
+
       <!-- Cuadrícula de tarjetas -->
       <div class="catalog-grid" id="catalogGrid">
         <!-- Renderizado dinámico -->
@@ -1008,6 +1065,7 @@
     const state = {
       view: 'home',             // 'home' | 'grid'
       section: 'inicio',        // 'inicio', 'estrenos', 'peliculas', 'series', 'mi_lista'
+      genre: 'todos',           // 'todos', 'accion', 'terror', etc.
       query: '',
       page: 1,
       limit: 36,
@@ -1043,6 +1101,7 @@
       gridTitle: document.getElementById('gridTitle'),
       gridSubtitle: document.getElementById('gridSubtitle'),
       btnGridBack: document.getElementById('btnGridBack'),
+      genrePillsBar: document.getElementById('genrePillsBar'),
       catalogGrid: document.getElementById('catalogGrid'),
       paginationBar: document.getElementById('paginationBar'),
       paginationControls: document.getElementById('paginationControls'),
@@ -1050,6 +1109,73 @@
       btnJump: document.getElementById('btnJump'),
       toast: document.getElementById('toast')
     };
+
+    // CONFIGURACIÓN DE GÉNEROS Y CATEGORÍAS TEMÁTICAS
+    const GENRES_CONFIG = {
+      peliculas: [
+        { id: 'todos', label: 'Todas las Películas', icon: '🎬' },
+        { id: 'accion', label: 'Acción', icon: '💥' },
+        { id: 'ciencia-ficcion', label: 'Ciencia Ficción', icon: '🚀' },
+        { id: 'terror', label: 'Terror y Suspenso', icon: '👻' },
+        { id: 'comedia', label: 'Comedia', icon: '😂' },
+        { id: 'drama', label: 'Drama', icon: '🎭' },
+        { id: 'aventura-fantasia', label: 'Aventura y Fantasía', icon: '⚔️' },
+        { id: 'animacion', label: 'Animación y Familia', icon: '🎨' },
+        { id: 'crimen-suspenso', label: 'Crimen y Misterio', icon: '🔍' },
+        { id: 'romance', label: 'Romance', icon: '❤️' }
+      ],
+      series: [
+        { id: 'todos', label: 'Todas las Series', icon: '📺' },
+        { id: 'accion', label: 'Acción y Aventura', icon: '💥' },
+        { id: 'ciencia-ficcion', label: 'Ciencia Ficción', icon: '🚀' },
+        { id: 'terror', label: 'Terror y Misterio', icon: '👻' },
+        { id: 'drama', label: 'Drama', icon: '🎭' },
+        { id: 'comedia', label: 'Comedia', icon: '😂' },
+        { id: 'crimen-suspenso', label: 'Crimen y Policial', icon: '🔍' },
+        { id: 'animacion', label: 'Animación y Anime', icon: '🎨' },
+        { id: 'romance', label: 'Romance', icon: '❤️' }
+      ]
+    };
+
+    function renderGenrePills(seccion) {
+      if (!el.genrePillsBar) return;
+
+      const generos = GENRES_CONFIG[seccion];
+      if (!generos || state.query) {
+        el.genrePillsBar.style.display = 'none';
+        el.genrePillsBar.innerHTML = '';
+        return;
+      }
+
+      el.genrePillsBar.style.display = 'flex';
+      el.genrePillsBar.innerHTML = '';
+
+      generos.forEach(g => {
+        const btn = document.createElement('button');
+        const isActive = (state.genre === g.id);
+        btn.className = 'genre-pill' + (isActive ? ' active' : '');
+        btn.innerHTML = `<span class="genre-pill-icon">${g.icon}</span> <span>${g.label}</span>`;
+        btn.setAttribute('role', 'tab');
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        btn.tabIndex = 0;
+
+        btn.addEventListener('click', () => {
+          if (state.genre === g.id) return;
+          state.genre = g.id;
+          el.genrePillsBar.querySelectorAll('.genre-pill').forEach(p => {
+            p.classList.remove('active');
+            p.setAttribute('aria-selected', 'false');
+          });
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+          btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+
+          cargarGrid(state.section, 1, state.query, state.genre);
+        });
+
+        el.genrePillsBar.appendChild(btn);
+      });
+    }
 
     // 1. INICIALIZAR Y GESTIÓN DE VISTAS
     function init() {
@@ -1203,11 +1329,20 @@
     }
 
     // 4. VISTA DE CUADRÍCULA PAGINADA (SIN SCROLL INFINITO)
-    async function cargarGrid(seccion, page = 1, query = '') {
+    async function cargarGrid(seccion, page = 1, query = '', genero = 'todos') {
       switchView('grid');
       state.section = seccion;
       state.page = page;
       state.query = query;
+      state.genre = genero || 'todos';
+
+      // Renderizar o actualizar barra de filtros de género
+      renderGenrePills(seccion);
+
+      // Obtener etiqueta legible del género si no es 'todos'
+      const generos = GENRES_CONFIG[seccion] || [];
+      const currGenObj = generos.find(g => g.id === state.genre);
+      const generoLabel = (currGenObj && state.genre !== 'todos') ? ` (${currGenObj.icon} ${currGenObj.label})` : '';
 
       // Actualizar Título
       if (query) {
@@ -1217,16 +1352,16 @@
         el.gridTitle.innerText = '🔥 Últimos Estrenos (2026 - 2024)';
         el.gridSubtitle.innerText = 'Los lanzamientos más recientes del cine y streaming';
       } else if (seccion === 'peliculas') {
-        el.gridTitle.innerText = '🎬 Catálogo Completo de Películas';
-        el.gridSubtitle.innerText = 'Más de 24,000 títulos disponibles';
+        el.gridTitle.innerText = `🎬 Catálogo de Películas${generoLabel}`;
+        el.gridSubtitle.innerText = state.genre === 'todos' ? 'Más de 24,000 títulos disponibles' : `Filtrando por ${currGenObj ? currGenObj.label : state.genre}`;
       } else if (seccion === 'series') {
-        el.gridTitle.innerText = '📺 Series y Temporadas Completas';
-        el.gridSubtitle.innerText = 'Más de 7,500 series para disfrutar';
+        el.gridTitle.innerText = `📺 Series y Temporadas${generoLabel}`;
+        el.gridSubtitle.innerText = state.genre === 'todos' ? 'Más de 7,500 series disponibles' : `Filtrando por ${currGenObj ? currGenObj.label : state.genre}`;
       } else if (seccion === 'mi_lista') {
         el.gridTitle.innerText = '⭐ Mi Lista de Favoritos';
         el.gridSubtitle.innerText = `${state.myList.size} títulos guardados`;
       } else {
-        el.gridTitle.innerText = `Sección: ${seccion.toUpperCase()}`;
+        el.gridTitle.innerText = `Sección: ${seccion.toUpperCase()}${generoLabel}`;
         el.gridSubtitle.innerText = 'Explorando títulos';
       }
 
@@ -1245,7 +1380,8 @@
         page: state.page,
         limit: state.limit,
         q: state.query,
-        seccion: seccion
+        seccion: seccion,
+        genero: state.genre
       });
 
       try {
@@ -1255,7 +1391,8 @@
         state.totalPages = data.total_pages;
         state.totalItems = data.total;
 
-        el.gridSubtitle.innerText = `Mostrando ${(data.page - 1) * data.limit + 1} - ${Math.min(data.page * data.limit, data.total)} de ${data.total.toLocaleString()} títulos (Página ${data.page} de ${data.total_pages})`;
+        const infoGenero = (state.genre !== 'todos' && currGenObj) ? ` [${currGenObj.label}]` : '';
+        el.gridSubtitle.innerText = `Mostrando ${(data.page - 1) * data.limit + 1} - ${Math.min(data.page * data.limit, data.total)} de ${data.total.toLocaleString()} títulos${infoGenero} (Página ${data.page} de ${data.total_pages})`;
 
         el.catalogGrid.innerHTML = '';
         if (!data.items || !data.items.length) {
@@ -1263,8 +1400,8 @@
             <div class="empty-state">
               <div class="empty-state-icon">🎬</div>
               <h3>No se encontraron resultados</h3>
-              <p>Intenta con otra palabra clave o regresa al inicio.</p>
-              <button class="btn-back-home" onclick="cargarInicio()">Volver a Inicio</button>
+              <p>No hay títulos disponibles con este filtro de categoría.</p>
+              <button class="btn-back-home" onclick="cargarGrid('${seccion}', 1, '', 'todos')">Ver Todos en ${seccion === 'peliculas' ? 'Películas' : 'Series'}</button>
             </div>
           `;
           el.paginationBar.style.display = 'none';
@@ -1290,13 +1427,25 @@
     }
 
     function abrirSeccionGrid(seccionId, titulo) {
-      if (seccionId === 'estrenos') setActiveNav(el.btnNavEstrenos);
-      else if (seccionId === 'series_populares') setActiveNav(el.btnNavSeries);
-      else if (seccionId === 'peliculas_populares') setActiveNav(el.btnNavPeliculas);
-      else setActiveNav(null);
-
-      const secName = seccionId === 'series_populares' ? 'series' : (seccionId === 'peliculas_populares' ? 'peliculas' : seccionId);
-      cargarGrid(secName, 1, '');
+      if (seccionId === 'estrenos') {
+        setActiveNav(el.btnNavEstrenos);
+        cargarGrid('estrenos', 1, '', 'todos');
+      } else if (seccionId === 'series_populares') {
+        setActiveNav(el.btnNavSeries);
+        cargarGrid('series', 1, '', 'todos');
+      } else if (seccionId === 'peliculas_populares') {
+        setActiveNav(el.btnNavPeliculas);
+        cargarGrid('peliculas', 1, '', 'todos');
+      } else if (seccionId === 'accion' || seccionId === 'terror' || seccionId === 'animacion') {
+        setActiveNav(el.btnNavPeliculas);
+        cargarGrid('peliculas', 1, '', seccionId);
+      } else if (seccionId === 'scifi') {
+        setActiveNav(el.btnNavPeliculas);
+        cargarGrid('peliculas', 1, '', 'ciencia-ficcion');
+      } else {
+        setActiveNav(null);
+        cargarGrid(seccionId, 1, '', 'todos');
+      }
     }
 
     // 5. RENDERIZADO DE LA PAGINACIÓN (100% LIBRE DE SCROLL INFINITO)
@@ -1392,7 +1541,7 @@
 
     function cambiarPagina(newPage) {
       if (newPage < 1 || newPage > state.totalPages || newPage === state.page) return;
-      cargarGrid(state.section, newPage, state.query);
+      cargarGrid(state.section, newPage, state.query, state.genre);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -1515,19 +1664,23 @@
       el.btnNavInicio.addEventListener('click', cargarInicio);
       el.btnNavEstrenos.addEventListener('click', () => {
         setActiveNav(el.btnNavEstrenos);
-        cargarGrid('estrenos', 1, '');
+        state.genre = 'todos';
+        cargarGrid('estrenos', 1, '', 'todos');
       });
       el.btnNavPeliculas.addEventListener('click', () => {
         setActiveNav(el.btnNavPeliculas);
-        cargarGrid('peliculas', 1, '');
+        state.genre = 'todos';
+        cargarGrid('peliculas', 1, '', 'todos');
       });
       el.btnNavSeries.addEventListener('click', () => {
         setActiveNav(el.btnNavSeries);
-        cargarGrid('series', 1, '');
+        state.genre = 'todos';
+        cargarGrid('series', 1, '', 'todos');
       });
       el.btnNavMiLista.addEventListener('click', () => {
         setActiveNav(el.btnNavMiLista);
-        cargarGrid('mi_lista', 1, '');
+        state.genre = 'todos';
+        cargarGrid('mi_lista', 1, '', 'todos');
       });
 
       el.btnGridBack.addEventListener('click', cargarInicio);
@@ -1572,7 +1725,8 @@
         debounceTimer = setTimeout(() => {
           if (val.length >= 2) {
             setActiveNav(null);
-            cargarGrid('todos', 1, val);
+            state.genre = 'todos';
+            cargarGrid('todos', 1, val, 'todos');
           } else if (!val && state.view === 'grid') {
             cargarInicio();
           }
@@ -1584,7 +1738,8 @@
           const val = el.searchInput.value.trim();
           if (val) {
             setActiveNav(null);
-            cargarGrid('todos', 1, val);
+            state.genre = 'todos';
+            cargarGrid('todos', 1, val, 'todos');
           }
         }
       });
@@ -1624,6 +1779,20 @@
             el.searchInput.blur();
           } else if (state.view === 'grid') {
             cargarInicio();
+          }
+          return;
+        }
+
+        // Navegación de pastillas de categoría con control remoto
+        const currentPill = document.activeElement ? document.activeElement.closest('.genre-pill') : null;
+        if (currentPill) {
+          if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+            const sibling = e.key === 'ArrowRight' ? currentPill.nextElementSibling : currentPill.previousElementSibling;
+            if (sibling && sibling.classList.contains('genre-pill')) {
+              e.preventDefault();
+              sibling.focus();
+              sibling.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
           }
           return;
         }
