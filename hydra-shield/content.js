@@ -1,4 +1,4 @@
-// Hydra TV Shield - Acelerador y Neutralizador de Trampas en DOM
+// Hydra TV Shield - Acelerador, Neutralizador de Trampas y Máscara de Marca Oficial
 (function() {
   'use strict';
 
@@ -9,11 +9,218 @@
     return;
   }
 
-  // 1. Destructor de capas invisibles superpuestas (Clickjacking Overlays)
+  // 1. Inyectar Estilos de Camuflaje Oficial Hydra TV (Oculta logos y menús de terceros)
+  function inyectarEstilosHydraTV() {
+    if (document.getElementById('hydra-brand-cloak-style')) return;
+    const style = document.createElement('style');
+    style.id = 'hydra-brand-cloak-style';
+    style.textContent = `
+      /* Ocultar marcas de terceros, barras de navegación, anuncios y logos */
+      header, .Header, #header,
+      nav, .Menu, .navbar, .nav-menu,
+      .logo, a.logo, .logo-ft,
+      img[alt*="Poseidon" i], img[alt*="Cinemitas" i], img[alt*="Pelicine" i], img[src*="logo" i],
+      a[href="/"][class*="logo"], a[href="/"][title*="Poseidon"],
+      .search, .buscador, form[action*="search"],
+      .alert-danger, .adang, .alert, .notice, .warning-box, .aviso, .notice-box,
+      .share, .social, .btn-share, .compartir, a[href*="facebook" i], a[href*="twitter" i],
+      .comments, #comments, .disqus, #disqus_thread,
+      footer, .footer, #footer, .copyright,
+      .col-right, aside, .sidebar,
+      .breadcrumb, .breadcrumbs, .nav-links, .menu-links, .user-menu,
+      .login-btn, .register-btn, .btn-login, .btn-register,
+      .rating-stars, .votes, .report-btn, .btn-report, .reportar, a[href*="report"],
+      .download-btn, .btn-download, a[href*="descargar" i], a[href*="download" i],
+      .tags, .tags-list, .tagcloud, .widget, .banner, .ads, .adsense, .ad-banner {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        height: 0 !important;
+        max-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+      }
+
+      body, html {
+        background: #0a0b0e !important;
+        color: #fff !important;
+      }
+
+      body.has-hydra-topbar {
+        padding-top: 52px !important;
+      }
+
+      /* Barra Superior Oficial de Hydra TV (Solo modo Kiosk TV top-level) */
+      #hydra-tv-topbar {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        height: 52px !important;
+        background: rgba(10, 11, 14, 0.98) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0 20px !important;
+        z-index: 2147483647 !important;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8) !important;
+      }
+
+      #hydra-btn-back {
+        background: rgba(255, 255, 255, 0.12) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        color: #ffffff !important;
+        padding: 8px 18px !important;
+        border-radius: 8px !important;
+        cursor: pointer !important;
+        font-weight: 700 !important;
+        font-size: 0.95rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        transition: all 0.2s ease !important;
+        outline: none !important;
+      }
+
+      #hydra-btn-back:hover, #hydra-btn-back:focus {
+        background: #e50914 !important;
+        border-color: #e50914 !important;
+        transform: scale(1.03) !important;
+      }
+
+      #hydra-brand-info {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        font-weight: 900 !important;
+        font-size: 1.15rem !important;
+        color: #ffffff !important;
+        letter-spacing: -0.5px !important;
+        user-select: none !important;
+      }
+
+      #hydra-brand-info .hydra-logo-icon {
+        color: #e50914 !important;
+        font-size: 1.3rem !important;
+      }
+    `;
+    (document.head || document.documentElement).appendChild(style);
+  }
+
+  // 1.1 Limpieza y Reemplazo de Textos de Terceros (Poseidon, Cinemitas, etc.)
+  function camuflarTextos() {
+    try {
+      if (document.title) {
+        document.title = document.title
+          .replace(/poseidonhd\s*2?/gi, 'Hydra TV')
+          .replace(/cinemitas/gi, 'Hydra TV')
+          .replace(/pelicinehd/gi, 'Hydra TV')
+          .replace(/cuevana\s*\d*/gi, 'Hydra TV');
+      }
+
+      if (!document.body) return;
+
+      const walker = document.createTreeWalker(
+        document.body,
+        NodeFilter.SHOW_TEXT,
+        null,
+        false
+      );
+
+      const bannedRegexes = [/poseidonhd\s*2?/gi, /cinemitas/gi, /pelicinehd/gi, /cuevana\s*\d*/gi];
+      let node;
+      while (node = walker.nextNode()) {
+        const val = node.nodeValue;
+        if (!val || val.length < 3) continue;
+
+        const lower = val.toLowerCase();
+        if (lower.includes('no guardamos tus contraseñas') ||
+            lower.includes('recuerda que no') ||
+            lower.includes('servidores gratuitos de terceros') ||
+            lower.includes('reportar link caido') ||
+            lower.includes('donaciones') ||
+            lower.includes('donar')) {
+          const parent = node.parentElement;
+          if (parent && !parent.closest('#player') && !parent.closest('#reproductor')) {
+            parent.style.display = 'none';
+          }
+          continue;
+        }
+
+        let updatedVal = val;
+        for (const reg of bannedRegexes) {
+          if (reg.test(updatedVal)) {
+            updatedVal = updatedVal.replace(reg, 'Hydra TV');
+          }
+        }
+        if (updatedVal !== val) {
+          node.nodeValue = updatedVal;
+        }
+      }
+    } catch(e) {}
+  }
+
+  // 2. Inyectar Barra Superior Interactiva de Hydra TV con botón Volver (Solo modo Kiosk TV top-level)
+  function inyectarBarraSuperiorHydra() {
+    // Si estamos dentro de un iframe (SPA de Hydra TV), el padre ya tiene la barra y los controles
+    if (window.self !== window.top) {
+      // Capturar Escape y Backspace para avisar al reproductor padre que cierre
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' || (e.key === 'Backspace' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName))) {
+          window.parent.postMessage({ type: 'HYDRA_CLOSE_PLAYER' }, '*');
+        }
+      });
+      return;
+    }
+
+    if (document.getElementById('hydra-tv-topbar')) return;
+    if (!document.body) return;
+
+    document.body.classList.add('has-hydra-topbar');
+
+    const bar = document.createElement('div');
+    bar.id = 'hydra-tv-topbar';
+    bar.innerHTML = `
+      <button id="hydra-btn-back" title="Volver al catálogo (Esc o Retroceso)">
+        ← Volver al Inicio
+      </button>
+      <div id="hydra-brand-info">
+        <span class="hydra-logo-icon">⚡</span>
+        <span>HYDRA TV</span>
+      </div>
+    `;
+
+    document.body.prepend(bar);
+
+    function volverAlInicio() {
+      try {
+        fetch('http://localhost:5000/stop', { method: 'POST' }).catch(() => {});
+      } catch(e) {}
+      window.location.href = 'http://localhost:5000';
+    }
+
+    const btnBack = bar.querySelector('#hydra-btn-back');
+    btnBack.addEventListener('click', volverAlInicio);
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' || (e.key === 'Backspace' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName))) {
+        volverAlInicio();
+      }
+    });
+  }
+
+  // 3. Destructor de capas invisibles superpuestas (Clickjacking Overlays)
   function limpiarCapasYTrampas() {
     try {
       const elements = document.querySelectorAll('div, a, span, section');
       for (const el of elements) {
+        if (el.id === 'hydra-tv-topbar' || el.closest('#hydra-tv-topbar')) continue;
         const style = window.getComputedStyle(el);
         const isOverlay = (style.position === 'fixed' || style.position === 'absolute');
         const zIndex = parseInt(style.zIndex, 10);
@@ -32,14 +239,17 @@
 
       // Eliminar iframes publicitarios obvios
       const adIframes = document.querySelectorAll('iframe[src*="ad"], iframe[src*="banner"], iframe[src*="pop"], iframe[src*="click"], iframe[src*="track"]');
-      adIframes.forEach(f => f.remove());
+      adIframes.forEach(f => {
+        if (f.id !== 'hydra-player-iframe') f.remove();
+      });
     } catch(e) {}
   }
 
-  // 2. Interceptor de clics en la fase de captura para evitar que capas invisibles o enlaces tramposos abran nada
+  // 4. Interceptor de clics en la fase de captura
   window.addEventListener('click', function(e) {
     const el = e.target;
     if (!el) return;
+    if (el.id === 'hydra-btn-back' || el.closest('#hydra-tv-topbar')) return;
 
     // Si el usuario hace clic en un enlace con target="_blank"
     const a = el.closest('a');
@@ -65,7 +275,6 @@
         const rect = el.getBoundingClientRect();
         if (rect.width >= window.innerWidth * 0.6 && rect.height >= window.innerHeight * 0.6) {
           if (!el.querySelector('video') && el.tagName !== 'VIDEO') {
-            console.warn('[Hydra Shield CAPTURE] Clic en overlay absorbido y elemento destruido');
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
@@ -76,7 +285,7 @@
     } catch(err) {}
   }, true);
 
-  // 3. Acelerador de Reproducción Inmediata
+  // 5. Acelerador de Reproducción Inmediata
   function acelerarReproduccion() {
     try {
       // A. PoseidonHD: Desplegar servidores y clic en el primero
@@ -128,10 +337,16 @@
     } catch(err) {}
   }
 
+  inyectarEstilosHydraTV();
+  inyectarBarraSuperiorHydra();
+  camuflarTextos();
   limpiarCapasYTrampas();
   acelerarReproduccion();
 
   const intervalId = setInterval(() => {
+    inyectarEstilosHydraTV();
+    inyectarBarraSuperiorHydra();
+    camuflarTextos();
     limpiarCapasYTrampas();
     acelerarReproduccion();
   }, 250);
@@ -139,6 +354,8 @@
   setTimeout(() => {
     clearInterval(intervalId);
     const slowInterval = setInterval(() => {
+      inyectarBarraSuperiorHydra();
+      camuflarTextos();
       limpiarCapasYTrampas();
       acelerarReproduccion();
     }, 1200);
@@ -146,6 +363,9 @@
   }, 4000);
 
   document.addEventListener('DOMContentLoaded', () => {
+    inyectarEstilosHydraTV();
+    inyectarBarraSuperiorHydra();
+    camuflarTextos();
     limpiarCapasYTrampas();
     acelerarReproduccion();
   });

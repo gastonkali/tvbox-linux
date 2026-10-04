@@ -1180,6 +1180,177 @@
       to { transform: rotate(360deg); }
     }
 
+    /* REPRODUCTOR INTEGRADO EN LA MISMA VENTANA (SPA THEATER) */
+    #viewPlayer {
+      display: none;
+      width: 100%;
+      min-height: calc(100vh - 68px);
+      background: #0a0b0e;
+      position: relative;
+      z-index: 50;
+      flex-direction: column;
+    }
+
+    .player-theater-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 36px;
+      background: rgba(15, 17, 23, 0.96);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-subtle);
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .player-btn-back {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-subtle);
+      color: #fff;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    .player-btn-back:hover,
+    .player-btn-back:focus {
+      background: var(--accent);
+      border-color: var(--accent);
+      transform: translateX(-3px);
+    }
+
+    .player-title-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 260px;
+    }
+
+    .player-brand-badge {
+      font-weight: 900;
+      font-size: 0.95rem;
+      color: var(--accent);
+      letter-spacing: -0.3px;
+    }
+
+    .player-title-text {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 500px;
+    }
+
+    .player-bar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .player-action-btn {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .player-action-btn:hover {
+      background: var(--surface-hover);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .player-theater-viewport {
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #000;
+      padding: 0;
+    }
+
+    .player-servers-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 36px;
+      background: #111318;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      overflow-x: auto;
+    }
+
+    .servers-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    .servers-list {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .server-pill {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #e5e7eb;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .server-pill:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
+
+    .server-pill.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .player-frame-container {
+      width: 100%;
+      height: 78vh;
+      min-height: 520px;
+      background: #000;
+      position: relative;
+    }
+
+    .player-frame-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
     /* RESPONSIVE */
     @media (max-width: 900px) {
       .navbar {
@@ -1310,6 +1481,44 @@
         </div>
       </div>
     </div>
+
+    <!-- =========================================
+         3. VISTA DE REPRODUCTOR EN LA MISMA VENTANA (SPA)
+         ========================================= -->
+    <div id="viewPlayer" style="display: none;">
+      <!-- Barra superior del reproductor -->
+      <div class="player-theater-bar">
+        <button class="player-btn-back" id="playerBtnBack" title="Volver al catálogo (Esc o Retroceso)">
+          ← Volver al Inicio
+        </button>
+        <div class="player-title-info">
+          <span class="player-brand-badge">⚡ HYDRA TV</span>
+          <h2 class="player-title-text" id="playerTitleText">Cargando video...</h2>
+          <span class="badge-pill" id="playerYearBadge">2026</span>
+          <span class="badge-pill" id="playerTypeBadge">FULL HD</span>
+        </div>
+        <div class="player-bar-actions">
+          <button class="player-action-btn" id="playerBtnTvCast" title="Enviar video a la pantalla de la TV">
+            📺 Enviar a la TV
+          </button>
+          <button class="player-action-btn" id="playerBtnFullscreen" title="Pantalla completa">
+            ⛶ Pantalla Completa
+          </button>
+        </div>
+      </div>
+
+      <!-- Contenedor del video y servidores -->
+      <div class="player-theater-viewport">
+        <div class="player-servers-bar" id="playerServersBar" style="display: none;">
+          <span class="servers-label">Servidor / Opción:</span>
+          <div class="servers-list" id="playerServersList"></div>
+        </div>
+
+        <div class="player-frame-container">
+          <iframe id="playerIframe" src="" allow="autoplay; encrypted-media; fullscreen" allowfullscreen frameborder="0"></iframe>
+        </div>
+      </div>
+    </div>
   </main>
 
   <!-- MODAL DE TRAILER OFICIAL (OPCIÓN 2) -->
@@ -1351,7 +1560,9 @@
 
     // ESTADO DE LA APLICACIÓN
     const state = {
-      view: 'home',             // 'home' | 'grid'
+      view: 'home',             // 'home' | 'grid' | 'player'
+      previousView: 'home',
+      currentPlayerItem: null,
       section: 'inicio',        // 'inicio', 'estrenos', 'peliculas', 'series', 'mi_lista'
       genre: 'todos',           // 'todos', 'accion', 'terror', etc.
       query: '',
@@ -1359,7 +1570,7 @@
       limit: 36,
       totalPages: 1,
       totalItems: 0,
-      playbackTarget: 'tv',
+      playbackTarget: localStorage.getItem('hydra_playback_target') || 'here',
       heroItem: null,
       currentTrailerVideoId: null,
       currentTrailerTitle: null,
@@ -1381,6 +1592,16 @@
       btnPlayTv: document.getElementById('btnPlayTv'),
       viewHome: document.getElementById('viewHome'),
       viewGrid: document.getElementById('viewGrid'),
+      viewPlayer: document.getElementById('viewPlayer'),
+      playerBtnBack: document.getElementById('playerBtnBack'),
+      playerTitleText: document.getElementById('playerTitleText'),
+      playerYearBadge: document.getElementById('playerYearBadge'),
+      playerTypeBadge: document.getElementById('playerTypeBadge'),
+      playerBtnTvCast: document.getElementById('playerBtnTvCast'),
+      playerBtnFullscreen: document.getElementById('playerBtnFullscreen'),
+      playerServersBar: document.getElementById('playerServersBar'),
+      playerServersList: document.getElementById('playerServersList'),
+      playerIframe: document.getElementById('playerIframe'),
       heroBillboard: document.getElementById('heroBillboard'),
       heroBackdrop: document.getElementById('heroBackdrop'),
       heroTitle: document.getElementById('heroTitle'),
@@ -1485,14 +1706,24 @@
     }
 
     function switchView(viewName) {
+      if (state.view !== 'player') {
+        state.previousView = state.view;
+      }
       state.view = viewName;
       if (viewName === 'home') {
         el.viewHome.style.display = 'block';
         el.viewGrid.style.display = 'none';
+        if (el.viewPlayer) el.viewPlayer.style.display = 'none';
         window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
+      } else if (viewName === 'grid') {
         el.viewHome.style.display = 'none';
         el.viewGrid.style.display = 'block';
+        if (el.viewPlayer) el.viewPlayer.style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (viewName === 'player') {
+        el.viewHome.style.display = 'none';
+        el.viewGrid.style.display = 'none';
+        if (el.viewPlayer) el.viewPlayer.style.display = 'flex';
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     }
@@ -1969,12 +2200,7 @@
       else if (targetUrl.endsWith('.php/')) targetUrl = targetUrl.slice(0, -1);
 
       if (state.playbackTarget === 'here') {
-        showToast('💻 Abriendo: ' + item.titulo);
-        if (item.tipo === 'directo') {
-          window.open('/reproductor?url=' + encodeURIComponent(targetUrl) + '&titulo=' + encodeURIComponent(item.titulo), '_blank');
-        } else {
-          window.open(targetUrl, '_blank');
-        }
+        abrirReproductorEnMismaVentana(item, targetUrl);
       } else {
         showToast('📺 Enviando a la TV: ' + item.titulo + '...');
         fetch('/play/' + item.id, {
@@ -1988,6 +2214,73 @@
           else showToast('✅ Reproduciendo en TV: ' + item.titulo);
         })
         .catch(() => showToast('Error de conexión con la TV'));
+      }
+    }
+
+    function abrirReproductorEnMismaVentana(item, opcionUrl) {
+      if (!item) return;
+      state.currentPlayerItem = item;
+      const urlAUsar = opcionUrl || item.url;
+      if (!urlAUsar) {
+        showToast('Error: No se encontró enlace para reproducir');
+        return;
+      }
+
+      el.playerTitleText.innerText = item.titulo || 'Reproduciendo Video';
+      el.playerTitleText.title = item.titulo || '';
+      el.playerYearBadge.innerText = item.anio || (new Date().getFullYear());
+      el.playerTypeBadge.innerText = item.es_serie ? 'SERIE HD' : 'PELÍCULA HD';
+
+      // Configurar Servidores / Opciones si existen
+      const opciones = Array.isArray(item.opciones) && item.opciones.length > 0 ? item.opciones : [urlAUsar];
+      if (opciones.length > 1) {
+        el.playerServersBar.style.display = 'flex';
+        el.playerServersList.innerHTML = '';
+        opciones.forEach((optUrl, idx) => {
+          const pill = document.createElement('button');
+          pill.className = 'server-pill' + (optUrl === urlAUsar ? ' active' : '');
+          pill.innerText = `Servidor ${idx + 1}`;
+          pill.addEventListener('click', () => {
+            el.playerServersList.querySelectorAll('.server-pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            cargarFrameReproductor(item, optUrl);
+          });
+          el.playerServersList.appendChild(pill);
+        });
+      } else {
+        el.playerServersBar.style.display = 'none';
+        el.playerServersList.innerHTML = '';
+      }
+
+      cargarFrameReproductor(item, urlAUsar);
+      switchView('player');
+      showToast('🎬 Abriendo: ' + item.titulo);
+    }
+
+    function cargarFrameReproductor(item, rawUrl) {
+      let targetUrl = rawUrl;
+      if (targetUrl.endsWith('.html/')) targetUrl = targetUrl.slice(0, -1);
+      else if (targetUrl.endsWith('.php/')) targetUrl = targetUrl.slice(0, -1);
+
+      if (item && item.tipo === 'directo') {
+        el.playerIframe.src = '/reproductor?url=' + encodeURIComponent(targetUrl) + '&titulo=' + encodeURIComponent(item.titulo || '');
+      } else {
+        el.playerIframe.src = targetUrl;
+      }
+    }
+
+    function cerrarReproductorEnMismaVentana() {
+      if (document.fullscreenElement) {
+        try { document.exitFullscreen(); } catch (e) {}
+      }
+      if (el.playerIframe) {
+        el.playerIframe.src = 'about:blank';
+      }
+      state.currentPlayerItem = null;
+      if (state.previousView === 'grid') {
+        switchView('grid');
+      } else {
+        switchView('home');
       }
     }
 
@@ -2100,14 +2393,65 @@
         });
       }
 
+      // Eventos del Reproductor Integrado (Misma Ventana)
+      if (el.playerBtnBack) {
+        el.playerBtnBack.addEventListener('click', cerrarReproductorEnMismaVentana);
+      }
+
+      if (el.playerBtnFullscreen) {
+        el.playerBtnFullscreen.addEventListener('click', () => {
+          if (!document.fullscreenElement) {
+            const container = el.playerIframe.parentElement || el.playerIframe;
+            if (container.requestFullscreen) {
+              container.requestFullscreen();
+            } else if (container.webkitRequestFullscreen) {
+              container.webkitRequestFullscreen();
+            }
+          } else {
+            if (document.exitFullscreen) {
+              document.exitFullscreen();
+            }
+          }
+        });
+      }
+
+      if (el.playerBtnTvCast) {
+        el.playerBtnTvCast.addEventListener('click', () => {
+          if (state.currentPlayerItem) {
+            const item = state.currentPlayerItem;
+            showToast('📺 Transmitiendo a la TV: ' + item.titulo + '...');
+            fetch('/play/' + item.id, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ opcion_url: el.playerIframe.src || item.url })
+            })
+            .then(res => res.json())
+            .then(data => {
+              if (data.error) showToast('Error: ' + data.error);
+              else showToast('✅ Reproduciendo en TV: ' + item.titulo);
+            })
+            .catch(() => showToast('Error de conexión con la TV'));
+          }
+        });
+      }
+
+      // Escuchar mensajes desde el iframe (Hydra Shield cerrando reproductor)
+      window.addEventListener('message', (e) => {
+        if (e.data && e.data.type === 'HYDRA_CLOSE_PLAYER') {
+          cerrarReproductorEnMismaVentana();
+        }
+      });
+
       // Target Switcher
       el.btnPlayHere.addEventListener('click', () => {
         state.playbackTarget = 'here';
+        localStorage.setItem('hydra_playback_target', 'here');
         updatePlaybackTargetUI();
         showToast('Modo: Los videos se abrirán en este navegador');
       });
       el.btnPlayTv.addEventListener('click', () => {
         state.playbackTarget = 'tv';
+        localStorage.setItem('hydra_playback_target', 'tv');
         updatePlaybackTargetUI();
         showToast('Modo: Los videos se lanzarán en la TV (Ubuntu)');
       });
@@ -2169,8 +2513,12 @@
           return;
         }
 
-        // Tecla Escape para salir del buscador o cerrar el modal de trailer
+        // Tecla Escape para salir de vistas o modales
         if (e.key === 'Escape') {
+          if (state.view === 'player') {
+            cerrarReproductorEnMismaVentana();
+            return;
+          }
           if (el.trailerModal.classList.contains('open')) {
             cerrarModalTrailer();
             return;
@@ -2181,6 +2529,15 @@
             cargarInicio();
           }
           return;
+        }
+
+        // Tecla Backspace para volver desde el reproductor
+        if (e.key === 'Backspace' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+          if (state.view === 'player') {
+            e.preventDefault();
+            cerrarReproductorEnMismaVentana();
+            return;
+          }
         }
 
         // Navegación de pastillas de categoría con control remoto

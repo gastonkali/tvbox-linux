@@ -59,4 +59,14 @@
       return originalAnchorClick.apply(this, arguments);
     };
   } catch(e) {}
+
+  // 4. Neutralizar scripts de frame-busting que intentan redirigir fuera del reproductor de Hydra TV
+  try {
+    if (window.top !== window.self) {
+      Object.defineProperty(window, 'top', {
+        get: function() { return window.self; },
+        set: function() {}
+      });
+    }
+  } catch(e) {}
 })();
