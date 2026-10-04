@@ -125,7 +125,13 @@ def inicializar_catalogo():
                         if m_id is not None and m_id not in ids_registrados:
                             if not m.get("poster") or not str(m.get("poster")).strip() or "ultrapeli.com" in m.get("poster", ""):
                                 continue
-                            m["url_resuelta"] = m.get("url", "")
+                            raw_u = m.get("url", "")
+                            if raw_u.endswith(".html/"):
+                                raw_u = raw_u[:-1]
+                            elif raw_u.endswith(".php/"):
+                                raw_u = raw_u[:-1]
+                            m["url"] = raw_u
+                            m["url_resuelta"] = raw_u
                             items_combinados.append(m)
                             ids_registrados.add(m_id)
         except Exception as e:
@@ -356,6 +362,10 @@ def play(canal_id):
     opcion_url = datos.get("opcion_url")
 
     target_url = opcion_url or canal.get("url_resuelta") or canal.get("url", "")
+    if target_url.endswith(".html/"):
+        target_url = target_url[:-1]
+    elif target_url.endswith(".php/"):
+        target_url = target_url[:-1]
 
     if not target_url:
         return jsonify({"error": "El título no tiene URL válida"}), 400

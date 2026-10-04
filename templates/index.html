@@ -756,7 +756,10 @@
         if (item.tipo === 'directo') {
           window.open('/reproductor?url=' + encodeURIComponent(item.url) + '&titulo=' + encodeURIComponent(item.titulo), '_blank');
         } else {
-          window.open(item.url, '_blank');
+          let targetUrl = item.url || '';
+          if (targetUrl.endsWith('.html/')) targetUrl = targetUrl.slice(0, -1);
+          else if (targetUrl.endsWith('.php/')) targetUrl = targetUrl.slice(0, -1);
+          window.open(targetUrl, '_blank');
         }
       } else {
         // Enviar a la pantalla de la TV (Ubuntu)
