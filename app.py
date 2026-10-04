@@ -83,6 +83,131 @@ def damerau_levenshtein_1(s1, s2):
         return False
     return False
 
+HOME_FEED_CACHE = {}
+
+def es_serie(item):
+    if not item:
+        return False
+    cat = str(item.get("categoria", "")).lower()
+    url = str(item.get("url", "")).lower()
+    return "serie" in cat or "tvshow" in cat or "/serie/" in url
+
+def extraer_anio(item):
+    if not item:
+        return 0
+    t = str(item.get("titulo", ""))
+    m = re.search(r'\b(202[0-9]|201[0-9]|19[0-9]{2})\b', t)
+    return int(m.group(1)) if m else 0
+
+def formatear_item_api(item):
+    if not item:
+        return {}
+    return {
+        "id": item.get("id"),
+        "titulo": item.get("titulo_limpio", item.get("titulo")),
+        "tipo": item.get("tipo", "web"),
+        "categoria": item.get("categoria", ""),
+        "poster": item.get("poster", ""),
+        "url": item.get("url_resuelta", item.get("url", "")),
+        "opciones": item.get("opciones", []),
+        "anio": extraer_anio(item),
+        "es_serie": es_serie(item)
+    }
+
+def construir_home_feed():
+    global HOME_FEED_CACHE
+    series = []
+    peliculas = []
+    estrenos = []
+
+    for x in CATALOGO_CACHE:
+        if es_serie(x):
+            series.append(x)
+        else:
+            peliculas.append(x)
+
+        anio = extraer_anio(x)
+        if anio in [2026, 2025, 2024]:
+            estrenos.append(x)
+
+    estrenos.sort(key=lambda x: (extraer_anio(x), x.get("id", 0)), reverse=True)
+
+    KEYWORDS_ACCION = ['john wick', 'mision imposible', 'rapidos', 'furious', 'bad boys', 'venganza', 'batman', 'spider', 'avengers', 'gladiador', 'furia', 'rescat', 'arma', 'policia']
+    KEYWORDS_TERROR = ['resident evil', 'saw', 'exorcista', 'warren', 'muerte', 'miedo', 'panico', 'insidious', 'pesadilla', 'demonio', 'siniestro', 'monstruo', 'zombie', 'halloween']
+    KEYWORDS_SCIFI = ['alien', 'matrix', 'star wars', 'avatar', 'jurassic', 'transformers', 'dune', 'planeta', 'interstellar', 'marvel', 'dc', 'cyber', 'futuro']
+    KEYWORDS_ANIMACION = ['toy story', 'shrek', 'minions', 'kung fu', 'dragon', 'frozen', 'mario', 'pixar', 'disney', 'intensamente', 'moana', 'spiderman']
+
+    def filtrar_palabras(pool, kws, limit=25):
+        out = []
+        vistos = set()
+        for it in pool:
+            t = it.get("titulo", "").lower()
+            if any(k in t for k in kws) and it["id"] not in vistos:
+                vistos.add(it["id"])
+                out.append(formatear_item_api(it))
+                if len(out) >= limit:
+                    break
+        return out
+
+    # Candidatos a portada principal (Estrenos taquilleros reconocidos)
+    hero_candidates = [
+        it for it in estrenos 
+        if any(b in it.get("titulo", "").lower() for b in ['resident evil', 'bad boys', 'deadpool', 'spider', 'alien', 'gladiator', 'dune', 'avengers', 'transformers'])
+    ]
+    if not hero_candidates and estrenos:
+        hero_candidates = estrenos[:5]
+
+    hero_item = formatear_item_api(hero_candidates[0]) if hero_candidates else (formatear_item_api(CATALOGO_CACHE[0]) if CATALOGO_CACHE else {})
+
+    HOME_FEED_CACHE = {
+        "hero": hero_item,
+        "hero_slides": [formatear_item_api(h) for h in hero_candidates[:5]],
+        "filas": [
+            {
+                "id": "estrenos",
+                "titulo": "🔥 Últimos Estrenos (2026 - 2025)",
+                "subtitulo": "Los lanzamientos más recientes del cine y streaming",
+                "items": [formatear_item_api(x) for x in estrenos[:25]]
+            },
+            {
+                "id": "series_populares",
+                "titulo": "📺 Series Recomendadas",
+                "subtitulo": "Temporadas completas para maratonear",
+                "items": [formatear_item_api(x) for x in series[:25]]
+            },
+            {
+                "id": "peliculas_populares",
+                "titulo": "🍿 Películas Destacadas",
+                "subtitulo": "Los grandes éxitos del cine",
+                "items": [formatear_item_api(x) for x in peliculas[:25]]
+            },
+            {
+                "id": "accion",
+                "titulo": "💥 Adrenalina y Acción",
+                "subtitulo": "Persecuciones, combates y héroes",
+                "items": filtrar_palabras(peliculas, KEYWORDS_ACCION, 25)
+            },
+            {
+                "id": "terror",
+                "titulo": "👻 Noche de Terror y Suspenso",
+                "subtitulo": "Pesadillas, suspenso y misterio",
+                "items": filtrar_palabras(peliculas, KEYWORDS_TERROR, 25)
+            },
+            {
+                "id": "scifi",
+                "titulo": "🚀 Ciencia Ficción y Futuro",
+                "subtitulo": "Universos lejanos y tecnología",
+                "items": filtrar_palabras(peliculas, KEYWORDS_SCIFI, 25)
+            },
+            {
+                "id": "animacion",
+                "titulo": "🎨 Animación y Familia",
+                "subtitulo": "Diversión para todas las edades",
+                "items": filtrar_palabras(peliculas, KEYWORDS_ANIMACION, 25)
+            }
+        ]
+    }
+
 def inicializar_catalogo():
     """Carga canales.json y catalogo_maestro.json en memoria y construye el índice de búsqueda fuzzy."""
     global CATALOGO_CACHE, ITEMS_BY_ID, CATEGORIAS_CACHE, PROVEEDORES_CACHE
@@ -179,7 +304,8 @@ def inicializar_catalogo():
     lista_cat = sorted(list(categorias_set))
     CATEGORIAS_CACHE = ["Todos"] + lista_cat
 
-    print(f"[OK] Catálogo cargado: {len(CATALOGO_CACHE)} títulos, {len(vocab)} palabras indexadas, {len(CATEGORIAS_CACHE)} categorías.")
+    construir_home_feed()
+    print(f"[OK] Catálogo cargado: {len(CATALOGO_CACHE)} títulos, {len(vocab)} palabras indexadas, {len(CATEGORIAS_CACHE)} categorías, {len(HOME_FEED_CACHE.get('filas', []))} filas temáticas de inicio.")
 
 # Cargar catálogo en memoria al arrancar
 inicializar_catalogo()
@@ -305,15 +431,36 @@ def home():
 def api_categorias():
     return jsonify(CATEGORIAS_CACHE)
 
+@app.route("/api/inicio")
+def api_inicio():
+    return jsonify(HOME_FEED_CACHE)
+
 @app.route("/api/canales")
 def api_canales():
     """Búsqueda difusa y paginación ultra rápida en memoria (en menos de 30ms)."""
     query = request.args.get("q", "").strip()
     categoria = request.args.get("categoria", "").strip()
+    seccion = request.args.get("seccion", "todos").strip().lower()
     page = max(1, int(request.args.get("page", 1)))
-    limit = min(100, max(1, int(request.args.get("limit", 60))))
+    limit = min(100, max(1, int(request.args.get("limit", 36))))
 
     filtrados = buscar_catalogo(query, categoria)
+
+    if seccion == "series":
+        filtrados = [x for x in filtrados if es_serie(x)]
+    elif seccion == "peliculas":
+        filtrados = [x for x in filtrados if not es_serie(x)]
+    elif seccion == "estrenos":
+        filtrados = [x for x in filtrados if extraer_anio(x) in [2026, 2025, 2024]]
+    elif seccion in ["accion", "terror", "scifi", "animacion"]:
+        keywords_map = {
+            "accion": ['john wick', 'mision imposible', 'rapidos', 'furious', 'bad boys', 'venganza', 'batman', 'spider', 'avengers', 'gladiador', 'furia', 'rescat', 'arma', 'policia'],
+            "terror": ['resident evil', 'saw', 'exorcista', 'warren', 'muerte', 'miedo', 'panico', 'insidious', 'pesadilla', 'demonio', 'siniestro', 'monstruo', 'zombie', 'halloween'],
+            "scifi": ['alien', 'matrix', 'star wars', 'avatar', 'jurassic', 'transformers', 'dune', 'planeta', 'interstellar', 'marvel', 'dc', 'cyber', 'futuro'],
+            "animacion": ['toy story', 'shrek', 'minions', 'kung fu', 'dragon', 'frozen', 'mario', 'pixar', 'disney', 'intensamente', 'moana', 'spiderman']
+        }
+        kws = keywords_map[seccion]
+        filtrados = [x for x in filtrados if any(k in x.get("titulo", "").lower() for k in kws)]
 
     total = len(filtrados)
     total_pages = (total + limit - 1) // limit if total > 0 else 1
@@ -321,19 +468,7 @@ def api_canales():
     end = start + limit
 
     items_pagina = filtrados[start:end]
-
-    # Limpiar campos internos antes de enviar al frontend
-    resultado = []
-    for item in items_pagina:
-        resultado.append({
-            "id": item.get("id"),
-            "titulo": item.get("titulo_limpio", item.get("titulo")),
-            "tipo": item.get("tipo", "web"),
-            "categoria": item.get("categoria", ""),
-            "poster": item.get("poster", ""),
-            "url": item.get("url_resuelta", item.get("url", "")),
-            "opciones": item.get("opciones", [])
-        })
+    resultado = [formatear_item_api(it) for it in items_pagina]
 
     return jsonify({
         "total": total,
