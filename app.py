@@ -118,84 +118,91 @@ def formatear_item_api(item):
 
 GENRES_MAP = {
     "accion": [
-        "accion", "action", "mision imposible", "mision rescate", "rapidos", "furious", "fast", "bad boys", "venganza",
-        "revenge", "batman", "spider", "avengers", "gladiador", "gladiator", "furia", "fury", "rescat",
-        "rescue", "arma mortal", "armas de fuego", "policia", "cop", "pelea", "fight", "combate", "combat", "guerra",
-        "war", "soldier", "soldado", "sniper", "francotirador", "john wick", "hitman", "asesino",
-        "fuerzas especiales", "fuerza delta", "comando", "operacion militar", "operacion rescate", "operacion especial",
-        "black ops", "tactica", "infiltrado", "fuego cruzado", "bajo fuego", "bullet", "bala", "golpe letal", "golpe maestro",
-        "strike", "ataque", "attack", "ninja", "samurai", "mercenario", "die hard",
-        "superman", "iron man", "hulk", "thor", "wolverine", "deadpool"
+        "mision imposible", "mission impossible", "mision rescate", "extraction",
+        "rapidos y furiosos", "rapido y furioso", "fast & furious", "bad boys",
+        "venganza", "revenge", "gladiador", "gladiator", "arma mortal", "lethal weapon",
+        "john wick", "hitman", "fuerzas especiales", "fuerza delta", "comando",
+        "operacion rescate", "operacion especial", "operacion militar", "black ops",
+        "fuego cruzado", "bajo fuego", "golpe letal", "golpe maestro", "artes marciales",
+        "combate mortal", "mortal kombat", "mercenario", "die hard", "duro de matar",
+        "busqueda implacable", "el justiciero", "the equalizer", "los indestructibles",
+        "the expendables", "rambo", "top gun", "mad max", "terminator", "francotirador",
+        "sniper", "sicario", "swat", "tiroteo", "peligro inminente", "transporter",
+        "transportador", "deadpool", "wolverine"
     ],
     "ciencia-ficcion": [
-        "alien", "matrix", "star wars", "avatar", "jurassic", "transformers", "dune", "planeta",
-        "planet", "interstellar", "marvel", "dc", "cyber", "futuro", "future", "espacio", "space",
-        "galaxia", "galaxy", "robot", "cyborg", "maquina", "machine", "clon", "clone", "mutante",
-        "mutant", "tiempo", "time", "viaje en el tiempo", "apocalipsis", "apocalypse", "distopia",
-        "quantum", "gravedad", "gravity", "invasion", "universo", "universe", "scifi", "sci-fi",
-        "dimension", "multiverso", "terminator", "predator", "depredador", "sol", "luna", "marte", "mars",
-        "astronave", "interestelar"
+        "alien", "matrix", "star wars", "avatar", "jurassic", "transformers", "dune",
+        "interstellar", "cyber", "futuro", "future", "espacio", "space",
+        "galaxia", "galaxy", "robot", "cyborg", "maquina", "clon", "mutante",
+        "viaje en el tiempo", "apocalipsis", "distopia",
+        "quantum", "gravedad", "invasion alien", "scifi", "sci-fi",
+        "multiverso", "terminator", "predator", "depredador", "interestelar"
     ],
     "terror": [
-        "resident evil", "saw", "exorcista", "exorcist", "warren", "muerte", "death", "dead", "miedo",
-        "fear", "panico", "panic", "insidious", "pesadilla", "nightmare", "demonio", "demon", "devil",
-        "siniestro", "sinister", "monstruo", "monster", "zombie", "halloween", "terror", "horror",
-        "espanto", "grito", "scream", "noche de terror", "noche sangrienta", "noche de los muertos", "noche de brujas", "noche eterna",
-        "sangre", "blood", "maldicion", "curse", "fantasma", "ghost", "posesion", "possession", "bruja", "witch",
-        "infierno", "hell", "oscuro", "dark", "evil", "parafisico", "paranormal", "gore", "carnicero", "cementerio",
-        "tumba", "silence", "dracula", "vampir", "licantropo"
+        "resident evil", "saw", "exorcista", "exorcist", "warren", "insidious",
+        "pesadilla en la calle", "nightmare on elm", "demonio", "siniestro",
+        "zombie", "terror", "horror", "grito", "scream", "noche sangrienta",
+        "noche de los muertos", "maldicion", "posesion demoniaca", "bruja de blair",
+        "infierno", "paranormal", "gore", "carnicero", "dracula", "vampir", "licantropo",
+        "el conjuro", "the conjuring", "anabelle", "annabelle", "la monja", "the nun",
+        "hereditary", "midsommar", "un lugar en silencio", "a quiet place", "silent hill"
     ],
     "comedia": [
-        "comedia", "comedy", "risa", "laugh", "loco", "crazy", "fiesta", "party", "tonto", "dumb",
-        "broma", "joke", "amigos", "friends", "vacaciones", "vacation", "parodia", "boda", "wedding",
-        "chistoso", "divertido", "funny", "ted", "hangover", "desmadre", "padre", "mama", "familia",
-        "escuela", "colegio", "universidad", "vecinos", "bebe", "baby", "perro", "gato", "juerga",
-        "chicas", "amiga", "locura", "desastre"
+        "comedia", "comedy", "risa", "loco", "fiesta", "tonto",
+        "broma", "vacaciones", "parodia", "boda",
+        "chistoso", "divertido", "funny", "ted", "hangover", "desmadre",
+        "juerga", "locura americana"
     ],
     "drama": [
-        "drama", "vida de", "vida real", "historia real", "vida o muerte", "historia", "story", "verdad", "truth", "dolor", "pain", "destino",
-        "destiny", "promesa", "promise", "adios", "goodbye", "recuerdos", "memories", "hijo", "hija",
-        "madre", "padre", "hermano", "perdon", "silencio", "lagrimas", "secreto", "secret", "pasion",
-        "pobreza", "justicia", "juicio", "tribunal", "enfermedad", "hospital", "amor imposible", "olvidada",
-        "esperanza", "triste", "lucha", "separacion"
+        "drama", "vida real", "historia real", "vida o muerte", "dolor", "destino",
+        "promesa", "recuerdos", "perdon", "lagrimas", "justicia", "juicio", "tribunal",
+        "enfermedad", "hospital", "amor imposible", "esperanza", "triste"
     ],
     "animacion": [
-        "toy story", "shrek", "minions", "kung fu", "dragon", "frozen", "mario", "pixar", "disney",
-        "intensamente", "moana", "animacion", "animation", "anime", "nino", "kids", "infantil", "dibujo",
+        "toy story", "shrek", "minions", "kung fu panda", "frozen", "mario bros", "pixar", "disney",
+        "intensamente", "moana", "animacion", "animation", "anime", "infantil", "dibujo",
         "cartoon", "pokemon", "naruto", "dragon ball", "encanto", "coco", "nemo", "dory", "cars",
-        "monsters", "era de hielo", "ice age", "madagascar", "panda", "sonic", "mickey", "reino magico",
-        "peter pan", "aladdin", "cenicienta", "pinocho", "mulan", "castor", "bob esponja", "spongebob",
-        "mi villano favorito", "paw patrol", "zootopia", "zootropolis", "garfield"
+        "monsters inc", "era de hielo", "ice age", "madagascar", "sonic", "mickey",
+        "peter pan", "aladdin", "cenicienta", "pinocho", "mulan", "castor", "bob esponja",
+        "spongebob", "mi villano favorito", "paw patrol", "zootopia", "zootropolis", "garfield",
+        "spidey", "thunderman", "peppa pig", "looney tunes", "scooby", "tom y jerry"
     ],
     "crimen-suspenso": [
-        "crimen", "crime", "misterio", "mystery", "mafia", "detective", "robo", "heist", "robbery",
-        "estafa", "cartel", "caso", "case", "investigacion", "pista", "clue", "sospechoso", "suspect",
-        "testigo", "witness", "abogado", "lawyer", "juez", "prision", "carcel", "prison", "narco",
-        "drogas", "mafioso", "gangster", "thriller", "suspenso", "psicopata", "desaparicion", "secuestro",
-        "policial", "padrino", "corrupcion"
+        "crimen", "misterio", "mafia", "detective", "robo", "heist",
+        "estafa", "cartel", "investigacion criminal", "sospechoso",
+        "testigo protegido", "abogado", "prision", "carcel", "narco",
+        "mafioso", "gangster", "thriller", "suspenso", "psicopata", "desaparicion", "secuestro",
+        "padrino", "corrupcion"
     ],
     "romance": [
-        "amor", "love", "romance", "romantic", "enamorado", "beso", "kiss", "corazon", "heart",
-        "novio", "novia", "boda", "matrimonio", "pareja", "cita", "date", "siempre", "forever",
-        "juntos", "together", "pasion", "quiero", "amarte", "quererte", "cancion de amor", "san valentin",
-        "querido", "querida", "primer amor"
+        "amor", "romance", "romantic", "enamorado", "beso", "corazon",
+        "boda", "matrimonio", "cita a ciegas", "cancion de amor", "san valentin",
+        "primer amor"
     ],
     "aventura-fantasia": [
-        "aventura", "adventure", "fantasia", "fantasy", "magia", "magic", "espada", "sword", "rey",
-        "king", "reino", "kingdom", "reina", "queen", "tesoro", "treasure", "viaje", "journey", "trip",
-        "leyenda", "legend", "caballero", "knight", "castillo", "castle", "imperio", "empire", "isla",
-        "island", "selva", "jungle", "montana", "mountain", "mar", "oceano", "piratas", "pirates", "odisea",
-        "hobbit", "senor de los anillos", "harry potter", "narnia"
+        "aventura", "fantasia", "fantasy", "magia", "espada y brujeria",
+        "tesoro perdido", "leyenda", "caballero del zodiaco", "castillo",
+        "isla misteriosa", "piratas del caribe", "hobbit", "senor de los anillos",
+        "lord of the rings", "harry potter", "narnia"
     ]
 }
 
-# Palabras clave exclusivas de animación/infantil para evitar falsos positivos en Acción, Terror o Crimen
+# Palabras clave exclusivas de animación/infantil para evitar falsos positivos en Acción, Terror, Crimen y Ciencia Ficción
 KEYWORDS_ANIMACION_EXCLUSION = [
-    "pixar", "disney", "minions", "shrek", "toy story", "kung fu panda", "castor",
-    "dibujo", "cartoon", "infantil", "nemo", "dory", "frozen", "moana", "encanto",
-    "coco", "intensamente", "cars", "era de hielo", "ice age", "madagascar", "aladdin",
-    "pinocho", "cenicienta", "mario bros", "bob esponja", "spongebob", "peppa pig",
-    "mi villano favorito", "paw patrol", "zootopia", "zootropolis", "garfield"
+    "pixar", "disney", "minions", "minion", "shrek", "toy story", "kung fu panda", "castor",
+    "dibujo", "dibujos", "cartoon", "cartoons", "infantil", "infantiles", "animacion", "animada",
+    "animado", "animated", "animation", "anime", "nemo", "dory", "frozen", "moana", "encanto",
+    "coco", "intensamente", "inside out", "cars", "era de hielo", "ice age", "madagascar",
+    "aladdin", "pinocho", "cenicienta", "mario bros", "super mario", "bob esponja", "spongebob",
+    "peppa pig", "peppa", "mi villano favorito", "despicable me", "paw patrol", "patrulla canina",
+    "zootopia", "zootropolis", "garfield", "mascotas", "secret life of pets", "dora", "barbie",
+    "ben 10", "looney tunes", "bugs bunny", "scooby", "tom y jerry", "tom and jerry", "pocoyo",
+    "baby shark", "chuggington", "trolls", "hotel transylvania", "sing ven y canta", "los pitufos",
+    "smurfs", "boss baby", "un jefe en pañales", "ladybug", "miraculous", "playmobil",
+    "my little pony", "wallace y gromit", "wallace & gromit", "los simpson", "the simpsons",
+    "dragon ball", "naruto", "one piece", "pokemon", "digimon", "spidey", "thunderman",
+    "thundermans", "junior", "lego", "halloween", "nickelodeon", "popeye", "plazasamo",
+    "teletubbies", "doraemon", "shin chan", "sailor moon"
 ]
 
 def construir_home_feed():
@@ -216,11 +223,13 @@ def construir_home_feed():
 
     estrenos.sort(key=lambda x: (extraer_anio(x), x.get("id", 0)), reverse=True)
 
-    def filtrar_palabras(pool, kws, limit=25):
+    def filtrar_palabras(pool, kws, limit=25, excl=None):
         out = []
         vistos = set()
         for it in pool:
             t = (it.get("titulo", "") + " " + it.get("url", "")).lower()
+            if excl and any(e in t for e in excl):
+                continue
             if any(k in t for k in kws) and it["id"] not in vistos:
                 vistos.add(it["id"])
                 out.append(formatear_item_api(it))
@@ -228,12 +237,22 @@ def construir_home_feed():
                     break
         return out
 
-    # Candidatos a portada principal (Estrenos taquilleros reconocidos)
-    hero_candidates = [
-        it for it in estrenos 
-        if any(b in it.get("titulo", "").lower() for b in ['resident evil', 'bad boys', 'deadpool', 'spider', 'alien', 'gladiator', 'dune', 'avengers', 'transformers'])
+    # Candidatos a portada principal (Superproducciones taquilleras reconocidas)
+    hero_blockbusters = [
+        'gladiador ii', 'deadpool & wolverine', 'bad boys hasta la muerte',
+        'alien romulus', 'furiosa de la saga mad max', 'scream 7', 'dune'
     ]
+    hero_candidates = []
+    for b in hero_blockbusters:
+        for x in CATALOGO_CACHE:
+            if b in x.get("titulo", "").lower() and x.get("poster") and "image.tmdb.org" in x.get("poster"):
+                if not any(e in x.get("titulo", "").lower() for e in KEYWORDS_ANIMACION_EXCLUSION):
+                    hero_candidates.append(x)
+                    break
+
     if not hero_candidates and estrenos:
+        hero_candidates = [it for it in estrenos if not any(e in it.get("titulo", "").lower() for e in KEYWORDS_ANIMACION_EXCLUSION)][:5]
+    if not hero_candidates:
         hero_candidates = estrenos[:5]
 
     hero_item = formatear_item_api(hero_candidates[0]) if hero_candidates else (formatear_item_api(CATALOGO_CACHE[0]) if CATALOGO_CACHE else {})
@@ -264,19 +283,19 @@ def construir_home_feed():
                 "id": "accion",
                 "titulo": "💥 Adrenalina y Acción",
                 "subtitulo": "Persecuciones, combates y héroes",
-                "items": filtrar_palabras(peliculas, GENRES_MAP["accion"], 25)
+                "items": filtrar_palabras(peliculas, GENRES_MAP["accion"], 25, KEYWORDS_ANIMACION_EXCLUSION)
             },
             {
                 "id": "terror",
                 "titulo": "👻 Noche de Terror y Suspenso",
                 "subtitulo": "Pesadillas, suspenso y misterio",
-                "items": filtrar_palabras(peliculas, GENRES_MAP["terror"], 25)
+                "items": filtrar_palabras(peliculas, GENRES_MAP["terror"], 25, KEYWORDS_ANIMACION_EXCLUSION)
             },
             {
                 "id": "scifi",
                 "titulo": "🚀 Ciencia Ficción y Futuro",
                 "subtitulo": "Universos lejanos y tecnología",
-                "items": filtrar_palabras(peliculas, GENRES_MAP["ciencia-ficcion"], 25)
+                "items": filtrar_palabras(peliculas, GENRES_MAP["ciencia-ficcion"], 25, KEYWORDS_ANIMACION_EXCLUSION)
             },
             {
                 "id": "animacion",
@@ -568,8 +587,8 @@ def api_canales():
         kws = GENRES_MAP[genero]
         filtrados = [x for x in filtrados if any(k in (x.get("titulo", "") + " " + x.get("url", "")).lower() for k in kws)]
 
-        # Si el usuario busca acción, terror o crimen, excluir películas puramente infantiles o animadas
-        if genero in ["accion", "terror", "crimen-suspenso"]:
+        # Si el usuario busca acción, terror, crimen o ciencia ficción, excluir películas puramente infantiles o animadas
+        if genero in ["accion", "terror", "crimen-suspenso", "ciencia-ficcion"]:
             filtrados = [x for x in filtrados if not any(k in (x.get("titulo", "") + " " + x.get("url", "")).lower() for k in KEYWORDS_ANIMACION_EXCLUSION)]
 
     total = len(filtrados)
@@ -620,7 +639,8 @@ def api_trailer():
             video_id = vids[0]
             res_data = {
                 "videoId": video_id,
-                "embedUrl": f"https://www.youtube-nocookie.com/embed/{video_id}",
+                "watchUrl": f"https://www.youtube.com/watch?v={video_id}",
+                "embedUrl": f"https://www.youtube.com/embed/{video_id}",
                 "query": query
             }
             TRAILERS_CACHE[cache_key] = res_data
@@ -629,6 +649,39 @@ def api_trailer():
             return jsonify({"videoId": None, "error": "No se encontró trailer"})
     except Exception as e:
         return jsonify({"videoId": None, "error": str(e)})
+
+@app.route("/play_url", methods=["POST"])
+def play_url():
+    """Reproduce cualquier URL directa (como un trailer de YouTube) en pantalla completa en Brave en la TV."""
+    global brave_process
+    datos = request.get_json(silent=True) or {}
+    url = datos.get("url", "").strip()
+    titulo = datos.get("titulo", "Video")
+    if not url:
+        return jsonify({"error": "URL requerida"}), 400
+
+    # Cerrar proceso anterior si existe
+    if brave_process and brave_process.poll() is None:
+        try:
+            brave_process.terminate()
+        except Exception:
+            pass
+
+    user_data_dir = os.path.expanduser("~/.config/tvbox-brave")
+    cmd = [
+        "brave-browser",
+        f"--user-data-dir={user_data_dir}",
+        "--kiosk",
+        f"--app={url}",
+        "--autoplay-policy=no-user-gesture-required",
+        "--no-first-run",
+        "--disable-session-crashed-bubble"
+    ]
+    try:
+        brave_process = subprocess.Popen(cmd)
+        return jsonify({"status": "ok", "url": url, "titulo": titulo})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/reproductor")
 def reproductor():

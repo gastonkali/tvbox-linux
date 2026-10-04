@@ -246,36 +246,6 @@
       background: #000;
     }
 
-    .hero-video-wrap {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      opacity: 0;
-      transition: opacity 1.2s ease-in-out;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .hero-video-wrap.active {
-      opacity: 1;
-    }
-
-    .hero-video-wrap iframe {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 100vw;
-      height: 56.25vw;
-      min-height: 100%;
-      min-width: 177.77vh;
-      transform: translate(-50%, -50%) scale(1.15);
-      pointer-events: none;
-      filter: brightness(0.72) contrast(1.05);
-    }
-
     .hero-backdrop {
       position: absolute;
       top: 0;
@@ -284,13 +254,9 @@
       height: 100%;
       object-fit: cover;
       object-position: top center;
-      filter: brightness(0.65);
-      transition: opacity 1s ease;
+      filter: brightness(0.72) contrast(1.05);
       z-index: 2;
-    }
-
-    .hero-backdrop.fade-out {
-      opacity: 0;
+      transition: filter 0.3s ease;
     }
 
     .hero-gradient {
@@ -299,8 +265,8 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: linear-gradient(90deg, rgba(10, 11, 14, 0.95) 0%, rgba(10, 11, 14, 0.7) 45%, rgba(10, 11, 14, 0.2) 100%),
-                  linear-gradient(0deg, var(--bg-dark) 0%, rgba(10, 11, 14, 0.4) 40%, transparent 100%);
+      background: linear-gradient(90deg, rgba(10, 11, 14, 0.96) 0%, rgba(10, 11, 14, 0.72) 45%, rgba(10, 11, 14, 0.25) 100%),
+                  linear-gradient(0deg, var(--bg-dark) 0%, rgba(10, 11, 14, 0.5) 40%, transparent 100%);
       z-index: 3;
     }
 
@@ -617,6 +583,74 @@
       left: 0;
       width: 100%;
       height: 100%;
+    }
+
+    .trailer-modal-footer {
+      padding: 14px 22px;
+      background: rgba(14, 16, 22, 0.98);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .trailer-actions-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-trailer-yt {
+      background: #e50914;
+      border: 1px solid #ff3340;
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 700;
+      padding: 9px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+      outline: none;
+    }
+
+    .btn-trailer-yt:hover {
+      background: #ff1f2d;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(229, 9, 20, 0.6);
+    }
+
+    .btn-trailer-tv {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 9px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    .btn-trailer-tv:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .trailer-notice-tip {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      max-width: 480px;
+      line-height: 1.35;
     }
 
     /* FILAS HORIZONTALES (RAILS TIPO NETFLIX) */
@@ -1214,15 +1248,11 @@
     <div id="viewHome">
       <!-- HERO BILLBOARD DESTACADO -->
       <section class="hero" id="heroBillboard">
-        <!-- Fondo de video dinámico para trailers estilo Netflix -->
-        <div class="hero-video-wrap" id="heroVideoWrap">
-          <iframe id="heroVideoFrame" src="" allow="autoplay; encrypted-media" frameborder="0"></iframe>
-        </div>
         <img class="hero-backdrop" id="heroBackdrop" src="" alt="Portada Destacada">
         <div class="hero-gradient"></div>
         <div class="hero-content">
           <div class="hero-badges">
-            <span class="badge-spotlight" id="heroBadgeSpotlight">🔥 ESTRENO EXCLUSIVO 2026</span>
+            <span class="badge-spotlight" id="heroBadgeSpotlight">🔥 ESTRENO EXCLUSIVO</span>
             <span class="badge-pill" id="heroYear">2026</span>
             <span class="badge-pill">FULL HD</span>
             <span class="badge-pill">AUDIO LATINO</span>
@@ -1236,8 +1266,6 @@
             <button class="btn-hero-list" id="heroBtnList">+ Mi Lista</button>
           </div>
         </div>
-        <!-- Botón flotante de control de sonido del trailer -->
-        <button class="hero-sound-btn" id="heroSoundBtn" title="Activar sonido" style="display: none;">🔇</button>
       </section>
 
       <!-- FILAS TEMÁTICAS TIPO NETFLIX -->
@@ -1294,7 +1322,21 @@
       </div>
       <div class="trailer-modal-body">
         <div class="trailer-modal-player-wrap">
-          <iframe id="trailerModalFrame" src="" allow="autoplay; encrypted-media; fullscreen" allowfullscreen frameborder="0"></iframe>
+          <iframe id="trailerModalFrame" src="" allow="autoplay; encrypted-media; fullscreen" allowfullscreen frameborder="0" referrerpolicy="origin"></iframe>
+        </div>
+      </div>
+      <div class="trailer-modal-footer">
+        <div class="trailer-actions-group">
+          <button class="btn-trailer-yt" id="btnTrailerOpenYt" title="Abrir video directamente en YouTube en pestaña nueva">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+            <span>Ver en YouTube Oficial</span>
+          </button>
+          <button class="btn-trailer-tv" id="btnTrailerPlayTv" title="Enviar video a la pantalla de TV en pantalla completa">
+            <span>📺 Reproducir en la TV</span>
+          </button>
+        </div>
+        <div class="trailer-notice-tip">
+          💡 <em>Si YouTube bloquea el reproductor embebido por derechos de autor, hacé clic en <strong>"Ver en YouTube Oficial"</strong> para verlo al instante en máxima resolución sin restricciones.</em>
         </div>
       </div>
     </div>
@@ -1319,8 +1361,9 @@
       totalItems: 0,
       playbackTarget: (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'tv' : 'here',
       heroItem: null,
-      heroTrailerTimer: null,
-      heroSoundMuted: true,
+      currentTrailerVideoId: null,
+      currentTrailerTitle: null,
+      currentTrailerWatchUrl: null,
       myList: new Set(JSON.parse(localStorage.getItem('hydra_my_list') || '[]'))
     };
 
@@ -1339,8 +1382,6 @@
       viewHome: document.getElementById('viewHome'),
       viewGrid: document.getElementById('viewGrid'),
       heroBillboard: document.getElementById('heroBillboard'),
-      heroVideoWrap: document.getElementById('heroVideoWrap'),
-      heroVideoFrame: document.getElementById('heroVideoFrame'),
       heroBackdrop: document.getElementById('heroBackdrop'),
       heroTitle: document.getElementById('heroTitle'),
       heroYear: document.getElementById('heroYear'),
@@ -1349,12 +1390,13 @@
       heroBtnTv: document.getElementById('heroBtnTv'),
       heroBtnTrailer: document.getElementById('heroBtnTrailer'),
       heroBtnList: document.getElementById('heroBtnList'),
-      heroSoundBtn: document.getElementById('heroSoundBtn'),
       trailerModal: document.getElementById('trailerModal'),
       trailerModalBackdrop: document.getElementById('trailerModalBackdrop'),
       trailerModalTitle: document.getElementById('trailerModalTitle'),
       trailerModalClose: document.getElementById('trailerModalClose'),
       trailerModalFrame: document.getElementById('trailerModalFrame'),
+      btnTrailerOpenYt: document.getElementById('btnTrailerOpenYt'),
+      btnTrailerPlayTv: document.getElementById('btnTrailerPlayTv'),
       railsContainer: document.getElementById('railsContainer'),
       gridTitle: document.getElementById('gridTitle'),
       gridSubtitle: document.getElementById('gridSubtitle'),
@@ -1449,7 +1491,6 @@
         el.viewGrid.style.display = 'none';
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        detenerHeroTrailer();
         el.viewHome.style.display = 'none';
         el.viewGrid.style.display = 'block';
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1477,8 +1518,12 @@
           el.heroTitle.innerText = data.hero.titulo;
           el.heroYear.innerText = data.hero.anio || '2026';
           el.heroBackdrop.src = data.hero.poster ? data.hero.poster.replace('/w500/', '/original/') : '';
+          el.heroBackdrop.onerror = () => {
+            if (data.hero && data.hero.poster && el.heroBackdrop.src !== data.hero.poster) {
+              el.heroBackdrop.src = data.hero.poster;
+            }
+          };
           updateHeroListBtn();
-          iniciarHeroTrailer(data.hero);
         }
 
         // Renderizar Filas Temáticas
@@ -1596,84 +1641,16 @@
       return card;
     }
 
-    // 3.1 SISTEMA DE TRAILERS DINÁMICOS (ESTILO NETFLIX HERO & MODAL)
-    function iniciarHeroTrailer(item) {
-      detenerHeroTrailer();
-      if (!item || !item.titulo) return;
-
-      // Esperar 2.2 segundos para no sobrecargar si el usuario sólo pasa de largo
-      state.heroTrailerTimer = setTimeout(async () => {
-        if (state.view !== 'home' || window.scrollY > 250) return;
-
-        try {
-          const res = await fetch(`/api/trailer?q=${encodeURIComponent(item.titulo)}&anio=${item.anio || ''}`);
-          const data = await res.json();
-
-          if (data && data.videoId && state.view === 'home' && window.scrollY < 250) {
-            state.heroTrailerVideoId = data.videoId;
-            state.heroSoundMuted = true;
-            el.heroSoundBtn.innerText = '🔇';
-            el.heroSoundBtn.title = 'Activar sonido';
-
-            // Cargar iframe de YouTube en bucle silencioso
-            const embedUrl = `https://www.youtube-nocookie.com/embed/${data.videoId}?enablejsapi=1&autoplay=1&mute=1&controls=0&loop=1&playlist=${data.videoId}&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3`;
-            el.heroVideoFrame.src = embedUrl;
-
-            el.heroVideoFrame.onload = () => {
-              setTimeout(() => {
-                if (state.view === 'home' && el.heroVideoFrame.src) {
-                  el.heroVideoWrap.classList.add('active');
-                  el.heroBackdrop.classList.add('fade-out');
-                  el.heroSoundBtn.style.display = 'flex';
-                }
-              }, 600);
-            };
-          }
-        } catch (e) {
-          console.warn('Trailer en marquesina no disponible:', e);
-        }
-      }, 2200);
-    }
-
-    function detenerHeroTrailer() {
-      if (state.heroTrailerTimer) {
-        clearTimeout(state.heroTrailerTimer);
-        state.heroTrailerTimer = null;
-      }
-      if (el.heroVideoWrap) el.heroVideoWrap.classList.remove('active');
-      if (el.heroBackdrop) el.heroBackdrop.classList.remove('fade-out');
-      if (el.heroSoundBtn) el.heroSoundBtn.style.display = 'none';
-      if (el.heroVideoFrame && el.heroVideoFrame.src) {
-        el.heroVideoFrame.src = '';
-      }
-      state.heroTrailerVideoId = null;
-    }
-
-    function toggleHeroSound() {
-      if (!el.heroVideoFrame || !el.heroVideoFrame.contentWindow) return;
-      state.heroSoundMuted = !state.heroSoundMuted;
-
-      if (state.heroSoundMuted) {
-        el.heroVideoFrame.contentWindow.postMessage('{"event":"command","func":"mute","args":""}', '*');
-        el.heroSoundBtn.innerText = '🔇';
-        el.heroSoundBtn.title = 'Activar sonido';
-        showToast('Trailer en silencio 🔇');
-      } else {
-        el.heroVideoFrame.contentWindow.postMessage('{"event":"command","func":"unMute","args":""}', '*');
-        el.heroVideoFrame.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[100]}', '*');
-        el.heroSoundBtn.innerText = '🔊';
-        el.heroSoundBtn.title = 'Silenciar';
-        showToast('Sonido activado 🔊');
-      }
-    }
-
-    // MODAL DE TRAILER OFICIAL (OPCIÓN 2)
+    // 3.1 SISTEMA DE TRAILERS OFICIALES (MODAL CON YOUTUBE DIRECTO Y TRANSMISIÓN A TV)
     async function abrirModalTrailer(titulo, anio) {
       if (!titulo) return;
-      detenerHeroTrailer(); // Silenciar trailer de marquesina
 
       el.trailerModalTitle.innerText = `🎬 Trailer Oficial: ${titulo}`;
       el.trailerModalFrame.src = '';
+      state.currentTrailerTitle = titulo;
+      state.currentTrailerWatchUrl = null;
+      state.currentTrailerVideoId = null;
+
       el.trailerModal.style.display = 'flex';
       setTimeout(() => el.trailerModal.classList.add('open'), 10);
       showToast(`Buscando trailer de: ${titulo}...`);
@@ -1683,7 +1660,11 @@
         const data = await res.json();
 
         if (data && data.videoId) {
-          el.trailerModalFrame.src = `https://www.youtube-nocookie.com/embed/${data.videoId}?autoplay=1&controls=1&modestbranding=1&rel=0`;
+          state.currentTrailerVideoId = data.videoId;
+          state.currentTrailerWatchUrl = data.watchUrl || `https://www.youtube.com/watch?v=${data.videoId}`;
+
+          // Cargar iframe con referrerpolicy para máxima compatibilidad
+          el.trailerModalFrame.src = `https://www.youtube.com/embed/${data.videoId}?autoplay=1&controls=1&rel=0`;
         } else {
           showToast('No se encontró trailer disponible para este título');
           cerrarModalTrailer();
@@ -1699,6 +1680,8 @@
       setTimeout(() => {
         el.trailerModal.style.display = 'none';
         el.trailerModalFrame.src = '';
+        state.currentTrailerWatchUrl = null;
+        state.currentTrailerVideoId = null;
       }, 300);
     }
 
@@ -2080,28 +2063,39 @@
       el.heroBtnTrailer.addEventListener('click', () => {
         if (state.heroItem) abrirModalTrailer(state.heroItem.titulo, state.heroItem.anio);
       });
-      el.heroSoundBtn.addEventListener('click', toggleHeroSound);
-
       // Eventos del Modal de Trailer Oficial
       el.trailerModalClose.addEventListener('click', cerrarModalTrailer);
       el.trailerModalBackdrop.addEventListener('click', cerrarModalTrailer);
 
-      // Pausar trailer de marquesina al hacer scroll hacia abajo
-      let scrollTimer;
-      window.addEventListener('scroll', () => {
-        if (state.view === 'home') {
-          if (window.scrollY > 260) {
-            detenerHeroTrailer();
-          } else if (window.scrollY < 60 && !el.heroVideoFrame.src && state.heroItem) {
-            clearTimeout(scrollTimer);
-            scrollTimer = setTimeout(() => {
-              if (window.scrollY < 60 && state.view === 'home' && state.heroItem) {
-                iniciarHeroTrailer(state.heroItem);
-              }
-            }, 800);
+      if (el.btnTrailerOpenYt) {
+        el.btnTrailerOpenYt.addEventListener('click', () => {
+          if (state.currentTrailerWatchUrl) {
+            window.open(state.currentTrailerWatchUrl, '_blank');
           }
-        }
-      }, { passive: true });
+        });
+      }
+
+      if (el.btnTrailerPlayTv) {
+        el.btnTrailerPlayTv.addEventListener('click', async () => {
+          if (state.currentTrailerWatchUrl) {
+            showToast('📺 Abriendo trailer en la TV...');
+            try {
+              const res = await fetch('/play_url', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: state.currentTrailerWatchUrl, titulo: state.currentTrailerTitle || 'Trailer' })
+              });
+              if (res.ok) {
+                showToast('▶ Trailer reproduciéndose en la TV');
+              } else {
+                showToast('Error al transmitir a la TV');
+              }
+            } catch (err) {
+              showToast('Error de conexión al enviar trailer a la TV');
+            }
+          }
+        });
+      }
 
       // Target Switcher
       el.btnPlayHere.addEventListener('click', () => {
