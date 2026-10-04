@@ -701,6 +701,7 @@ def lanzar_brave(url):
 
     cmd = [
         "brave-browser",
+        "--ozone-platform=wayland",
         f"--user-data-dir={user_data_dir}",
         f"--load-extension={extension_dir}",
         "--kiosk",
@@ -713,8 +714,10 @@ def lanzar_brave(url):
     ]
 
     env = os.environ.copy()
-    if "DISPLAY" not in env:
-        env["DISPLAY"] = ":0"
+    env.setdefault("XDG_RUNTIME_DIR", "/run/user/1000")
+    env.setdefault("WAYLAND_DISPLAY", "wayland-0")
+    env.setdefault("DISPLAY", ":0")
+    env.setdefault("DBUS_SESSION_BUS_ADDRESS", "unix:path=/run/user/1000/bus")
 
     brave_process = subprocess.Popen(cmd, env=env)
     return brave_process
