@@ -24,8 +24,9 @@ PROVEEDORES_CACHE = {}
 # Estructuras para búsqueda difusa (Fuzzy Search) ultrarrápida, sinopsis y filmografías de actores
 SINOPSIS_CACHE = {}
 VOCAB_INDEX = defaultdict(set)      # palabra -> set(indices en CATALOGO_CACHE)
+PHONETIC_INDEX = defaultdict(set)   # palabra_fonetica -> set(palabras reales del vocabulario)
 WORDS_BY_LEN = defaultdict(list)    # longitud -> lista de palabras únicas
-WORDS_BY_PREFIX = defaultdict(list) # prefijo de 2 letras -> lista de palabras únicas
+WORDS_BY_PREFIX = defaultdict(list) # prefijo -> lista de palabras únicas
 TMDB_TO_ITEMS = defaultdict(list)   # tmdb_id -> lista de indices en CATALOGO_CACHE
 ACTORES_CACHE_FILE = os.path.join(BASE_DIR, "actores_cache.json")
 ACTORES_CACHE = {}                  # nombre_normalizado -> lista de tmdb_ids
@@ -66,28 +67,119 @@ def limpiar_titulo_para_mostrar(titulo):
     res = re.sub(r'(\d+)[\ufffd\xd7](\d+)', r'\1x\2', res)
     return res
 
-def damerau_levenshtein_1(s1, s2):
-    """Comprueba si la distancia de edición Damerau-Levenshtein es <= 1 (inserción, eliminación, sustitución o transposición)."""
+def normalizar_fonetica(w):
+    """Normaliza variaciones fonéticas y ortográficas comunes (ej. jhon->jon, whic->wik, balerina/bailarina->balerina)."""
+    if not w:
+        return ""
+    w = w.lower().strip()
+    w = w.replace('jh', 'j').replace('wh', 'w').replace('ph', 'f')
+    w = w.replace('ll', 'l').replace('v', 'b').replace('y', 'i')
+    w = w.replace('ck', 'k')
+    w = re.sub(r'c([eiy])', r's\1', w)
+    w = w.replace('c', 'k').replace('z', 's')
+    w = w.replace('bailar', 'baler').replace('baller', 'baler')
+    w = w.replace('john', 'jon').replace('jhon', 'jon')
+    return w
+
+def lev_dist_2(s1, s2):
+    """Calcula si la distancia de edición Damerau-Levenshtein es <= 2."""
     len1, len2 = len(s1), len(s2)
-    if len1 == len2:
-        diffs = [i for i in range(len1) if s1[i] != s2[i]]
-        if len(diffs) == 1:
-            return True
-        if len(diffs) == 2 and diffs[0] + 1 == diffs[1]:
-            if s1[diffs[0]] == s2[diffs[1]] and s1[diffs[1]] == s2[diffs[0]]:
-                return True
-        return False
-    elif len1 + 1 == len2:
-        for i in range(len2):
-            if s2[:i] + s2[i+1:] == s1:
-                return True
-        return False
-    elif len1 == len2 + 1:
-        for i in range(len1):
-            if s1[:i] + s1[i+1:] == s2:
-                return True
-        return False
-    return False
+    if abs(len1 - len2) > 2:
+        return 99
+    d = [[0] * (len2 + 1) for _ in range(len1 + 1)]
+    for i in range(len1 + 1):
+        d[i][0] = i
+    for j in range(len2 + 1):
+        d[0][j] = j
+    for i in range(1, len1 + 1):
+        for j in range(1, len2 + 1):
+            cost = 0 if s1[i-1] == s2[j-1] else 1
+            d[i][j] = min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + cost)
+            if i > 1 and j > 1 and s1[i-1] == s2[j-2] and s1[i-2] == s2[j-1]:
+                d[i][j] = min(d[i-1][j], d[i-2][j-2] + 1)
+    return d[len1][len2]
+
+def damerau_levenshtein_1(s1, s2):
+    return lev_dist_2(s1, s2) <= 1
+
+STOP_WORDS_DEDUP = {
+    'el', 'la', 'los', 'las', 'del', 'de', 'en', 'un', 'una', 'y', 'image',
+    'pelicula', 'serie', 'online', 'espanol', 'latino', 'hd', 'para', 'por',
+    'completa', 'subtitulado'
+}
+
+def extraer_anio_str(t):
+    m = re.search(r'\b(202[0-9]|201[0-9]|19[0-9]{2})\b', str(t))
+    return m.group(1) if m else ''
+
+def slug_from_url(url):
+    m = re.search(r'/(?:movies|series|pelicula/\d+|serie/\d+|ver-pelicula/\d+-)/?([^/?#]+)', str(url))
+    if not m:
+        return ''
+    s = m.group(1).lower().replace('_', '-').replace('.html', '').replace('.php', '')
+    s = re.sub(r'^\d+-', '', s)
+    return s.strip('-')
+
+def dedup_signature(text):
+    parts = re.split(r'[^a-zA-Z0-9]+', str(text))
+    words = [normalizar_fonetica(p) for p in parts if p.lower() not in STOP_WORDS_DEDUP and len(p) > 0]
+    return '_'.join(sorted(words))
+
+def fusionar_cluster(items_cluster):
+    if len(items_cluster) == 1:
+        return items_cluster[0]
+
+    def score_item(it):
+        s = 0
+        u = it.get('url', '').lower()
+        p = it.get('poster', '').lower()
+        t = it.get('titulo', '')
+        if 'poseidon' in u:
+            s += 50
+        if 'image.tmdb.org' in p:
+            s += 30
+        elif p and 'pelicine' not in p:
+            s += 10
+        if t.startswith('Image '):
+            s -= 40
+        if len(t) > 5 and not t.isdigit():
+            s += 10
+        return s
+
+    items_sorted = sorted(items_cluster, key=score_item, reverse=True)
+    primario = dict(items_sorted[0])
+
+    mejores_titulos = [it.get('titulo') for it in items_sorted if not it.get('titulo', '').startswith('Image ')]
+    if mejores_titulos:
+        cands = sorted(mejores_titulos, key=lambda x: (len(x) if len(x) < 50 else 0), reverse=True)
+        primario['titulo'] = cands[0]
+
+    posters = [it.get('poster') for it in items_sorted if it.get('poster') and 'image.tmdb.org' in it.get('poster')]
+    if posters:
+        primario['poster'] = posters[0]
+
+    opciones_unificadas = []
+    urls_vistas = set()
+    for it in items_sorted:
+        cands_urls = [it.get('url', '')] + it.get('opciones', [])
+        for u in cands_urls:
+            if not u:
+                continue
+            u_clean = u.rstrip('/')
+            if u_clean not in urls_vistas:
+                urls_vistas.add(u_clean)
+                opciones_unificadas.append(u)
+
+    opciones_unificadas.sort(key=lambda u: (0 if 'poseidon' in u.lower() else (1 if 'cinemitas' in u.lower() else 2)))
+    primario['opciones'] = opciones_unificadas
+    primario['url'] = opciones_unificadas[0] if opciones_unificadas else primario.get('url', '')
+    primario['url_resuelta'] = primario['url']
+
+    todos_los_titulos = set()
+    for it in items_cluster:
+        todos_los_titulos.add(it.get('titulo', ''))
+    primario['titulos_alternativos'] = list(todos_los_titulos)
+    return primario
 
 HOME_FEED_CACHE = {}
 
@@ -320,9 +412,9 @@ def construir_home_feed():
     }
 
 def inicializar_catalogo():
-    """Carga canales.json y catalogo_maestro.json en memoria y construye el índice de búsqueda fuzzy."""
+    """Carga canales.json y catalogo_maestro.json en memoria, deduplica entradas y construye el índice fuzzy-fonético."""
     global CATALOGO_CACHE, ITEMS_BY_ID, CATEGORIAS_CACHE, PROVEEDORES_CACHE
-    global VOCAB_INDEX, WORDS_BY_LEN, WORDS_BY_PREFIX, TMDB_TO_ITEMS, ACTORES_CACHE
+    global VOCAB_INDEX, PHONETIC_INDEX, WORDS_BY_LEN, WORDS_BY_PREFIX, TMDB_TO_ITEMS, ACTORES_CACHE
 
     items_combinados = []
     ids_registrados = set()
@@ -350,31 +442,76 @@ def inicializar_catalogo():
         except Exception as e:
             print(f"[Aviso] Error leyendo canales.json: {e}")
 
-    # 2. Cargar catalogo_maestro.json (Base de datos de 38k+ títulos)
+    # 2. Cargar catalogo_maestro.json y deduplicar inteligentemente agrupando servidores
     if os.path.exists(CATALOGO_MAESTRO_FILE):
         try:
             with open(CATALOGO_MAESTRO_FILE, "r", encoding="utf-8") as f:
                 maestro = json.load(f)
                 if isinstance(maestro, list):
+                    clusters = []
+                    tmdb_to_cluster = {}
+                    sig_to_cluster = {}
+
                     for m in maestro:
                         m_id = m.get("id")
-                        if m_id is not None and m_id not in ids_registrados:
-                            if not m.get("poster") or not str(m.get("poster")).strip() or "ultrapeli.com" in m.get("poster", ""):
-                                continue
-                            raw_u = m.get("url", "")
-                            if raw_u.endswith(".html/"):
-                                raw_u = raw_u[:-1]
-                            elif raw_u.endswith(".php/"):
-                                raw_u = raw_u[:-1]
-                            m["url"] = raw_u
-                            m["url_resuelta"] = raw_u
-                            items_combinados.append(m)
-                            ids_registrados.add(m_id)
+                        if m_id is None or m_id in ids_registrados:
+                            continue
+                        if not m.get("poster") or not str(m.get("poster")).strip() or "ultrapeli.com" in m.get("poster", ""):
+                            continue
+                        raw_u = m.get("url", "")
+                        if raw_u.endswith(".html/"):
+                            raw_u = raw_u[:-1]
+                        elif raw_u.endswith(".php/"):
+                            raw_u = raw_u[:-1]
+                        m["url"] = raw_u
+                        m["url_resuelta"] = raw_u
+
+                        is_ser = es_serie(m)
+                        type_pfx = 's:' if is_ser else 'm:'
+
+                        m_tmdb = re.search(r'/(?:pelicula|serie)/(\d+)', raw_u)
+                        tmdb_key = (type_pfx + m_tmdb.group(1)) if m_tmdb else None
+
+                        slug = slug_from_url(raw_u)
+                        slug_sig = dedup_signature(slug) if slug else ''
+                        title_sig = dedup_signature(m.get('titulo', ''))
+                        yr = extraer_anio_str(m.get('titulo', ''))
+
+                        c_idx = None
+                        if tmdb_key and tmdb_key in tmdb_to_cluster:
+                            c_idx = tmdb_to_cluster[tmdb_key]
+                        elif slug_sig and len(slug_sig.split('_')) >= 2 and (type_pfx + 's:' + slug_sig) in sig_to_cluster:
+                            c_idx = sig_to_cluster[type_pfx + 's:' + slug_sig]
+                        elif title_sig and len(title_sig.split('_')) >= 2:
+                            tk = type_pfx + 't:' + title_sig + (':' + yr if yr else '')
+                            if tk in sig_to_cluster:
+                                c_idx = sig_to_cluster[tk]
+
+                        if c_idx is None:
+                            c_idx = len(clusters)
+                            clusters.append([m])
+                        else:
+                            clusters[c_idx].append(m)
+
+                        if tmdb_key:
+                            tmdb_to_cluster[tmdb_key] = c_idx
+                        if slug_sig and len(slug_sig.split('_')) >= 2:
+                            sig_to_cluster[type_pfx + 's:' + slug_sig] = c_idx
+                        if title_sig and len(title_sig.split('_')) >= 2:
+                            tk = type_pfx + 't:' + title_sig + (':' + yr if yr else '')
+                            sig_to_cluster[tk] = c_idx
+
+                    print(f"[OK] Catálogo deduplicado: {len(maestro)} entradas agrupadas en {len(clusters)} títulos consolidados.")
+                    for c in clusters:
+                        fused_item = fusionar_cluster(c)
+                        items_combinados.append(fused_item)
+                        ids_registrados.add(fused_item["id"])
         except Exception as e:
             print(f"[Aviso] Error leyendo catalogo_maestro.json: {e}")
 
-    # 3. Construir estructuras de indexación para búsqueda fuzzy ultraveloz
+    # 3. Construir estructuras de indexación para búsqueda fuzzy y fonética ultraveloz
     vocab = defaultdict(set)
+    phonetic_map = defaultdict(set)
     words_by_len = defaultdict(list)
     words_by_prefix = defaultdict(list)
 
@@ -384,24 +521,38 @@ def inicializar_catalogo():
         clean_title = " ".join(normalizar_texto(titulo_limpio).split())
         clean_nospace = clean_title.replace(" ", "")
 
+        tokens = list(clean_title.split())
+        for alt in item.get("titulos_alternativos", []):
+            tokens.extend(normalizar_texto(limpiar_titulo_para_mostrar(alt)).split())
+
+        slug = slug_from_url(item.get("url", ""))
+        if slug:
+            tokens.extend(normalizar_texto(slug).split())
+
+        unique_tokens = set(tokens)
         item["titulo_limpio"] = titulo_limpio
         item["clean_title"] = clean_title
         item["clean_nospace"] = clean_nospace
-        tokens = clean_title.split()
-        item["tokens"] = tokens
+        item["phonetic_title"] = " ".join(normalizar_fonetica(tok) for tok in clean_title.split())
+        item["tokens"] = list(unique_tokens)
 
-        for tok in tokens:
+        for tok in unique_tokens:
             vocab[tok].add(idx)
 
     for w in vocab.keys():
+        pw = normalizar_fonetica(w)
+        phonetic_map[pw].add(w)
         words_by_len[len(w)].append(w)
         if len(w) >= 2:
             words_by_prefix[w[:2]].append(w)
+        if len(w) >= 1:
+            words_by_prefix[w[:1]].append(w)
 
     CATALOGO_CACHE = items_combinados
     ITEMS_BY_ID = {item["id"]: item for item in items_combinados}
     PROVEEDORES_CACHE = proveedores
     VOCAB_INDEX = vocab
+    PHONETIC_INDEX = phonetic_map
     WORDS_BY_LEN = words_by_len
     WORDS_BY_PREFIX = words_by_prefix
 
@@ -443,7 +594,7 @@ def inicializar_catalogo():
     CATEGORIAS_CACHE = ["Todos"] + lista_cat
 
     construir_home_feed()
-    print(f"[OK] Catálogo cargado: {len(CATALOGO_CACHE)} títulos, {len(vocab)} palabras indexadas, {len(TMDB_TO_ITEMS)} IDs TMDb mapeados, {len(CATEGORIAS_CACHE)} categorías.")
+    print(f"[OK] Catálogo cargado: {len(CATALOGO_CACHE)} títulos, {len(vocab)} palabras indexadas ({len(phonetic_map)} raíces fonéticas), {len(TMDB_TO_ITEMS)} IDs TMDb mapeados, {len(CATEGORIAS_CACHE)} categorías.")
 
 # Cargar catálogo en memoria al arrancar
 inicializar_catalogo()
@@ -537,31 +688,52 @@ def buscar_persona_filmografia(query_str):
     return []
 
 def obtener_candidatos_palabra(palabra_query):
-    """Encuentra palabras del catálogo exactas, por prefijo o con 1 error tipográfico (typo)."""
+    """Encuentra palabras del catálogo exactas, fonéticas, por prefijo o con hasta 2 errores tipográficos."""
     candidatos = {}
     if palabra_query in VOCAB_INDEX:
         candidatos[palabra_query] = 1.0  # Coincidencia exacta
 
+    # Coincidencia fonética (ej. jhon -> john, whic -> wick, balerina -> ballerina)
+    pw = normalizar_fonetica(palabra_query)
+    if pw in PHONETIC_INDEX:
+        for w in PHONETIC_INDEX[pw]:
+            if w not in candidatos:
+                candidatos[w] = 0.90
+
     q_len = len(palabra_query)
-    # Búsqueda por prefijo (ej. residen -> resident)
-    if q_len >= 3 and palabra_query[:2] in WORDS_BY_PREFIX:
+    # Búsqueda por prefijo (ej. residen -> resident, w -> wick, wi -> wick)
+    if q_len >= 2 and palabra_query[:2] in WORDS_BY_PREFIX:
         for w in WORDS_BY_PREFIX[palabra_query[:2]]:
             if w.startswith(palabra_query) and w not in candidatos:
                 candidatos[w] = 0.85
+    elif q_len == 1 and palabra_query in WORDS_BY_PREFIX:
+        for w in WORDS_BY_PREFIX[palabra_query]:
+            if w.startswith(palabra_query) and w not in candidatos:
+                candidatos[w] = 0.80
 
-    # Búsqueda difusa por distancia de edición (tolerancia a 1 letra cambiada/faltante/sobrante)
-    if q_len >= 3:
-        for l in range(max(2, q_len - 1), q_len + 2):
+    # Búsqueda difusa por distancia de edición (tolerancia a 1 o 2 letras cambiadas/faltantes/sobrantes)
+    if q_len >= 4:
+        for l in range(max(2, q_len - 2), q_len + 3):
             for w in WORDS_BY_LEN[l]:
                 if w in candidatos:
                     continue
-                if damerau_levenshtein_1(palabra_query, w):
+                d = lev_dist_2(palabra_query, w)
+                if d == 1:
+                    candidatos[w] = 0.75
+                elif d == 2:
+                    candidatos[w] = 0.65
+    elif q_len == 3:
+        for l in range(2, 5):
+            for w in WORDS_BY_LEN[l]:
+                if w in candidatos:
+                    continue
+                if lev_dist_2(palabra_query, w) == 1:
                     candidatos[w] = 0.70
 
     return candidatos
 
 def buscar_catalogo(query_str, categoria_filtro=None):
-    """Motor de búsqueda difusa, tolerante a fallos, acentos, actores y directores."""
+    """Motor de búsqueda difusa, fonética y tolerante a fallos, acentos, actores y directores."""
     clean_q = " ".join(normalizar_texto(query_str).split())
     if not clean_q:
         if categoria_filtro and categoria_filtro != "Todos":
@@ -572,6 +744,7 @@ def buscar_catalogo(query_str, categoria_filtro=None):
     clean_q_nospace = clean_q.replace(" ", "")
     q_tokens = clean_q.split()
     num_tokens = len(q_tokens)
+    ph_q = " ".join(normalizar_fonetica(t) for t in q_tokens)
 
     # 1. Búsqueda por Filmografía de Actor / Director
     actor_item_indices = set()
@@ -609,14 +782,15 @@ def buscar_catalogo(query_str, categoria_filtro=None):
                 for s in all_sets:
                     for idx in s:
                         counts[idx] += 1
-                min_req = max(2, num_tokens - 1)
+                min_req = max(1, num_tokens - 1)
                 candidate_indices.update({idx for idx, cnt in counts.items() if cnt >= min_req})
 
-    # 3. Candidatos por subcadena directa o sin espacios (ej. 'spiderman' o 'resident evil')
+    # 3. Candidatos por subcadena directa, sin espacios o fonética
     for idx, item in enumerate(CATALOGO_CACHE):
         ct = item["clean_title"]
         cn = item["clean_nospace"]
-        if clean_q in ct or (len(clean_q_nospace) >= 4 and clean_q_nospace in cn):
+        pt = item.get("phonetic_title", "")
+        if clean_q in ct or (len(clean_q_nospace) >= 4 and clean_q_nospace in cn) or (ph_q and len(ph_q) >= 3 and ph_q in pt):
             candidate_indices.add(idx)
 
     # 4. Filtrar por categoría si se especificó
@@ -630,15 +804,18 @@ def buscar_catalogo(query_str, categoria_filtro=None):
         item = CATALOGO_CACHE[idx]
         title = item["clean_title"]
         title_nospace = item["clean_nospace"]
+        ph_title = item.get("phonetic_title", "")
         score = 0.0
 
         # Máxima prioridad si es obra del actor/director buscado
         if idx in actor_item_indices:
             score += 5000.0
 
-        # Coincidencia exacta total del título
-        if title == clean_q:
-            score += 3000
+        # Coincidencia exacta total del título o fonética
+        if title == clean_q or (ph_q and ph_title == ph_q):
+            score += 3500
+        elif ph_q and ph_q in ph_title:
+            score += 2500
         elif title.startswith(clean_q):
             score += 2000
         elif clean_q in title:
@@ -652,10 +829,10 @@ def buscar_catalogo(query_str, categoria_filtro=None):
             w = m.get(idx, 0.0)
             if w > 0:
                 tokens_hit += 1
-                score += w * 150
+                score += w * 200
 
         if tokens_hit == num_tokens and num_tokens > 1:
-            score += 800  # Gran bono si todos los términos de búsqueda están presentes
+            score += 1000  # Gran bono si todos los términos de búsqueda están presentes
 
         # Bonus por año reciente (los estrenos y versiones modernas se posicionan primero)
         year_match = re.search(r'\b(19\d\d|20\d\d)\b', item.get("titulo", ""))
@@ -665,7 +842,7 @@ def buscar_catalogo(query_str, categoria_filtro=None):
                 score += (year_val - 1970) * 20
 
         # Penalización suave por longitud excesiva para favorecer títulos más concisos
-        score -= min(100, len(title) * 0.3)
+        score -= min(100, len(title) * 0.2)
         scored.append((score, item))
 
     scored.sort(key=lambda x: x[0], reverse=True)

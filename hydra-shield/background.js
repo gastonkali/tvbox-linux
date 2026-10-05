@@ -10,7 +10,8 @@ const AD_PATTERNS = [
   'juicyads', 'bet365', '1xbet', 'betwinner', 'melbet', 'casino', 'betting',
   'track', 'traffic', 'syndication', 'doubleclick', 'adnxs', 'smartadserver',
   'creative', 'landing', 'redirect', 'offer', 'bonus', 'dating', 'cleaner',
-  'streamwish.to/ads', 'popunder', 'histats', 'alwingulla', 'whomever', 'deloplen'
+  'streamwish.to/ads', 'popunder', 'histats', 'alwingulla', 'whomever', 'deloplen',
+  '.cfd', 'cineflowdigital', 'cineshow', '.online/ver', 'cloudflare-verify'
 ];
 
 function esUrlPublicitaria(url) {
@@ -27,6 +28,7 @@ function esUrlPublicitaria(url) {
 // 1. Escuchar creación de pestañas (NUEVAS PESTAÑAS)
 chrome.tabs.onCreated.addListener(async (tab) => {
   const nuevaUrl = (tab.url || tab.pendingUrl || '').toLowerCase();
+  if (nuevaUrl.startsWith('brave://') || nuevaUrl.startsWith('chrome://')) return;
 
   // Si la URL inicial ya delata que es un anuncio -> CERRAR AL INSTANTE
   if (esUrlPublicitaria(nuevaUrl)) {
@@ -36,27 +38,23 @@ chrome.tabs.onCreated.addListener(async (tab) => {
   }
 
   // En modo TV Kiosk / Reproductor de streaming:
-  // Si ya hay pestañas abiertas y se crea una nueva pestaña hija o ventana emergente sin ser navegación manual:
-  try {
-    const todas = await chrome.tabs.query({});
-    if (todas.length > 1) {
-      if (nuevaUrl.startsWith('brave://') || nuevaUrl.startsWith('chrome://')) {
+  // Si la pestaña tiene un openerTabId, fue disparada por un clic o script en otra pestaña
+  if (tab.openerTabId) {
+    try {
+      const opener = await chrome.tabs.get(tab.openerTabId);
+      const openerUrl = (opener?.url || '').toLowerCase();
+      // Si fue abierta desde la app de Hydra (:5000) o desde cualquier sitio de streaming / reproductor:
+      // ES UN POPUP PUBLICITARIO NO DESEADO (Hydra TV es Kiosk y nunca abre pestañas externas)
+      if (openerUrl.includes(':5000') || openerUrl.includes('poseidon') ||
+          openerUrl.includes('cinemitas') || openerUrl.includes('pelicine') ||
+          openerUrl.includes('streamwish') || openerUrl.includes('vidhide') ||
+          openerUrl.includes('maspeliculashd') || openerUrl.includes('repelishd')) {
+        console.warn('[Hydra Shield] Popup publicitario bloqueado y destruido:', tab.id, nuevaUrl);
+        await chrome.tabs.remove(tab.id);
         return;
       }
-      
-      // Si tiene openerTabId O fue abierta en el contexto de un reproductor:
-      if (tab.openerTabId) {
-        const opener = await chrome.tabs.get(tab.openerTabId);
-        const openerUrl = (opener?.url || '').toLowerCase();
-        // Si el padre no es la interfaz base :5000, cerrarlo (es un popup de streaming)
-        if (!openerUrl.includes(':5000/api') && !openerUrl.endsWith(':5000/')) {
-          console.warn('[Hydra Shield] Pestaña hija bloqueada en reproductor:', tab.id);
-          await chrome.tabs.remove(tab.id);
-          return;
-        }
-      }
-    }
-  } catch(e) {}
+    } catch(e) {}
+  }
 });
 
 // 2. Escuchar cambios de URL en pestañas (Redirecciones o cargas dinámicas)

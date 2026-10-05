@@ -94,5 +94,27 @@
       "urlFilter": "||ad-maven.com^",
       "resourceTypes": ["sub_frame", "script", "xmlhttprequest", "image"]
     }
+  },
+  {
+    "id": 9,
+    "priority": 2,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "*cineflowdigital*",
+      "resourceTypes": ["main_frame", "sub_frame", "script", "xmlhttprequest", "image"]
+    }
+  },
+  {
+    "id": 10,
+    "priority": 2,
+    "action": {
+      "type": "block"
+    },
+    "condition": {
+      "urlFilter": "*.cfd/*",
+      "resourceTypes": ["main_frame", "sub_frame", "script", "xmlhttprequest", "image"]
+    }
   }
 ]

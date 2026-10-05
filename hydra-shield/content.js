@@ -715,15 +715,17 @@
     if (!el) return;
     if (el.id === 'hydra-btn-back' || el.closest('#hydra-tv-topbar')) return;
 
-    // Si el usuario hace clic en un enlace publicitario con target="_blank"
+    // Si el usuario o un script hace clic en un enlace con target="_blank" o target="_new"
     const a = el.closest('a');
     if (a) {
       const target = (a.getAttribute('target') || '').toLowerCase();
       const href = (a.getAttribute('href') || '').toLowerCase();
-      if ((target === '_blank' || target === '_new') && href && !href.startsWith('javascript:')) {
-        const esAdUrl = ['adsterra', 'popcash', 'popads', 'propeller', 'onclick', 'monetag', 'exoclick', 'bet365', '1xbet', 'ad-maven'].some(ad => href.includes(ad));
-        if (esAdUrl) {
-          console.warn('[Hydra Shield CAPTURE] Anuncio externo bloqueado:', href);
+      if (target === '_blank' || target === '_new') {
+        // En sitios de streaming NINGÚN enlace target="_blank" es legítimo (todos son popups o anuncios)
+        console.warn('[Hydra Shield CAPTURE] target="_blank" en sitio de streaming neutralizado:', href);
+        a.removeAttribute('target');
+        a.target = '';
+        if (href && !href.startsWith('javascript:') && !href.includes(window.location.hostname)) {
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
@@ -759,11 +761,31 @@
     if (host.includes('poseidon')) return;
     try {
 
-      // B. Cinemitas: Clic en primer servidor
+      // B. Cinemitas: Clic en primer servidor REAL (excluyendo estrictamente trailers)
       if (host.includes('cinemitas') || document.querySelector('#playeroptionsul')) {
-        const primeraOpcion = document.querySelector('#playeroptionsul li:first-child');
-        if (primeraOpcion && !primeraOpcion.classList.contains('active')) {
-          primeraOpcion.click();
+        const opciones = document.querySelectorAll('#playeroptionsul li');
+        let servidorReal = null;
+        for (const opt of opciones) {
+          const texto = (opt.innerText || opt.textContent || '').toLowerCase();
+          const dataType = (opt.getAttribute('data-type') || '').toLowerCase();
+          const optId = (opt.id || '').toLowerCase();
+          if (texto.includes('trailer') || dataType.includes('trailer') || optId.includes('trailer')) {
+            continue;
+          }
+          servidorReal = opt;
+          break;
+        }
+
+        const optActiva = document.querySelector('#playeroptionsul li.active');
+        const activaEsTrailer = optActiva && (
+          (optActiva.innerText || '').toLowerCase().includes('trailer') ||
+          (optActiva.getAttribute('data-type') || '').toLowerCase().includes('trailer') ||
+          (optActiva.id || '').toLowerCase().includes('trailer')
+        );
+
+        if (servidorReal && (!servidorReal.classList.contains('active') || activaEsTrailer)) {
+          console.log('[Hydra Shield] Seleccionando servidor real en Cinemitas (evitando trailer)');
+          servidorReal.click();
         }
       }
 

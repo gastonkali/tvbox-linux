@@ -59,13 +59,9 @@
     HTMLAnchorElement.prototype.click = function() {
       const target = (this.getAttribute('target') || '').toLowerCase();
       const href = (this.getAttribute('href') || '').toLowerCase();
-      // Solo neutralizar si es target="_blank" hacia redes de anuncios conocidas
       if ((target === '_blank' || target === '_new') && href && !href.startsWith('javascript:')) {
-        const esAdUrl = ['adsterra', 'popcash', 'popads', 'propeller', 'onclick', 'monetag', 'exoclick', 'doubleclick', 'ad-maven', 'richpush', 'trafficjunky'].some(ad => href.includes(ad));
-        if (esAdUrl) {
-          console.warn('[Hydra Shield MAIN] Enlace publicitario simulado bloqueado:', href);
-          return;
-        }
+        console.warn('[Hydra Shield MAIN] Enlace target="_blank" simulado bloqueado:', href);
+        return;
       }
       return originalAnchorClick.apply(this, arguments);
     };
