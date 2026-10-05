@@ -20,7 +20,7 @@
     return;
   }
 
-  // 1. Estilos mínimos exclusivamente para neutralizar publicidad invasiva (sin alterar estructura del sitio ni nombres)
+  // 1. Estilos Anti-Publicidad y Modo Pantalla Completa Limpio
   function inyectarEstilosAntiPublicidad() {
     if (document.getElementById('hydra-shield-antiad-style')) return;
     const style = document.createElement('style');
@@ -36,6 +36,121 @@
         pointer-events: none !important;
         height: 0 !important;
         overflow: hidden !important;
+      }
+
+      /* =========================================================================
+         MODO PANTALLA COMPLETA LIMPIO (Solo se activa al presionar Pantalla Completa)
+         ========================================================================= */
+      html.hydra-is-fullscreen,
+      html.hydra-is-fullscreen body {
+        overflow: hidden !important;
+        background: #000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+      }
+
+      html.hydra-is-fullscreen .video-container,
+      html.hydra-is-fullscreen .TPlayer,
+      html.hydra-is-fullscreen .TPlayerCn,
+      html.hydra-is-fullscreen .embed_div,
+      html.hydra-is-fullscreen #video,
+      html.hydra-is-fullscreen #player,
+      html.hydra-is-fullscreen #reproductor,
+      html.hydra-is-fullscreen .player-placeholder,
+      html.hydra-is-fullscreen .player-container,
+      html.hydra-is-fullscreen .play-box,
+      html.hydra-is-fullscreen #play-video,
+      html.hydra-is-fullscreen .video-content,
+      html.hydra-is-fullscreen .player_content,
+      html.hydra-is-fullscreen .player-holder {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: 100vw !important;
+        max-height: 100vh !important;
+        z-index: 2147483640 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        padding-bottom: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        background: #000 !important;
+      }
+
+      html.hydra-is-fullscreen .video-container iframe,
+      html.hydra-is-fullscreen .TPlayer iframe,
+      html.hydra-is-fullscreen .TPlayerCn iframe,
+      html.hydra-is-fullscreen .embed_div iframe,
+      html.hydra-is-fullscreen #video iframe,
+      html.hydra-is-fullscreen #player iframe,
+      html.hydra-is-fullscreen #reproductor iframe,
+      html.hydra-is-fullscreen .player-placeholder iframe,
+      html.hydra-is-fullscreen .player-container iframe,
+      html.hydra-is-fullscreen .play-box iframe,
+      html.hydra-is-fullscreen #play-video iframe,
+      html.hydra-is-fullscreen .video-content iframe,
+      html.hydra-is-fullscreen video {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: 100vw !important;
+        max-height: 100vh !important;
+        border: none !important;
+        border-radius: 0 !important;
+        background: #000 !important;
+      }
+
+      /* En pantalla completa, ocultar todo contenido periférico que no sea el reproductor */
+      html.hydra-is-fullscreen header,
+      html.hydra-is-fullscreen nav,
+      html.hydra-is-fullscreen aside,
+      html.hydra-is-fullscreen footer,
+      html.hydra-is-fullscreen .related-movies,
+      html.hydra-is-fullscreen .top-movies,
+      html.hydra-is-fullscreen .s-related,
+      html.hydra-is-fullscreen [class*="similar" i],
+      html.hydra-is-fullscreen [class*="destacadas" i],
+      html.hydra-is-fullscreen [class*="relacionadas" i],
+      html.hydra-is-fullscreen .movie-sidebar,
+      html.hydra-is-fullscreen .movie-sidebar-right,
+      html.hydra-is-fullscreen .alert,
+      html.hydra-is-fullscreen .adang,
+      html.hydra-is-fullscreen .notice,
+      html.hydra-is-fullscreen .warning-box,
+      html.hydra-is-fullscreen .comments,
+      html.hydra-is-fullscreen #comments {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        overflow: hidden !important;
+      }
+
+      /* Mantener el selector interno de servidores accesible y flotante */
+      html.hydra-is-fullscreen ul.TPlayerNv,
+      html.hydra-is-fullscreen .sub-tab-lang,
+      html.hydra-is-fullscreen .tab_language_movie,
+      html.hydra-is-fullscreen .lang,
+      html.hydra-is-fullscreen .player-options,
+      html.hydra-is-fullscreen #playeroptionsul,
+      html.hydra-is-fullscreen ._1R6bW_0 {
+        position: fixed !important;
+        top: 14px !important;
+        left: 16px !important;
+        z-index: 2147483646 !important;
+        background: rgba(10, 11, 14, 0.92) !important;
+        border-radius: 8px !important;
+        padding: 6px 12px !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
       }
     `;
     (document.head || document.documentElement).appendChild(style);
@@ -98,7 +213,7 @@
         if (el.id === 'hydra-tv-topbar' || el.closest('#hydra-tv-topbar')) continue;
         if (el.id === 'start' || el.id === 'container' || el.id === 'player' || el.id === 'video' ||
             el.closest('#player') || el.closest('#video') || el.closest('#container') || el.closest('.TPlayer') ||
-            el.closest('.video-container') || el.closest('#playeroptionsul')) continue;
+            el.closest('.video-container') || el.closest('#playeroptionsul') || el.closest('.sub-tab-lang')) continue;
 
         const style = window.getComputedStyle(el);
         const isOverlay = (style.position === 'fixed' || style.position === 'absolute');
@@ -164,7 +279,7 @@
       if ((style.position === 'fixed' || style.position === 'absolute') && parseInt(style.zIndex, 10) > 90) {
         if (el.id === 'start' || el.id === 'container' || el.id === 'player' || el.id === 'video' ||
             el.closest('#player') || el.closest('#video') || el.closest('#container') || el.closest('.TPlayer') ||
-            el.closest('.video-container') || el.closest('#playeroptionsul')) return;
+            el.closest('.video-container') || el.closest('#playeroptionsul') || el.closest('.sub-tab-lang')) return;
 
         const rect = el.getBoundingClientRect();
         if (rect.width >= window.innerWidth * 0.6 && rect.height >= window.innerHeight * 0.6) {
@@ -181,11 +296,27 @@
 
   // 5. Acelerador de Reproducción Inmediata y Visibilidad de Reproductores
   function acelerarReproduccion() {
-    // En PoseidonHD no disparar clics sintéticos: el usuario elige limpiamente su servidor
-    if (host.includes('poseidon')) return;
-
     try {
-      // Cinemitas: Si la opción activa es un trailer, buscar la primera opción de servidor real
+      // A. PoseidonHD: Si el reproductor no tiene iframe todavía, activar el primer servidor una sola vez
+      if (host.includes('poseidon')) {
+        const container = document.querySelector('.video-container');
+        const hasIframe = container && container.querySelector('iframe');
+        if (!hasIframe) {
+          const primerServidor = document.querySelector('li.clili[data-tr]');
+          if (primerServidor && !primerServidor.dataset.hydraActivated) {
+            primerServidor.dataset.hydraActivated = 'true';
+            console.log('[Hydra Shield] Auto-activando primer servidor en PoseidonHD:', primerServidor.innerText);
+            primerServidor.click();
+          }
+        }
+        // Desplegar automáticamente los servidores de Poseidon para que el usuario pueda cambiarlos libremente
+        const subTabs = document.querySelector('.sub-tab-lang');
+        if (subTabs && subTabs.classList.contains('hide')) {
+          subTabs.classList.remove('hide');
+        }
+      }
+
+      // B. Cinemitas: Si la opción activa es un trailer, buscar la primera opción de servidor real
       if (host.includes('cinemitas') || document.querySelector('#playeroptionsul')) {
         const opciones = document.querySelectorAll('#playeroptionsul li');
         let servidorReal = null;
@@ -207,19 +338,20 @@
           (optActiva.id || '').toLowerCase().includes('trailer')
         );
 
-        if (servidorReal && (!servidorReal.classList.contains('active') || activaEsTrailer)) {
+        if (servidorReal && (!optActiva || activaEsTrailer) && !servidorReal.dataset.hydraActivated) {
+          servidorReal.dataset.hydraActivated = 'true';
           console.log('[Hydra Shield] Seleccionando servidor real en Cinemitas (evitando trailer)');
           servidorReal.click();
         }
       }
 
-      // Peelink
+      // C. Peelink
       if (host.includes('peelink')) {
         const btnLink = document.querySelector('#btn-link, a.btn-success, .btn-link');
         if (btnLink && btnLink.offsetParent !== null) btnLink.click();
       }
 
-      // Forzar visibilidad de reproductores legítimos
+      // D. Forzar visibilidad de reproductores legítimos
       const playerContainers = document.querySelectorAll(
         '#player, #reproductor, .player, .play-box, .video-player, #play-video, .video-content, iframe[src*="embed"], iframe[src*="stream"]'
       );
@@ -229,7 +361,7 @@
         if (el.style.opacity === '0') el.style.opacity = '1';
       });
 
-      // PeliculasHD / MasPeliculasHD
+      // E. PeliculasHD / MasPeliculasHD
       if (host.includes('peliculashd') || document.querySelector('.play-button')) {
         const btnPlayMaspeli = document.querySelector('.play-button');
         if (btnPlayMaspeli && !btnPlayMaspeli.dataset.hydraClicked) {
@@ -238,7 +370,7 @@
         }
       }
 
-      // Auto-clic en botones Play genéricos
+      // F. Auto-clic en botones Play genéricos
       const playButtons = document.querySelectorAll(
         '.jw-display-icon-container, .vjs-big-play-button, .play-btn, #btn-play, .btn-play, button.play, div.play, svg.play'
       );
@@ -300,6 +432,21 @@
       });
     } catch(err) {}
   }
+
+  // 7. Sincronización de Pantalla Completa con Hydra TV
+  window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'HYDRA_FULLSCREEN_CHANGE') {
+      const active = !!e.data.active;
+      document.documentElement.classList.toggle('hydra-is-fullscreen', active);
+      if (document.body) document.body.classList.toggle('hydra-is-fullscreen', active);
+    }
+  });
+
+  document.addEventListener('fullscreenchange', () => {
+    const isFs = !!document.fullscreenElement;
+    document.documentElement.classList.toggle('hydra-is-fullscreen', isFs);
+    if (document.body) document.body.classList.toggle('hydra-is-fullscreen', isFs);
+  });
 
   inyectarEstilosAntiPublicidad();
   inyectarBarraSuperiorHydra();

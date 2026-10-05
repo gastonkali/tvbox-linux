@@ -1676,12 +1676,46 @@
       border: none !important;
     }
 
-    /* Botón flotante para salir de pantalla completa */
-    .player-fs-exit-btn {
+    /* Barra superior flotante en pantalla completa */
+    .player-fs-overlay-bar {
       display: none;
       position: absolute;
-      top: 16px;
-      right: 16px;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 16px 24px;
+      background: linear-gradient(180deg, rgba(10, 11, 14, 0.95) 0%, rgba(10, 11, 14, 0.6) 70%, transparent 100%);
+      z-index: 2147483647;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .player-frame-container:fullscreen .player-fs-overlay-bar,
+    .player-frame-container:-webkit-full-screen .player-fs-overlay-bar {
+      display: flex;
+    }
+
+    .player-frame-container:fullscreen:hover .player-fs-overlay-bar,
+    .player-frame-container:-webkit-full-screen:hover .player-fs-overlay-bar,
+    .player-fs-overlay-bar.show-controls {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .player-fs-servers-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* Botón flotante para salir de pantalla completa */
+    .player-fs-exit-btn {
       background: rgba(10, 11, 14, 0.88);
       border: 1px solid rgba(255, 255, 255, 0.25);
       color: #fff;
@@ -1690,23 +1724,12 @@
       font-size: 0.92rem;
       font-weight: 700;
       cursor: pointer;
-      z-index: 2147483647;
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.8);
-      opacity: 0;
-      transition: opacity 0.3s ease, transform 0.2s ease, background 0.2s ease;
+      transition: transform 0.2s ease, background 0.2s ease;
       outline: none;
-    }
-
-    .player-frame-container:fullscreen .player-fs-exit-btn,
-    .player-frame-container:-webkit-full-screen .player-fs-exit-btn {
-      display: block;
-    }
-
-    .player-frame-container:fullscreen:hover .player-fs-exit-btn,
-    .player-frame-container:-webkit-full-screen:hover .player-fs-exit-btn {
-      opacity: 1;
+      white-space: nowrap;
     }
 
     .player-fs-exit-btn:hover,
@@ -1714,7 +1737,6 @@
       background: var(--accent);
       border-color: var(--accent);
       transform: scale(1.04);
-      opacity: 1;
     }
 
     /* PRESENTACIÓN HERO DE LA PELÍCULA EN VISTA DE DETALLE / REPRODUCTOR */
@@ -2034,7 +2056,10 @@
         </div>
         <div class="player-frame-container" id="playerFrameContainer">
           <iframe id="playerIframe" src="" allow="autoplay; encrypted-media; fullscreen" allowfullscreen frameborder="0"></iframe>
-          <button class="player-fs-exit-btn" id="playerFsExitBtn" title="Salir de Pantalla Completa (Esc)">✕ Salir de Pantalla Completa</button>
+          <div class="player-fs-overlay-bar" id="playerFsOverlayBar">
+            <div class="player-fs-servers-wrap" id="playerFsServersWrap"></div>
+            <button class="player-fs-exit-btn" id="playerFsExitBtn" title="Salir de Pantalla Completa (Esc)">✕ Salir de Pantalla Completa</button>
+          </div>
         </div>
       </div>
     </div>
@@ -2216,6 +2241,8 @@
       playerIframe: document.getElementById('playerIframe'),
       playerFrameContainer: document.getElementById('playerFrameContainer') || document.querySelector('.player-frame-container'),
       playerFsExitBtn: document.getElementById('playerFsExitBtn'),
+      playerFsOverlayBar: document.getElementById('playerFsOverlayBar'),
+      playerFsServersWrap: document.getElementById('playerFsServersWrap'),
       playerHeroBillboard: document.getElementById('playerHeroBillboard'),
       playerHeroBackdrop: document.getElementById('playerHeroBackdrop'),
       playerHeroPoster: document.getElementById('playerHeroPoster'),
@@ -3270,31 +3297,40 @@
       const urlPrincipal = opciones[0] || urlAUsar;
       state.currentSelectedServerUrl = urlPrincipal;
 
-      if (opciones.length > 1) {
-        el.playerServersBar.style.display = 'flex';
-        el.playerServersList.innerHTML = '';
-        opciones.slice(0, 5).forEach((optUrl, idx) => {
+      // Mostrar siempre la barra de servidores para transparencia y control del usuario
+      el.playerServersBar.style.display = 'flex';
+      el.playerServersList.innerHTML = '';
+      if (el.playerFsServersWrap) el.playerFsServersWrap.innerHTML = '';
+
+      opciones.slice(0, 5).forEach((optUrl, idx) => {
+        let nombreServidor = `Servidor ${idx + 1}`;
+        if (optUrl.includes('poseidon')) nombreServidor += ' (Poseidon)';
+        else if (optUrl.includes('cinemitas')) nombreServidor += ' (Cinemitas)';
+        else if (optUrl.includes('pelicine')) nombreServidor += ' (Pelicine)';
+        else if (optUrl.includes('maspeliculashd')) nombreServidor += ' (PeliculasHD)';
+
+        function crearPill() {
           const pill = document.createElement('button');
           pill.className = 'server-pill' + (optUrl === urlPrincipal ? ' active' : '');
-          let nombreServidor = `Servidor ${idx + 1}`;
-          if (optUrl.includes('poseidon')) nombreServidor += ' (Poseidon)';
-          else if (optUrl.includes('cinemitas')) nombreServidor += ' (Cinemitas)';
-          else if (optUrl.includes('pelicine')) nombreServidor += ' (Pelicine)';
-          else if (optUrl.includes('maspeliculashd')) nombreServidor += ' (PeliculasHD)';
           pill.innerText = `⚡ ${nombreServidor}`;
-          pill.addEventListener('click', () => {
-            el.playerServersList.querySelectorAll('.server-pill').forEach(p => p.classList.remove('active'));
-            pill.classList.add('active');
+          pill.addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.querySelectorAll('.server-pill').forEach(p => {
+              if (p.innerText === pill.innerText) p.classList.add('active');
+              else p.classList.remove('active');
+            });
             state.currentSelectedServerUrl = optUrl;
             cargarFrameReproductor(item, optUrl);
             showToast(`⚡ ${nombreServidor} activado`);
           });
-          el.playerServersList.appendChild(pill);
-        });
-      } else {
-        el.playerServersBar.style.display = 'none';
-        el.playerServersList.innerHTML = '';
-      }
+          return pill;
+        }
+
+        el.playerServersList.appendChild(crearPill());
+        if (el.playerFsServersWrap && opciones.length > 1) {
+          el.playerFsServersWrap.appendChild(crearPill());
+        }
+      });
 
       cargarFrameReproductor(item, urlPrincipal);
       switchView('player');
@@ -3459,11 +3495,33 @@
 
       document.addEventListener('fullscreenchange', () => {
         const isFs = !!document.fullscreenElement;
+        if (el.playerIframe && el.playerIframe.contentWindow) {
+          try {
+            el.playerIframe.contentWindow.postMessage({ type: 'HYDRA_FULLSCREEN_CHANGE', active: isFs }, '*');
+          } catch(err) {}
+        }
         if (el.playerBtnFullscreen) {
           el.playerBtnFullscreen.textContent = isFs ? '⛶ Salir de Pantalla Completa' : '⛶ Pantalla Completa';
           el.playerBtnFullscreen.classList.toggle('active', isFs);
         }
+        if (el.playerFsOverlayBar) {
+          if (isFs) el.playerFsOverlayBar.classList.add('show-controls');
+          else el.playerFsOverlayBar.classList.remove('show-controls');
+        }
       });
+
+      let fsControlsTimeout = null;
+      if (el.playerFrameContainer) {
+        el.playerFrameContainer.addEventListener('mousemove', () => {
+          if (document.fullscreenElement && el.playerFsOverlayBar) {
+            el.playerFsOverlayBar.classList.add('show-controls');
+            clearTimeout(fsControlsTimeout);
+            fsControlsTimeout = setTimeout(() => {
+              if (el.playerFsOverlayBar) el.playerFsOverlayBar.classList.remove('show-controls');
+            }, 3000);
+          }
+        });
+      }
 
       // Escuchar mensajes desde el iframe (Hydra Shield cerrando reproductor)
       window.addEventListener('message', (e) => {
