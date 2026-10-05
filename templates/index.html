@@ -2029,7 +2029,6 @@
         <div class="player-viewport-header">
           <span class="player-viewport-title">▶ Reproductor de Video</span>
           <div style="display: flex; gap: 10px; align-items: center;">
-            <button class="player-action-btn" id="playerBtnOpenTab" title="Abrir video directamente en pestaña si el servidor bloquea el marco embebido">↗ Abrir en Nueva Pestaña</button>
             <button class="player-action-btn" id="playerBtnFullscreen" title="Pantalla Completa">⛶ Pantalla Completa</button>
           </div>
         </div>
@@ -2211,7 +2210,6 @@
       playerYearBadge: document.getElementById('playerYearBadge'),
       playerTypeBadge: document.getElementById('playerTypeBadge'),
       playerBtnFullscreen: document.getElementById('playerBtnFullscreen'),
-      playerBtnOpenTab: document.getElementById('playerBtnOpenTab'),
       playerServersBar: document.getElementById('playerServersBar'),
       playerServersList: document.getElementById('playerServersList'),
       playerTheaterViewport: document.getElementById('playerTheaterViewport'),
@@ -3432,17 +3430,6 @@
       // Eventos del Reproductor Integrado (Misma Ventana)
       if (el.playerBtnBack) {
         el.playerBtnBack.addEventListener('click', cerrarReproductorEnMismaVentana);
-      }
-
-      if (el.playerBtnOpenTab) {
-        el.playerBtnOpenTab.addEventListener('click', () => {
-          const urlToOpen = state.currentSelectedServerUrl || (state.currentPlayerItem && state.currentPlayerItem.url);
-          if (urlToOpen) {
-            window.open(urlToOpen, '_blank');
-          } else {
-            showToast('No hay URL activa para abrir');
-          }
-        });
       }
 
       if (el.playerBtnFullscreen) {
