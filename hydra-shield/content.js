@@ -15,52 +15,195 @@
     const style = document.createElement('style');
     style.id = 'hydra-brand-cloak-style';
     style.textContent = `
-      /* Ocultar marcas de terceros, barras de navegación, anuncios y logos */
-      header, .Header, #header, #menu_top, .menu_top, .top-bar, .topbar,
-      nav, .Menu, .navbar, .nav-menu, #main_nav, .header-container, .barColor,
-      #nav_toggle, .nav-toggle, .nav_menu,
+      /* Ocultar marcas de terceros, barras de navegación y publicidad específica */
+      #menu_top, header#menu_top, .menu_top,
+      header.Header, header.site-header,
+      #main_nav, nav#main_nav, nav.Menu, nav.navbar, nav.nav-menu,
+      .header-container, .barColor, #nav_toggle, .nav_menu,
 
-      .logo, #logo, a.logo, a#logo, .logo-ft, [id*="logo" i], [class*="logo" i],
+      #logo, a#logo, .logo, a.logo, .logo-ft, [id*="logo" i], [class*="logo" i],
       img[alt*="Poseidon" i], img[alt*="Cinemitas" i], img[alt*="Pelicine" i], img[alt*="Pelicula" i],
       img[alt*="Repelis" i], img[alt*="Argflix" i], img[src*="logo" i],
-      a[href*="maspeliculashd" i], a[href*="poseidon" i][class*="logo" i],
+      a[href*="maspeliculashd" i][id*="logo" i], a[href*="poseidon" i][class*="logo" i],
       a[href="/"][class*="logo"], a[href="/"][id*="logo"], a[href="/"][title*="Poseidon" i],
       a[href="/"][title*="Peliculas" i],
       a:has(i.fa-plus), h1:has(i.fa-plus),
 
-      .search, .buscador, form[action*="search" i], form[action*="buscar" i], #search_form, .search-form,
+      #search_form, .search-form, form[action*="search" i], form[action*="buscar" i],
       .alert-danger, .adang, .alert, .notice, .warning-box, .aviso, .notice-box, .tip,
       .share, .social, .btn-share, .compartir, a[href*="facebook" i], a[href*="twitter" i],
       .comments, #comments, .disqus, #disqus_thread,
       footer, .footer, #footer, .copyright,
-      .col-right, aside.movie-sidebar-right, .movie-sidebar-right,
-      .related-movies, .top-movies, .s-related, .movie-stats,
-      .breadcrumb, .breadcrumbs, .nav-links, .menu-links, .user-menu,
-      .login-btn, .register-btn, .btn-login, .btn-register,
-      .rating-stars, .votes, .report-btn, .btn-report, .reportar, a[href*="report"],
-      .download-btn, .btn-download, a[href*="descargar" i], a[href*="download" i],
-      .tags, .tags-list, .tagcloud, .widget, .banner, .ads, .adsense, .ad-banner {
+
+      aside.movie-sidebar-right, .movie-sidebar-right, .col-right,
+      .related-movies, .top-movies, .s-related, .movie-stats {
         display: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
-        pointer-events: none !important;
         height: 0 !important;
         max-height: 0 !important;
         margin: 0 !important;
         padding: 0 !important;
         overflow: hidden !important;
+        pointer-events: none !important;
       }
 
+      /* Grid perfecto de dos columnas para MasPeliculasHD: Poster a la izquierda, Contenido a la derecha */
       .movie-layout {
-        display: flex !important;
-        justify-content: center !important;
+        display: grid !important;
+        grid-template-columns: 280px 1fr !important;
+        gap: 32px !important;
         max-width: 1200px !important;
         margin: 0 auto !important;
+        padding: 20px !important;
+      }
+
+      .movie-sidebar {
+        display: block !important;
+        width: 280px !important;
+        max-width: 280px !important;
+        position: static !important;
+      }
+
+      .movie-sidebar .movie-poster img {
+        width: 100% !important;
+        max-width: 280px !important;
+        border-radius: 16px !important;
+        display: block !important;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6) !important;
       }
 
       .movie-main {
-        flex: 1 !important;
-        max-width: 900px !important;
+        display: block !important;
+        width: 100% !important;
+        min-width: 0 !important;
+      }
+
+      .movie-header {
+        display: block !important;
+        margin-bottom: 24px !important;
+        padding: 30px 40px !important;
+        border-radius: 16px !important;
+      }
+
+      .movie-title {
+        display: block !important;
+        font-size: 2.2rem !important;
+        font-weight: 800 !important;
+        color: #fff !important;
+        margin-bottom: 8px !important;
+      }
+
+      .movie-content {
+        display: block !important;
+      }
+
+      .movie-content p {
+        font-size: 1.05rem !important;
+        line-height: 1.7 !important;
+        color: #d1d5db !important;
+      }
+
+      .player-placeholder, #video, #player, #reproductor, .player-container {
+        width: 100% !important;
+        min-height: 480px !important;
+        background: #000 !important;
+        border-radius: 12px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        overflow: hidden !important;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8) !important;
+        position: relative !important;
+      }
+
+      #video iframe, #player iframe, #reproductor iframe, .player-placeholder iframe {
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 480px !important;
+        border: none !important;
+        display: block !important;
+      }
+
+      .play-button {
+        background: #e50914 !important;
+        color: #fff !important;
+        font-size: 1.25rem !important;
+        font-weight: 800 !important;
+        padding: 16px 42px !important;
+        border-radius: 50px !important;
+        box-shadow: 0 6px 25px rgba(229, 9, 20, 0.6) !important;
+        cursor: pointer !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        transition: transform 0.2s ease, background 0.2s ease !important;
+        z-index: 10 !important;
+      }
+
+      .play-button:hover {
+        background: #b80710 !important;
+        transform: scale(1.06) !important;
+      }
+
+      /* Idiomas y opciones de MasPeliculasHD */
+      .lang {
+        display: flex !important;
+        gap: 10px !important;
+        margin-bottom: 12px !important;
+      }
+
+      .lang div {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        color: #d1d5db !important;
+        padding: 8px 18px !important;
+        border-radius: 8px !important;
+        cursor: pointer !important;
+        font-weight: 700 !important;
+        font-size: 0.9rem !important;
+        transition: all 0.2s ease !important;
+      }
+
+      .lang div.active, .lang div:hover {
+        background: #e50914 !important;
+        border-color: #e50914 !important;
+        color: #fff !important;
+      }
+
+      .player-options {
+        display: block !important;
+        margin-top: 14px !important;
+      }
+
+      .player-options ul {
+        display: flex !important;
+        gap: 10px !important;
+        padding: 0 !important;
+        list-style: none !important;
+        flex-wrap: wrap !important;
+      }
+
+      .player-options li {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        color: #e5e7eb !important;
+        padding: 8px 16px !important;
+        border-radius: 8px !important;
+        cursor: pointer !important;
+        font-size: 0.85rem !important;
+        font-weight: 600 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        transition: all 0.2s ease !important;
+      }
+
+      .player-options li.active, .player-options li:hover {
+        background: #e50914 !important;
+        border-color: #e50914 !important;
+        color: #fff !important;
       }
 
       body, html {
@@ -189,7 +332,7 @@
             lower.includes('bienvenido a verpelículas') ||
             lower.includes('tuanime.net')) {
           const parent = node.parentElement;
-          if (parent && !parent.closest('#player') && !parent.closest('#reproductor') && !parent.closest('#video')) {
+          if (parent && !parent.closest('#player') && !parent.closest('#reproductor') && !parent.closest('#video') && !parent.closest('.movie-header') && !parent.closest('.movie-content') && !parent.closest('.movie-main')) {
             parent.style.display = 'none';
           }
           continue;
@@ -214,14 +357,14 @@
       const selectores = [
         '#menu_top', '.header-container', '#logo', 'a#logo', '#main_nav', '#search_form', '.barColor',
         '#nav_toggle', '.movie-sidebar-right', 'aside.movie-sidebar-right', '.related-movies', '.top-movies',
-        '.movie-stats', '.s-related', 'header:not(#hydra-tv-topbar)', '.Header', '#header:not(#hydra-tv-topbar)',
-        'footer', '#footer'
+        '.movie-stats', '.s-related', 'header.Header', 'footer', '#footer'
       ];
       for (const sel of selectores) {
         const elems = document.querySelectorAll(sel);
         elems.forEach(el => {
           if (el.id === 'hydra-tv-topbar' || el.closest('#hydra-tv-topbar')) return;
           if (el.id === 'player' || el.id === 'video' || el.id === 'reproductor' || el.closest('#video')) return;
+          if (el.closest('.movie-header') || el.closest('.movie-main') || el.closest('.movie-sidebar')) return;
           el.remove();
         });
       }
@@ -386,8 +529,8 @@
       });
 
       // E. PeliculasHD / MasPeliculasHD
-      if (host.includes('peliculashd') || document.querySelector('.play-button, .player-placeholder')) {
-        const btnPlayMaspeli = document.querySelector('.play-button, .player-placeholder');
+      if (host.includes('peliculashd') || document.querySelector('.play-button')) {
+        const btnPlayMaspeli = document.querySelector('.play-button');
         if (btnPlayMaspeli && !btnPlayMaspeli.dataset.hydraClicked) {
           btnPlayMaspeli.dataset.hydraClicked = 'true';
           btnPlayMaspeli.click();

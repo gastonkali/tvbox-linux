@@ -2231,8 +2231,8 @@
       el.playerYearBadge.innerText = item.anio || (new Date().getFullYear());
       el.playerTypeBadge.innerText = item.es_serie ? 'SERIE HD' : 'PELÍCULA HD';
 
-      // Configurar Servidores / Opciones si existen
-      const opciones = Array.isArray(item.opciones) && item.opciones.length > 0 ? item.opciones : [urlAUsar];
+      // Configurar Servidores / Opciones si existen (máximo 5 servidores para mantener diseño limpio)
+      const opciones = (Array.isArray(item.opciones) && item.opciones.length > 0 ? item.opciones : [urlAUsar]).slice(0, 5);
       if (opciones.length > 1) {
         el.playerServersBar.style.display = 'flex';
         el.playerServersList.innerHTML = '';
