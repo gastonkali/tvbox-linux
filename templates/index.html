@@ -2417,15 +2417,26 @@
       }
       if (el.playerHeroBtnTv) {
         el.playerHeroBtnTv.onclick = () => {
-          ejecutarReproduccion(item);
+          showToast('📺 Enviando a la TV: ' + item.titulo + '...');
+          fetch('/play/' + item.id, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ opcion_url: urlAUsar })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.error) showToast('Error: ' + data.error);
+            else showToast('✅ Reproduciendo en TV: ' + item.titulo);
+          })
+          .catch(() => showToast('Error de conexión con la TV'));
         };
       }
       if (el.playerHeroBtnList) {
-        const enLista = state.miLista.includes(item.id);
+        const enLista = state.myList && state.myList.has(item.id);
         el.playerHeroBtnList.innerText = enLista ? '✓ En Mi Lista' : '+ Mi Lista';
         el.playerHeroBtnList.onclick = () => {
-          toggleMiLista(item);
-          const ahoraEnLista = state.miLista.includes(item.id);
+          toggleFavorito(item);
+          const ahoraEnLista = state.myList && state.myList.has(item.id);
           el.playerHeroBtnList.innerText = ahoraEnLista ? '✓ En Mi Lista' : '+ Mi Lista';
         };
       }
