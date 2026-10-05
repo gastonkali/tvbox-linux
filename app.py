@@ -21,11 +21,14 @@ ITEMS_BY_ID = {}
 CATEGORIAS_CACHE = []
 PROVEEDORES_CACHE = {}
 
-# Estructuras para búsqueda difusa (Fuzzy Search) ultrarrápida y sinopsis
+# Estructuras para búsqueda difusa (Fuzzy Search) ultrarrápida, sinopsis y filmografías de actores
 SINOPSIS_CACHE = {}
 VOCAB_INDEX = defaultdict(set)      # palabra -> set(indices en CATALOGO_CACHE)
 WORDS_BY_LEN = defaultdict(list)    # longitud -> lista de palabras únicas
 WORDS_BY_PREFIX = defaultdict(list) # prefijo de 2 letras -> lista de palabras únicas
+TMDB_TO_ITEMS = defaultdict(list)   # tmdb_id -> lista de indices en CATALOGO_CACHE
+ACTORES_CACHE_FILE = os.path.join(BASE_DIR, "actores_cache.json")
+ACTORES_CACHE = {}                  # nombre_normalizado -> lista de tmdb_ids
 
 def resolver_url(canal, proveedores):
     """Resuelve la URL final según si tiene ruta+proveedor o URL fija."""
@@ -319,7 +322,7 @@ def construir_home_feed():
 def inicializar_catalogo():
     """Carga canales.json y catalogo_maestro.json en memoria y construye el índice de búsqueda fuzzy."""
     global CATALOGO_CACHE, ITEMS_BY_ID, CATEGORIAS_CACHE, PROVEEDORES_CACHE
-    global VOCAB_INDEX, WORDS_BY_LEN, WORDS_BY_PREFIX
+    global VOCAB_INDEX, WORDS_BY_LEN, WORDS_BY_PREFIX, TMDB_TO_ITEMS, ACTORES_CACHE
 
     items_combinados = []
     ids_registrados = set()
@@ -402,6 +405,33 @@ def inicializar_catalogo():
     WORDS_BY_LEN = words_by_len
     WORDS_BY_PREFIX = words_by_prefix
 
+    # 4. Construir índice inverso de IDs de TMDb para búsqueda por actor/director
+    tmdb_map = defaultdict(list)
+    tmdb_regex = re.compile(r'/(?:pelicula|serie)/(\d+)')
+    for idx, item in enumerate(items_combinados):
+        urls = [str(item.get("url", ""))]
+        for opt in item.get("opciones", []):
+            urls.append(opt.get("url", "") if isinstance(opt, dict) else str(opt))
+        for u in urls:
+            m = tmdb_regex.search(u)
+            if m:
+                try:
+                    tid = int(m.group(1))
+                    if idx not in tmdb_map[tid]:
+                        tmdb_map[tid].append(idx)
+                except ValueError:
+                    pass
+    TMDB_TO_ITEMS = tmdb_map
+
+    # 5. Cargar caché de actores si existe
+    if os.path.exists(ACTORES_CACHE_FILE):
+        try:
+            with open(ACTORES_CACHE_FILE, "r", encoding="utf-8") as f:
+                ACTORES_CACHE = json.load(f)
+            print(f"[OK] Caché de actores cargada: {len(ACTORES_CACHE)} entradas indexadas.")
+        except Exception as e:
+            print(f"[Aviso] Error leyendo actores_cache.json: {e}")
+
     # Extraer categorías únicas limpias
     categorias_set = set()
     for item in items_combinados:
@@ -413,10 +443,98 @@ def inicializar_catalogo():
     CATEGORIAS_CACHE = ["Todos"] + lista_cat
 
     construir_home_feed()
-    print(f"[OK] Catálogo cargado: {len(CATALOGO_CACHE)} títulos, {len(vocab)} palabras indexadas, {len(CATEGORIAS_CACHE)} categorías, {len(HOME_FEED_CACHE.get('filas', []))} filas temáticas de inicio.")
+    print(f"[OK] Catálogo cargado: {len(CATALOGO_CACHE)} títulos, {len(vocab)} palabras indexadas, {len(TMDB_TO_ITEMS)} IDs TMDb mapeados, {len(CATEGORIAS_CACHE)} categorías.")
 
 # Cargar catálogo en memoria al arrancar
 inicializar_catalogo()
+
+FILM_PERSON_KEYWORDS = [
+    "actor", "actress", "actriz", "filmmaker", "director", "cineasta", "guionista",
+    "producer", "productor", "film", "película", "pelicula", "cinema", "cine"
+]
+
+def buscar_persona_wikidata(nombre):
+    """Consulta Wikidata en 2 pasos rápidos (búsqueda de entidad + SPARQL de IDs de TMDb)."""
+    norm_nombre = " ".join(normalizar_texto(nombre).split())
+    if not norm_nombre:
+        return []
+
+    try:
+        url = f"https://www.wikidata.org/w/api.php?action=wbsearchentities&search={urllib.parse.quote(nombre)}&language=es&format=json&limit=5"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 TVBoxCatalog/2.0 (mailto:admin@tvbox.lan)'})
+        with urllib.request.urlopen(req, timeout=3.5) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            results = data.get('search', [])
+
+        if not results:
+            return []
+
+        chosen_qid = None
+        for r in results:
+            desc = (r.get('description', '') or '').lower()
+            if any(k in desc for k in FILM_PERSON_KEYWORDS):
+                chosen_qid = r.get('id')
+                break
+
+        if not chosen_qid:
+            chosen_qid = results[0].get('id')
+
+        if not chosen_qid or not chosen_qid.startswith('Q'):
+            return []
+
+        sparql = f"""
+        SELECT DISTINCT ?film ?tmdbId WHERE {{
+          {{ ?film wdt:P161 wd:{chosen_qid} }} UNION {{ ?film wdt:P57 wd:{chosen_qid} }}
+          ?film wdt:P4947 ?tmdbId .
+        }}
+        LIMIT 200
+        """
+        sparql_url = 'https://query.wikidata.org/sparql?' + urllib.parse.urlencode({'query': sparql, 'format': 'json'})
+        sparql_req = urllib.request.Request(sparql_url, headers={'User-Agent': 'Mozilla/5.0 TVBoxCatalog/2.0 (mailto:admin@tvbox.lan)'})
+        with urllib.request.urlopen(sparql_req, timeout=3.5) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            bindings = data.get('results', {}).get('bindings', [])
+            tmdb_ids = set()
+            for b in bindings:
+                tid = b.get('tmdbId', {}).get('value')
+                if tid:
+                    try:
+                        tmdb_ids.add(int(tid))
+                    except ValueError:
+                        pass
+            return list(tmdb_ids)
+    except Exception as e:
+        print(f"[Aviso] Wikidata lookup falló para '{nombre}': {e}")
+        return []
+
+def guardar_actores_cache():
+    try:
+        with open(ACTORES_CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(ACTORES_CACHE, f, ensure_ascii=False)
+    except Exception as e:
+        print(f"[Aviso] No se pudo persistir actores_cache.json: {e}")
+
+def buscar_persona_filmografia(query_str):
+    """Busca en caché o consulta Wikidata para devolver los TMDb IDs de la filmografía de un actor/director."""
+    global ACTORES_CACHE
+    norm_q = " ".join(normalizar_texto(query_str).split())
+    if not norm_q:
+        return []
+
+    # 1. Comprobar en caché de memoria (ultraveloz 0ms)
+    if norm_q in ACTORES_CACHE:
+        return ACTORES_CACHE[norm_q]
+
+    # 2. Consultar Wikidata si parece nombre de persona (al menos 2 palabras o >= 4 letras)
+    tokens = norm_q.split()
+    if len(tokens) >= 2 or len(norm_q) >= 4:
+        tmdb_ids = buscar_persona_wikidata(query_str)
+        ACTORES_CACHE[norm_q] = tmdb_ids
+        if tmdb_ids:
+            guardar_actores_cache()
+        return tmdb_ids
+
+    return []
 
 def obtener_candidatos_palabra(palabra_query):
     """Encuentra palabras del catálogo exactas, por prefijo o con 1 error tipográfico (typo)."""
@@ -443,7 +561,7 @@ def obtener_candidatos_palabra(palabra_query):
     return candidatos
 
 def buscar_catalogo(query_str, categoria_filtro=None):
-    """Motor de búsqueda difusa, tolerante a fallos, acentos y orden de palabras."""
+    """Motor de búsqueda difusa, tolerante a fallos, acentos, actores y directores."""
     clean_q = " ".join(normalizar_texto(query_str).split())
     if not clean_q:
         if categoria_filtro and categoria_filtro != "Todos":
@@ -455,10 +573,18 @@ def buscar_catalogo(query_str, categoria_filtro=None):
     q_tokens = clean_q.split()
     num_tokens = len(q_tokens)
 
-    # 1. Obtener candidatos por tokens (palabras clave)
-    candidate_indices = set()
+    # 1. Búsqueda por Filmografía de Actor / Director
+    actor_item_indices = set()
+    actor_tmdb_ids = buscar_persona_filmografia(query_str)
+    if actor_tmdb_ids:
+        for tid in actor_tmdb_ids:
+            if tid in TMDB_TO_ITEMS:
+                actor_item_indices.update(TMDB_TO_ITEMS[tid])
+
+    candidate_indices = set(actor_item_indices)
     token_item_weights = []
 
+    # 2. Obtener candidatos por tokens (palabras clave del título)
     for qt in q_tokens:
         word_cands = obtener_candidatos_palabra(qt)
         tok_map = defaultdict(float)
@@ -473,28 +599,42 @@ def buscar_catalogo(query_str, categoria_filtro=None):
         strict_matches = set.intersection(*all_sets)
         if strict_matches:
             candidate_indices.update(strict_matches)
-        else:
-            candidate_indices.update(set.union(*all_sets))
+        elif not actor_item_indices:
+            # Si NO se encontró actor y es búsqueda de una sola palabra, permitir candidatos difusos
+            if num_tokens == 1:
+                candidate_indices.update(set.union(*all_sets))
+            else:
+                # Si tiene más de una palabra y no es actor, buscar títulos que coincidan con la mayoría de términos
+                counts = defaultdict(int)
+                for s in all_sets:
+                    for idx in s:
+                        counts[idx] += 1
+                min_req = max(2, num_tokens - 1)
+                candidate_indices.update({idx for idx, cnt in counts.items() if cnt >= min_req})
 
-    # 2. Candidatos por subcadena directa o sin espacios (ej. 'spiderman' o 'resident evil')
+    # 3. Candidatos por subcadena directa o sin espacios (ej. 'spiderman' o 'resident evil')
     for idx, item in enumerate(CATALOGO_CACHE):
         ct = item["clean_title"]
         cn = item["clean_nospace"]
         if clean_q in ct or (len(clean_q_nospace) >= 4 and clean_q_nospace in cn):
             candidate_indices.add(idx)
 
-    # 3. Filtrar por categoría si se especificó
+    # 4. Filtrar por categoría si se especificó
     if categoria_filtro and categoria_filtro != "Todos":
         cat_lower = categoria_filtro.lower()
         candidate_indices = {i for i in candidate_indices if CATALOGO_CACHE[i].get("categoria", "").strip().lower() == cat_lower}
 
-    # 4. Puntuación y Ranking inteligente de relevancia
+    # 5. Puntuación y Ranking inteligente de relevancia
     scored = []
     for idx in candidate_indices:
         item = CATALOGO_CACHE[idx]
         title = item["clean_title"]
         title_nospace = item["clean_nospace"]
         score = 0.0
+
+        # Máxima prioridad si es obra del actor/director buscado
+        if idx in actor_item_indices:
+            score += 5000.0
 
         # Coincidencia exacta total del título
         if title == clean_q:
