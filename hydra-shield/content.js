@@ -14,15 +14,21 @@
   if (isEmbedded) {
     try {
       document.documentElement.classList.add('in-hydra-frame');
-      if (document.body) document.body.classList.add('in-hydra-frame');
+      if (document.body) {
+        document.body.classList.add('in-hydra-frame');
+      } else {
+        document.addEventListener('DOMContentLoaded', () => {
+          if (document.body) document.body.classList.add('in-hydra-frame');
+        });
+      }
     } catch(e) {}
   }
 
-  // No modificar DOM ni estilos en reproductores de streaming embebidos
+  // No modificar DOM ni estilos en reproductores de streaming directos (cyberlockers de video crudo)
   if (isEmbedded && (
       host.includes('streamwish') || host.includes('vidhide') || host.includes('voe') ||
       host.includes('dood') || host.includes('filemoon') || host.includes('streamtape') ||
-      host.includes('waaw') || host.includes('netu') || host.includes('player.poseidon')
+      host.includes('waaw') || host.includes('netu')
   )) {
     return;
   }
@@ -224,16 +230,233 @@
         color: #fff !important;
       }
 
-      /* Si estamos dentro del reproductor embebido de Hydra TV, ocultar ficha redundante para que solo se vea el reproductor */
-      html.in-hydra-frame .TPost.movtv-info,
-      body.in-hydra-frame .TPost.movtv-info,
-      html.in-hydra-frame .movie-header,
-      body.in-hydra-frame .movie-header,
-      html.in-hydra-frame header.Header,
-      body.in-hydra-frame header.Header,
+      /* ==========================================================================
+         MODO EMBEBIDO HYDRA TV (html.in-hydra-frame / body.in-hydra-frame)
+         Convierte el sitio del proveedor en un REPRODUCTOR DE VIDEO PURO a pantalla completa
+         ========================================================================== */
+      html.in-hydra-frame,
+      body.in-hydra-frame {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: 100vw !important;
+        max-height: 100vh !important;
+        min-width: 100vw !important;
+        min-height: 100vh !important;
+        overflow: hidden !important;
+        background: #000 !important;
+      }
+
+      /* Resetear contenedores intermedios para que no restrinjan el tamaño */
+      html.in-hydra-frame #__next,
+      html.in-hydra-frame .body,
+      html.in-hydra-frame .body.slider,
+      html.in-hydra-frame #aa-wp,
+      html.in-hydra-frame .bd,
+      html.in-hydra-frame .cont,
+      html.in-hydra-frame .EcBgA,
+      html.in-hydra-frame .video,
+      html.in-hydra-frame .video.cont {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: 100vw !important;
+        max-height: 100vh !important;
+        min-width: 100vw !important;
+        min-height: 100vh !important;
+        background: #000 !important;
+        transform: none !important;
+        filter: none !important;
+        perspective: none !important;
+        contain: none !important;
+      }
+
+      /* Ocultar ABSOLUTAMENTE TODA la interfaz externa, fichas, listas de episodios y recomendaciones */
+      html.in-hydra-frame header,
+      html.in-hydra-frame footer,
+      html.in-hydra-frame #header,
+      html.in-hydra-frame #footer,
+      html.in-hydra-frame nav,
+      html.in-hydra-frame aside,
       html.in-hydra-frame .site-header,
-      body.in-hydra-frame .site-header {
+      html.in-hydra-frame .Header,
+      html.in-hydra-frame .ft,
+      html.in-hydra-frame .backdrop > h1,
+      html.in-hydra-frame .backdrop > h2,
+      html.in-hydra-frame h1.Title,
+      html.in-hydra-frame h2.SubTitle,
+      html.in-hydra-frame .Title,
+      html.in-hydra-frame .SubTitle,
+      html.in-hydra-frame .TPost,
+      html.in-hydra-frame .movtv-info,
+      html.in-hydra-frame .movie-layout,
+      html.in-hydra-frame .movie-header,
+      html.in-hydra-frame .movie-main,
+      html.in-hydra-frame .movie-sidebar,
+      html.in-hydra-frame .movie-sidebar-right,
+      html.in-hydra-frame .movie-content,
+      html.in-hydra-frame .Description,
+      html.in-hydra-frame .InfoList,
+      html.in-hydra-frame .VotesCn,
+      html.in-hydra-frame .Prct,
+      html.in-hydra-frame .meta,
+      html.in-hydra-frame .MvTbCn,
+      html.in-hydra-frame .all-episodes,
+      html.in-hydra-frame .episodes,
+      html.in-hydra-frame .episodes-nav,
+      html.in-hydra-frame .select-season,
+      html.in-hydra-frame #select-season,
+      html.in-hydra-frame .mb3,
+      html.in-hydra-frame .cont.mb3,
+      html.in-hydra-frame .TpRwCont,
+      html.in-hydra-frame .MovieList,
+      html.in-hydra-frame .top-movies,
+      html.in-hydra-frame .s-related,
+      html.in-hydra-frame .related-movies,
+      html.in-hydra-frame .modal,
+      html.in-hydra-frame #mdl-downloads,
+      html.in-hydra-frame .comments,
+      html.in-hydra-frame #comments,
+      html.in-hydra-frame .disqus,
+      html.in-hydra-frame .share,
+      html.in-hydra-frame .social,
+      html.in-hydra-frame .bannerAds,
+      html.in-hydra-frame .banner_bannerAds__PHIkK,
+      html.in-hydra-frame ins,
+      html.in-hydra-frame .lgtbx-lnk,
+      html.in-hydra-frame .fa-lightbulb,
+      html.in-hydra-frame [class*="destacadas" i],
+      html.in-hydra-frame [class*="relacionadas" i],
+      html.in-hydra-frame #hydra-tv-topbar {
         display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        max-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        pointer-events: none !important;
+      }
+
+      /* Expandir el contenedor del reproductor al 100vw x 100vh */
+      html.in-hydra-frame .video-container,
+      html.in-hydra-frame .TPlayer,
+      html.in-hydra-frame .TPlayerCn,
+      html.in-hydra-frame .embed_div,
+      html.in-hydra-frame #video,
+      html.in-hydra-frame #player,
+      html.in-hydra-frame #reproductor,
+      html.in-hydra-frame .player-placeholder,
+      html.in-hydra-frame .player-container,
+      html.in-hydra-frame .play-box,
+      html.in-hydra-frame #play-video,
+      html.in-hydra-frame .video-content,
+      html.in-hydra-frame .player_content,
+      html.in-hydra-frame .player-holder {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: 100vw !important;
+        max-height: 100vh !important;
+        min-width: 100vw !important;
+        min-height: 100vh !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        padding-bottom: 0 !important; /* Neutraliza padding-bottom: 56.25% */
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        background: #000 !important;
+        z-index: 2147483640 !important;
+        overflow: hidden !important;
+      }
+
+      /* Iframe o video interno ocupando exactamente el 100% */
+      html.in-hydra-frame .video-container iframe,
+      html.in-hydra-frame .TPlayer iframe,
+      html.in-hydra-frame .TPlayerCn iframe,
+      html.in-hydra-frame .embed_div iframe,
+      html.in-hydra-frame #video iframe,
+      html.in-hydra-frame #player iframe,
+      html.in-hydra-frame #reproductor iframe,
+      html.in-hydra-frame .player-placeholder iframe,
+      html.in-hydra-frame .player-container iframe,
+      html.in-hydra-frame .play-box iframe,
+      html.in-hydra-frame #play-video iframe,
+      html.in-hydra-frame video {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: 100vw !important;
+        max-height: 100vh !important;
+        min-width: 100vw !important;
+        min-height: 100vh !important;
+        border: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #000 !important;
+        z-index: 2147483641 !important;
+      }
+
+      /* Botón de inicio Play previo a la carga (overlay PoseidonHD) */
+      html.in-hydra-frame .video-container > div:not(iframe) {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: rgba(0, 0, 0, 0.7) !important;
+        z-index: 2147483642 !important;
+      }
+
+      /* Selector de Idiomas / Servidores flotante y limpio en la esquina superior */
+      html.in-hydra-frame ul.TPlayerNv,
+      html.in-hydra-frame .tab_language_movie,
+      html.in-hydra-frame .lang,
+      html.in-hydra-frame .player-options {
+        position: fixed !important;
+        top: 12px !important;
+        left: 14px !important;
+        z-index: 2147483645 !important;
+        background: rgba(10, 11, 14, 0.85) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        padding: 4px 8px !important;
+        border-radius: 8px !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8) !important;
+        opacity: 0.85 !important;
+        transition: opacity 0.2s ease !important;
+        margin: 0 !important;
+      }
+
+      html.in-hydra-frame ul.TPlayerNv:hover,
+      html.in-hydra-frame .tab_language_movie:hover,
+      html.in-hydra-frame .lang:hover,
+      html.in-hydra-frame .player-options:hover {
+        opacity: 1 !important;
+      }
+
+      /* Publicidad flotante específica de player.poseidonhd2.co */
+      .floating-banner,
+      .ribbon-1,
+      [class*="floating-banner"] {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
       }
 
       /* Cuando se visualiza en modo completo / pestaña directa, limpiar elementos de votación y redes */
@@ -358,9 +581,9 @@
   function inyectarBarraSuperiorHydra() {
     // Si estamos dentro de un iframe (SPA de Hydra TV), el padre ya tiene la barra y los controles
     if (window.self !== window.top) {
-      // Capturar Escape y Backspace para avisar al reproductor padre que cierre
+      // Capturar Backspace para avisar al reproductor padre que cierre (sin atrapar Escape para permitir salir de pantalla completa)
       window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' || (e.key === 'Backspace' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName))) {
+        if (e.key === 'Backspace' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
           window.parent.postMessage({ type: 'HYDRA_CLOSE_PLAYER' }, '*');
         }
       });
@@ -401,6 +624,48 @@
         volverAlInicio();
       }
     });
+  }
+
+  // 2.1 Forzar dimensiones exactas y neutralizar estilos inline en Modo Embebido
+  function optimizarModoEmbebido() {
+    if (!isEmbedded) return;
+    try {
+      const playerHolders = document.querySelectorAll(
+        '.video-container, .TPlayer, .TPlayerCn, .embed_div, #video, #player, #reproductor, .player-placeholder, .player-container, .play-box, #play-video, .video-content, .player_content, .player-holder'
+      );
+      playerHolders.forEach(el => {
+        el.style.setProperty('position', 'fixed', 'important');
+        el.style.setProperty('top', '0px', 'important');
+        el.style.setProperty('left', '0px', 'important');
+        el.style.setProperty('right', '0px', 'important');
+        el.style.setProperty('bottom', '0px', 'important');
+        el.style.setProperty('width', '100vw', 'important');
+        el.style.setProperty('height', '100vh', 'important');
+        el.style.setProperty('max-width', '100vw', 'important');
+        el.style.setProperty('max-height', '100vh', 'important');
+        el.style.setProperty('margin', '0px', 'important');
+        el.style.setProperty('padding', '0px', 'important');
+        el.style.setProperty('padding-bottom', '0px', 'important');
+        el.style.setProperty('border', 'none', 'important');
+        el.style.setProperty('border-radius', '0px', 'important');
+        el.style.setProperty('z-index', '2147483640', 'important');
+      });
+
+      const iframes = document.querySelectorAll(
+        '.video-container iframe, .TPlayer iframe, .TPlayerCn iframe, .embed_div iframe, #video iframe, #player iframe, #reproductor iframe, .player-placeholder iframe, .player-container iframe'
+      );
+      iframes.forEach(f => {
+        f.style.setProperty('position', 'absolute', 'important');
+        f.style.setProperty('top', '0px', 'important');
+        f.style.setProperty('left', '0px', 'important');
+        f.style.setProperty('width', '100vw', 'important');
+        f.style.setProperty('height', '100vh', 'important');
+        f.style.setProperty('max-width', '100vw', 'important');
+        f.style.setProperty('max-height', '100vh', 'important');
+        f.style.setProperty('border', 'none', 'important');
+        f.style.setProperty('border-radius', '0px', 'important');
+      });
+    } catch(e) {}
   }
 
   // 3. Destructor de capas invisibles superpuestas (Clickjacking Overlays)
@@ -603,6 +868,7 @@
 
   inyectarEstilosHydraTV();
   inyectarBarraSuperiorHydra();
+  optimizarModoEmbebido();
   purgarMarcasTerceros();
   camuflarTextos();
   corregirTemporadas();
@@ -612,6 +878,7 @@
   const intervalId = setInterval(() => {
     inyectarEstilosHydraTV();
     inyectarBarraSuperiorHydra();
+    optimizarModoEmbebido();
     purgarMarcasTerceros();
     camuflarTextos();
     corregirTemporadas();
@@ -623,6 +890,7 @@
     clearInterval(intervalId);
     const slowInterval = setInterval(() => {
       inyectarBarraSuperiorHydra();
+      optimizarModoEmbebido();
       purgarMarcasTerceros();
       camuflarTextos();
       corregirTemporadas();
@@ -635,6 +903,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     inyectarEstilosHydraTV();
     inyectarBarraSuperiorHydra();
+    optimizarModoEmbebido();
     purgarMarcasTerceros();
     camuflarTextos();
     corregirTemporadas();
