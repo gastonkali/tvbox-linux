@@ -21,7 +21,8 @@ ITEMS_BY_ID = {}
 CATEGORIAS_CACHE = []
 PROVEEDORES_CACHE = {}
 
-# Estructuras para búsqueda difusa (Fuzzy Search) ultrarrápida
+# Estructuras para búsqueda difusa (Fuzzy Search) ultrarrápida y sinopsis
+SINOPSIS_CACHE = {}
 VOCAB_INDEX = defaultdict(set)      # palabra -> set(indices en CATALOGO_CACHE)
 WORDS_BY_LEN = defaultdict(list)    # longitud -> lista de palabras únicas
 WORDS_BY_PREFIX = defaultdict(list) # prefijo de 2 letras -> lista de palabras únicas
@@ -743,6 +744,45 @@ def lanzar_brave(url):
 
     brave_process = subprocess.Popen(cmd, env=env)
     return brave_process
+
+@app.route("/api/detalle/<int:item_id>")
+def api_detalle(item_id):
+    """Devuelve los detalles de una película o serie, enriqueciendo la sinopsis y backdrop si están disponibles."""
+    item = ITEMS_BY_ID.get(item_id)
+    if not item:
+        return jsonify({"error": "No encontrado"}), 404
+
+    res = formatear_item_api(item)
+    sinopsis = item.get("sinopsis") or item.get("descripcion")
+
+    if not sinopsis and item.get("url"):
+        cache_key = f"sin_{item_id}"
+        if cache_key in SINOPSIS_CACHE:
+            sinopsis = SINOPSIS_CACHE[cache_key]
+        else:
+            try:
+                target_url = item.get("url_resuelta", item["url"])
+                req = urllib.request.Request(target_url, headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                })
+                html = urllib.request.urlopen(req, timeout=3).read().decode("utf-8", errors="ignore")
+                m = re.search(r'<meta\s+[^>]*(?:property|name)=["\'](?:og:description|description)["\'][^>]*content=["\']([^"\']+)["\']', html, re.IGNORECASE)
+                if not m:
+                    m = re.search(r'<meta\s+[^>]*content=["\']([^"\']+)["\'][^>]*(?:property|name)=["\'](?:og:description|description)["\']', html, re.IGNORECASE)
+                if m:
+                    desc_raw = m.group(1).strip()
+                    if len(desc_raw) > 25 and not any(k in desc_raw.lower() for k in ["cuevana", "cinetux", "descargar gratis"]):
+                        sinopsis = desc_raw
+                        SINOPSIS_CACHE[cache_key] = sinopsis
+            except Exception:
+                pass
+
+    if not sinopsis:
+        cat_txt = f" de {res.get('categoria').capitalize()}" if res.get('categoria') else ""
+        sinopsis = f"Disfruta de {res.get('titulo')} ({res.get('anio') or 2026}){cat_txt} en calidad Full HD y audio latino sin cortes ni publicidad, disponible en Hydra TV."
+
+    res["sinopsis"] = sinopsis
+    return jsonify(res)
 
 @app.route("/play_url", methods=["POST"])
 def play_url():

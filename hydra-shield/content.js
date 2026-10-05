@@ -206,6 +206,74 @@
         color: #fff !important;
       }
 
+      /* Presentación limpia, legible y atractiva en PoseidonHD */
+      .TPost.movtv-info {
+        display: flex !important;
+        align-items: flex-start !important;
+        gap: 28px !important;
+        max-width: 1200px !important;
+        margin: 20px auto 16px auto !important;
+        padding: 0 24px !important;
+        box-sizing: border-box !important;
+      }
+
+      .TPost.movtv-info .Image {
+        width: 180px !important;
+        min-width: 180px !important;
+        flex-shrink: 0 !important;
+        display: block !important;
+      }
+
+      .TPost.movtv-info .Image img {
+        width: 100% !important;
+        height: auto !important;
+        border-radius: 14px !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
+        display: block !important;
+      }
+
+      .TPost.movtv-info header {
+        display: block !important;
+        flex: 1 !important;
+      }
+
+      .TPost.movtv-info .Title {
+        font-size: 2.3rem !important;
+        font-weight: 800 !important;
+        color: #ffffff !important;
+        margin: 0 0 6px 0 !important;
+        line-height: 1.2 !important;
+      }
+
+      .TPost.movtv-info .SubTitle {
+        font-size: 1.1rem !important;
+        color: #94a3b8 !important;
+        display: block !important;
+        margin-bottom: 12px !important;
+      }
+
+      .TPost.movtv-info .meta {
+        display: flex !important;
+        gap: 12px !important;
+        color: #e50914 !important;
+        font-weight: 700 !important;
+        font-size: 0.95rem !important;
+        margin-top: 8px !important;
+      }
+
+      .TPost.movtv-info .VotesCn, .TPost.movtv-info .ListPOpt, .TPost.movtv-info footer ul {
+        display: none !important;
+      }
+
+      .hydra-injected-desc {
+        color: #d1d5db !important;
+        font-size: 1.05rem !important;
+        line-height: 1.7 !important;
+        margin-top: 14px !important;
+        max-width: 850px !important;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8) !important;
+      }
+
       body, html {
         background: #0a0b0e !important;
         color: #fff !important;
@@ -490,17 +558,39 @@
     } catch(err) {}
   }, true);
 
+  // 1.3 Enriquecer ficha y sinopsis en PoseidonHD
+  function enriquecerFichaPoseidon() {
+    if (!host.includes('poseidon')) return;
+    try {
+      const tpost = document.querySelector('.TPost.movtv-info');
+      if (tpost && !tpost.querySelector('.hydra-injected-desc')) {
+        const metaDesc = document.querySelector('meta[property="og:description"]')?.getAttribute('content') ||
+                         document.querySelector('meta[name="description"]')?.getAttribute('content');
+        if (metaDesc && metaDesc.trim().length > 20) {
+          let descClean = metaDesc.replace(/poseidonhd\s*2?/gi, 'Hydra TV').trim();
+          const p = document.createElement('p');
+          p.className = 'hydra-injected-desc';
+          p.innerText = descClean;
+          const header = tpost.querySelector('header') || tpost;
+          header.appendChild(p);
+        }
+      }
+    } catch(e) {}
+  }
+
   // 5. Acelerador de Reproducción Inmediata
   function acelerarReproduccion() {
     try {
-      // A. PoseidonHD: Desplegar servidores y clic en el primero
+      // A. PoseidonHD: Selección automática inicial una sola vez sin parpadeo de pestaña
       if (host.includes('poseidon')) {
-        const subTabs = document.querySelector('.sub-tab-lang');
-        if (subTabs && subTabs.classList.contains('hide')) subTabs.classList.remove('hide');
-        
         const primerServidor = document.querySelector('li.clili[data-tr]');
-        if (primerServidor && !primerServidor.classList.contains('active') && !primerServidor.classList.contains('actives')) {
+        if (primerServidor && !primerServidor.dataset.hydraSelected) {
+          primerServidor.dataset.hydraSelected = 'true';
           primerServidor.click();
+          setTimeout(() => {
+            const subTabs = document.querySelectorAll('.sub-tab-lang');
+            subTabs.forEach(st => st.classList.add('hide'));
+          }, 120);
         }
       }
 
@@ -616,6 +706,7 @@
   purgarMarcasTerceros();
   camuflarTextos();
   corregirTemporadas();
+  enriquecerFichaPoseidon();
   limpiarCapasYTrampas();
   acelerarReproduccion();
 
@@ -625,6 +716,7 @@
     purgarMarcasTerceros();
     camuflarTextos();
     corregirTemporadas();
+    enriquecerFichaPoseidon();
     limpiarCapasYTrampas();
     acelerarReproduccion();
   }, 250);
@@ -636,6 +728,7 @@
       purgarMarcasTerceros();
       camuflarTextos();
       corregirTemporadas();
+      enriquecerFichaPoseidon();
       limpiarCapasYTrampas();
       acelerarReproduccion();
     }, 1200);
@@ -648,6 +741,7 @@
     purgarMarcasTerceros();
     camuflarTextos();
     corregirTemporadas();
+    enriquecerFichaPoseidon();
     limpiarCapasYTrampas();
     acelerarReproduccion();
   });
