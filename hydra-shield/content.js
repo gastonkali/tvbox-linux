@@ -309,10 +309,10 @@
             primerServidor.click();
           }
         }
-        // Desplegar automáticamente los servidores de Poseidon para que el usuario pueda cambiarlos libremente
+        // Si el video ya está reproduciéndose, asegurar que el menú desplegable esté cerrado para no obstruir la pantalla
         const subTabs = document.querySelector('.sub-tab-lang');
-        if (subTabs && subTabs.classList.contains('hide')) {
-          subTabs.classList.remove('hide');
+        if (hasIframe && subTabs && !subTabs.classList.contains('hide')) {
+          subTabs.classList.add('hide');
         }
       }
 
