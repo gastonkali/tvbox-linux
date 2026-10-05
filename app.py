@@ -5,6 +5,8 @@ import unicodedata
 import re
 import urllib.request
 import urllib.parse
+import time
+import datetime
 from collections import defaultdict
 from flask import Flask, render_template, jsonify, request
 
@@ -14,6 +16,27 @@ brave_process = None
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CANALES_FILE = os.path.join(BASE_DIR, "canales.json")
 CATALOGO_MAESTRO_FILE = os.path.join(BASE_DIR, "catalogo_maestro.json")
+REPORTES_FILE = os.path.join(BASE_DIR, "reportes.json")
+ELIMINADOS_FILE = os.path.join(BASE_DIR, "eliminados.json")
+MODIFICACIONES_FILE = os.path.join(BASE_DIR, "modificaciones.json")
+
+def cargar_json_seguro(path, default_val):
+    if os.path.exists(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"[Aviso] Error leyendo {path}: {e}")
+    return default_val
+
+def guardar_json_seguro(path, data):
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        return True
+    except Exception as e:
+        print(f"[Error] Error guardando {path}: {e}")
+        return False
 
 # Memoria caché global para búsquedas instantáneas
 CATALOGO_CACHE = []
@@ -420,6 +443,9 @@ def inicializar_catalogo():
     ids_registrados = set()
     proveedores = {}
 
+    eliminados = cargar_json_seguro(ELIMINADOS_FILE, {})
+    modificaciones = cargar_json_seguro(MODIFICACIONES_FILE, {})
+
     # 1. Cargar canales.json si existe (canales personalizados / TV en vivo)
     if os.path.exists(CANALES_FILE):
         try:
@@ -436,6 +462,12 @@ def inicializar_catalogo():
                 for c in canales_custom:
                     c_id = c.get("id")
                     if c_id is not None and c_id not in ids_registrados:
+                        c_id_str = str(c_id)
+                        if c_id_str in eliminados or c.get("url") in eliminados:
+                            continue
+                        if c_id_str in modificaciones:
+                            override = modificaciones[c_id_str]
+                            c.update({k: v for k, v in override.items() if k in ["url", "opciones", "titulo"]})
                         c["url_resuelta"] = resolver_url(c, proveedores)
                         items_combinados.append(c)
                         ids_registrados.add(c_id)
@@ -504,6 +536,18 @@ def inicializar_catalogo():
                     print(f"[OK] Catálogo deduplicado: {len(maestro)} entradas agrupadas en {len(clusters)} títulos consolidados.")
                     for c in clusters:
                         fused_item = fusionar_cluster(c)
+                        f_id_str = str(fused_item.get("id"))
+                        if f_id_str in eliminados or fused_item.get("url") in eliminados:
+                            continue
+                        if f_id_str in modificaciones:
+                            override = modificaciones[f_id_str]
+                            if "url" in override:
+                                fused_item["url"] = override["url"]
+                                fused_item["url_resuelta"] = override["url"]
+                            if "opciones" in override:
+                                fused_item["opciones"] = override["opciones"]
+                            if "titulo" in override:
+                                fused_item["titulo"] = override["titulo"]
                         items_combinados.append(fused_item)
                         ids_registrados.add(fused_item["id"])
         except Exception as e:
@@ -1164,6 +1208,167 @@ def stop():
         return jsonify({"status": "detenido"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+# =========================================================================
+# RUTAS DE ADMINISTRACIÓN, MODIFICACIÓN Y REPORTE DE ERRORES
+# =========================================================================
+
+@app.route("/api/admin/reportes", methods=["GET"])
+def api_admin_reportes():
+    """Devuelve la lista de reportes registrados (más recientes primero)."""
+    reportes = cargar_json_seguro(REPORTES_FILE, [])
+    reportes.sort(key=lambda r: r.get("fecha", ""), reverse=True)
+    return jsonify({
+        "status": "ok",
+        "total": len(reportes),
+        "reportes": reportes
+    })
+
+@app.route("/api/admin/reportar", methods=["POST"])
+def api_admin_reportar():
+    """Registra un reporte de video / servidor caído o con problemas."""
+    data = request.get_json(silent=True) or {}
+    item_id = data.get("item_id")
+    titulo = data.get("titulo", "Desconocido")
+    motivo = data.get("motivo", "No especificado")
+    detalle = data.get("detalle", "")
+    servidor = data.get("servidor", "")
+    url_activa = data.get("url_activa", "")
+
+    if not item_id and not url_activa:
+        return jsonify({"error": "Identificador o URL requerida"}), 400
+
+    reportes = cargar_json_seguro(REPORTES_FILE, [])
+    nuevo_reporte = {
+        "id": f"rep_{int(time.time() * 1000)}",
+        "item_id": item_id,
+        "titulo": titulo,
+        "servidor": servidor,
+        "url_activa": url_activa,
+        "motivo": motivo,
+        "detalle": detalle,
+        "fecha": datetime.datetime.now().astimezone().isoformat(),
+        "estado": "pendiente"
+    }
+    reportes.append(nuevo_reporte)
+    guardar_json_seguro(REPORTES_FILE, reportes)
+    print(f"[Admin] Reporte registrado para '{titulo}' ({motivo})")
+    return jsonify({"status": "ok", "success": True, "reporte": nuevo_reporte})
+
+@app.route("/api/admin/reportes/<report_id>/resolver", methods=["POST"])
+def api_admin_resolver_reporte(report_id):
+    """Marca un reporte como resuelto."""
+    reportes = cargar_json_seguro(REPORTES_FILE, [])
+    encontrado = False
+    for r in reportes:
+        if r.get("id") == report_id:
+            r["estado"] = "resuelto"
+            r["fecha_resolucion"] = datetime.datetime.now().astimezone().isoformat()
+            encontrado = True
+            break
+    if encontrado:
+        guardar_json_seguro(REPORTES_FILE, reportes)
+        return jsonify({"status": "ok", "message": "Reporte marcado como resuelto"})
+    return jsonify({"error": "Reporte no encontrado"}), 404
+
+@app.route("/api/admin/reportes/<report_id>", methods=["DELETE"])
+def api_admin_eliminar_reporte(report_id):
+    """Elimina un reporte del archivo."""
+    reportes = cargar_json_seguro(REPORTES_FILE, [])
+    filtrados = [r for r in reportes if r.get("id") != report_id]
+    guardar_json_seguro(REPORTES_FILE, filtrados)
+    return jsonify({"status": "ok", "eliminados": len(reportes) - len(filtrados)})
+
+@app.route("/api/admin/modificar_item", methods=["POST"])
+def api_admin_modificar_item():
+    """Permite al administrador cambiar la URL, servidores u opciones de un título."""
+    global CATALOGO_CACHE, ITEMS_BY_ID
+    data = request.get_json(silent=True) or {}
+    item_id = data.get("item_id")
+    if not item_id or int(item_id) not in ITEMS_BY_ID:
+        return jsonify({"error": "Título no encontrado"}), 404
+
+    item_id = int(item_id)
+    nueva_url = data.get("url", "").strip()
+    nuevas_opciones = data.get("opciones")
+    nuevo_titulo = data.get("titulo", "").strip()
+
+    item = ITEMS_BY_ID[item_id]
+    if nueva_url:
+        item["url"] = nueva_url
+        item["url_resuelta"] = nueva_url
+    if nuevas_opciones is not None and isinstance(nuevas_opciones, list):
+        item["opciones"] = [u.strip() for u in nuevas_opciones if u.strip()]
+        if item["opciones"] and not nueva_url:
+            item["url"] = item["opciones"][0]
+            item["url_resuelta"] = item["opciones"][0]
+    if nuevo_titulo:
+        item["titulo"] = nuevo_titulo
+        item["titulo_limpio"] = nuevo_titulo
+
+    # Persistir en modificaciones.json
+    modificaciones = cargar_json_seguro(MODIFICACIONES_FILE, {})
+    modificaciones[str(item_id)] = {
+        "item_id": item_id,
+        "titulo": item.get("titulo"),
+        "url": item.get("url"),
+        "opciones": item.get("opciones", []),
+        "fecha": datetime.datetime.now().astimezone().isoformat()
+    }
+    guardar_json_seguro(MODIFICACIONES_FILE, modificaciones)
+    construir_home_feed()
+    print(f"[Admin] Título modificado: {item.get('titulo')} -> {item.get('url')}")
+    return jsonify({"status": "ok", "success": True, "item": formatear_item_api(item)})
+
+@app.route("/api/admin/eliminar_item", methods=["POST"])
+def api_admin_eliminar_item():
+    """Elimina/oculta un título del catálogo de forma permanente."""
+    global CATALOGO_CACHE, ITEMS_BY_ID
+    data = request.get_json(silent=True) or {}
+    item_id = data.get("item_id")
+    motivo = data.get("motivo", "Eliminado por administrador")
+
+    if not item_id or int(item_id) not in ITEMS_BY_ID:
+        return jsonify({"error": "Título no encontrado"}), 404
+
+    item_id = int(item_id)
+    item = ITEMS_BY_ID[item_id]
+    titulo = item.get("titulo", "Título")
+    url = item.get("url", "")
+
+    # 1. Guardar en eliminados.json
+    eliminados = cargar_json_seguro(ELIMINADOS_FILE, {})
+    eliminados[str(item_id)] = {
+        "item_id": item_id,
+        "titulo": titulo,
+        "url": url,
+        "motivo": motivo,
+        "fecha": datetime.datetime.now().astimezone().isoformat()
+    }
+    guardar_json_seguro(ELIMINADOS_FILE, eliminados)
+
+    # 2. Registrar en reportes.json para auditoría
+    reportes = cargar_json_seguro(REPORTES_FILE, [])
+    reportes.append({
+        "id": f"rep_{int(time.time() * 1000)}",
+        "item_id": item_id,
+        "titulo": titulo,
+        "url_activa": url,
+        "servidor": "N/A",
+        "motivo": f"[ELIMINADO] {motivo}",
+        "detalle": "Título removido del catálogo permanentemente.",
+        "fecha": datetime.datetime.now().astimezone().isoformat(),
+        "estado": "eliminado"
+    })
+    guardar_json_seguro(REPORTES_FILE, reportes)
+
+    # 3. Remover de la memoria activa
+    del ITEMS_BY_ID[item_id]
+    CATALOGO_CACHE = [x for x in CATALOGO_CACHE if x.get("id") != item_id]
+    construir_home_feed()
+
+    print(f"[Admin] Título eliminado del catálogo: {titulo} (ID {item_id})")
+    return jsonify({"status": "ok", "success": True, "message": f"'{titulo}' eliminado del catálogo"})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=False)

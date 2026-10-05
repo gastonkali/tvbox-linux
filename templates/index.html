@@ -365,6 +365,32 @@
       transform: scale(1.04);
     }
 
+    .btn-hero-admin {
+      background: rgba(245, 158, 11, 0.15);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      font-size: 1.05rem;
+      font-weight: 600;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    .btn-hero-admin:hover,
+    .btn-hero-admin:focus {
+      background: rgba(245, 158, 11, 0.3);
+      border-color: #fbbf24;
+      color: #fff;
+      transform: scale(1.04);
+    }
+
     .hero-sound-btn {
       position: absolute;
       bottom: 60px;
@@ -572,6 +598,347 @@
       color: var(--text-muted);
       max-width: 480px;
       line-height: 1.35;
+    }
+
+    /* MODAL DE ADMINISTRACIÓN Y REPORTES */
+    .admin-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 2147483645;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .admin-modal-backdrop {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .admin-modal-dialog {
+      position: relative;
+      z-index: 10;
+      width: 92%;
+      max-width: 760px;
+      background: #10131a;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95);
+      display: flex;
+      flex-direction: column;
+      max-height: 88vh;
+    }
+
+    .admin-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .admin-modal-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 2px;
+    }
+
+    .admin-modal-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .admin-modal-close {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      font-size: 1.1rem;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .admin-modal-close:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      transform: scale(1.1);
+    }
+
+    .admin-tabs-bar {
+      display: flex;
+      gap: 6px;
+      padding: 10px 20px;
+      background: rgba(0, 0, 0, 0.3);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      overflow-x: auto;
+    }
+
+    .admin-tab-btn {
+      background: transparent;
+      border: none;
+      color: #aaa;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .admin-tab-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .admin-tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .admin-tab-btn#tabBtnEliminar.active {
+      background: #dc2626;
+    }
+
+    .admin-modal-body {
+      padding: 22px 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .admin-tab-content {
+      display: none;
+    }
+
+    .admin-tab-content.active {
+      display: block;
+    }
+
+    .admin-tab-desc {
+      font-size: 0.92rem;
+      color: #ccc;
+      margin-bottom: 18px;
+      line-height: 1.45;
+    }
+
+    .admin-form-group {
+      margin-bottom: 16px;
+    }
+
+    .admin-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #bbb;
+      margin-bottom: 6px;
+    }
+
+    .admin-input, .admin-select, .admin-textarea {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #fff;
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .admin-input:focus, .admin-select:focus, .admin-textarea:focus {
+      border-color: var(--accent);
+    }
+
+    .admin-textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .admin-actions-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .btn-admin-submit {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-admin-submit:hover {
+      background: #f40612;
+      transform: scale(1.02);
+    }
+
+    .btn-admin-danger {
+      background: #dc2626;
+      color: #fff;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-admin-danger:hover {
+      background: #ef4444;
+      transform: scale(1.02);
+    }
+
+    .admin-warning-box {
+      background: rgba(220, 38, 38, 0.12);
+      border: 1px solid rgba(220, 38, 38, 0.35);
+      padding: 14px 18px;
+      border-radius: 10px;
+      margin-bottom: 18px;
+    }
+
+    .admin-warning-box h4 {
+      color: #fca5a5;
+      font-size: 1rem;
+      margin-bottom: 6px;
+    }
+
+    .admin-warning-box p {
+      color: #fecaca;
+      font-size: 0.88rem;
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    .admin-reports-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+
+    .btn-admin-refresh {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .admin-reports-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 50vh;
+      overflow-y: auto;
+    }
+
+    .report-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .report-info {
+      flex: 1;
+    }
+
+    .report-title-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+      flex-wrap: wrap;
+    }
+
+    .report-title {
+      font-weight: 700;
+      color: #fff;
+      font-size: 0.95rem;
+    }
+
+    .report-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .report-badge.pendiente {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+
+    .report-badge.resuelto {
+      background: rgba(34, 197, 94, 0.2);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.4);
+    }
+
+    .report-badge.eliminado {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .report-meta {
+      font-size: 0.8rem;
+      color: #888;
+      line-height: 1.4;
+    }
+
+    .report-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-report-action {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .btn-report-action:hover {
+      background: rgba(255, 255, 255, 0.2);
     }
 
     /* FILAS HORIZONTALES (RAILS TIPO NETFLIX) */
@@ -1509,6 +1876,7 @@
         <li><button class="nav-btn" id="btnNavPeliculas" data-nav="peliculas">🎬 Películas</button></li>
         <li><button class="nav-btn" id="btnNavSeries" data-nav="series">📺 Series</button></li>
         <li><button class="nav-btn" id="btnNavMiLista" data-nav="mi_lista">⭐ Mi Lista</button></li>
+        <li><button class="nav-btn" id="btnNavAdmin" data-nav="admin">🛠️ Reportes / Admin</button></li>
       </ul>
     </div>
 
@@ -1634,6 +2002,9 @@
                 🎬 Ver Trailer
               </button>
               <button class="btn-hero-list" id="playerHeroBtnList">+ Mi Lista</button>
+              <button class="btn-hero-admin" id="playerHeroBtnAdmin" title="Reportar problema o administrar enlace">
+                ⚙️ Reportar / Admin
+              </button>
             </div>
 
             <!-- Barra de Selección de Servidores (Si hay más de una fuente disponible) -->
@@ -1681,6 +2052,102 @@
         </div>
         <div class="trailer-notice-tip">
           💡 <em>Si YouTube bloquea el reproductor embebido por derechos de autor, hacé clic en <strong>"Ver en YouTube Oficial"</strong> para verlo al instante en máxima resolución sin restricciones.</em>
+        </div>
+      </div>
+    </div>
+  <!-- MODAL DE ADMINISTRACIÓN Y REPORTES -->
+  <div class="admin-modal" id="adminModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+    <div class="admin-modal-backdrop" id="adminModalBackdrop"></div>
+    <div class="admin-modal-dialog">
+      <div class="admin-modal-header">
+        <div class="admin-modal-header-info">
+          <h3 class="admin-modal-title" id="adminModalTitle">🛠️ Panel de Administración y Reportes</h3>
+          <span class="admin-modal-subtitle" id="adminModalSubtitle">Título actual: Ninguno</span>
+        </div>
+        <button class="admin-modal-close" id="adminModalClose" title="Cerrar (Esc)">✕</button>
+      </div>
+
+      <!-- Barra de Pestañas del Modal Admin -->
+      <div class="admin-tabs-bar">
+        <button class="admin-tab-btn active" id="tabBtnReportar" data-tab="reportar">⚠️ Reportar Problema</button>
+        <button class="admin-tab-btn" id="tabBtnModificar" data-tab="modificar">✏️ Cambiar URL / Servidores</button>
+        <button class="admin-tab-btn" id="tabBtnEliminar" data-tab="eliminar">🗑️ Eliminar Video</button>
+        <button class="admin-tab-btn" id="tabBtnListaReportes" data-tab="lista_reportes">📋 Reportes Guardados (<span id="adminReportesBadge">0</span>)</button>
+      </div>
+
+      <div class="admin-modal-body">
+        <!-- PESTAÑA 1: REPORTAR PROBLEMA -->
+        <div class="admin-tab-content active" id="tabContentReportar">
+          <p class="admin-tab-desc">Si el video falla, no reproduce o tiene publicidad molesta, envianos un reporte para que podamos revisarlo y repararlo:</p>
+          <div class="admin-form-group">
+            <label class="admin-label">Motivo del problema:</label>
+            <select class="admin-select" id="adminReportMotivo">
+              <option value="Video no reproduce / pantalla negra">❌ El video no reproduce o queda la pantalla en negro</option>
+              <option value="Pide Cloudflare / verificación humana">🛡️ Pide verificación de Cloudflare / captcha infinito</option>
+              <option value="Es un trailer, no la película completa">🎬 Solo muestra el trailer, no la película completa</option>
+              <option value="Abre publicidades o popups invasivos">📢 Abre ventanas o redirecciones publicitarias</option>
+              <option value="Audio o subtítulos desfasados o ausentes">🔊 Audio o subtítulos desfasados o faltantes</option>
+              <option value="Servidor caído / Enlace roto">🔗 Servidor caído / enlace caído</option>
+              <option value="Otro motivo">📝 Otro problema</option>
+            </select>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Servidor / URL afectada:</label>
+            <input type="text" class="admin-input" id="adminReportServidor" readonly>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Detalles u observaciones opcionales:</label>
+            <textarea class="admin-textarea" id="adminReportDetalle" rows="2" placeholder="Ej: Se traba en el minuto 15 o no carga en audio latino..."></textarea>
+          </div>
+          <div class="admin-actions-row">
+            <button class="btn-admin-submit" id="btnAdminEnviarReporte">📨 Enviar Reporte</button>
+          </div>
+        </div>
+
+        <!-- PESTAÑA 2: MODIFICAR URL / SERVIDORES -->
+        <div class="admin-tab-content" id="tabContentModificar">
+          <p class="admin-tab-desc">Podés actualizar la URL de origen de este título o añadir servidores de streaming de respaldo:</p>
+          <div class="admin-form-group">
+            <label class="admin-label">Título:</label>
+            <input type="text" class="admin-input" id="adminEditTitulo">
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">URL Principal (Servidor 1):</label>
+            <input type="text" class="admin-input" id="adminEditUrl" placeholder="https://www.poseidonhd2.co/pelicula/...">
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Servidores adicionales (uno por línea):</label>
+            <textarea class="admin-textarea" id="adminEditOpciones" rows="4" placeholder="https://...\nhttps://..."></textarea>
+          </div>
+          <div class="admin-actions-row">
+            <button class="btn-admin-submit" id="btnAdminGuardarCambios">💾 Guardar Cambios</button>
+          </div>
+        </div>
+
+        <!-- PESTAÑA 3: ELIMINAR DEL CATÁLOGO -->
+        <div class="admin-tab-content" id="tabContentEliminar">
+          <div class="admin-warning-box">
+            <h4>⚠️ Ocultar / Eliminar Título del Catálogo</h4>
+            <p>Si este título está roto, no tiene servidores funcionales o no deseás que figure en Hydra TV, podés eliminarlo de forma permanente. No volverá a mostrarse en búsquedas ni categorías.</p>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-label">Motivo de eliminación:</label>
+            <input type="text" class="admin-input" id="adminDeleteMotivo" placeholder="Ej: Enlace permanentemente caído / Servidor roto">
+          </div>
+          <div class="admin-actions-row">
+            <button class="btn-admin-danger" id="btnAdminConfirmarEliminar">🗑️ Confirmar Eliminación del Catálogo</button>
+          </div>
+        </div>
+
+        <!-- PESTAÑA 4: LISTA DE REPORTES REGISTRADOS -->
+        <div class="admin-tab-content" id="tabContentListaReportes">
+          <div class="admin-reports-header">
+            <span>Registro de reportes guardados en <code>reportes.json</code>:</span>
+            <button class="btn-admin-refresh" id="btnAdminRecargarReportes">🔄 Actualizar</button>
+          </div>
+          <div class="admin-reports-list" id="adminReportsList">
+            <div class="spinner-wrap"><div class="spinner"></div></div>
+          </div>
         </div>
       </div>
     </div>
@@ -1771,6 +2238,34 @@
       paginationControls: document.getElementById('paginationControls'),
       jumpInput: document.getElementById('jumpInput'),
       btnJump: document.getElementById('btnJump'),
+      btnNavAdmin: document.getElementById('btnNavAdmin'),
+      playerHeroBtnAdmin: document.getElementById('playerHeroBtnAdmin'),
+      adminModal: document.getElementById('adminModal'),
+      adminModalBackdrop: document.getElementById('adminModalBackdrop'),
+      adminModalClose: document.getElementById('adminModalClose'),
+      adminModalTitle: document.getElementById('adminModalTitle'),
+      adminModalSubtitle: document.getElementById('adminModalSubtitle'),
+      tabBtnReportar: document.getElementById('tabBtnReportar'),
+      tabBtnModificar: document.getElementById('tabBtnModificar'),
+      tabBtnEliminar: document.getElementById('tabBtnEliminar'),
+      tabBtnListaReportes: document.getElementById('tabBtnListaReportes'),
+      tabContentReportar: document.getElementById('tabContentReportar'),
+      tabContentModificar: document.getElementById('tabContentModificar'),
+      tabContentEliminar: document.getElementById('tabContentEliminar'),
+      tabContentListaReportes: document.getElementById('tabContentListaReportes'),
+      adminReportMotivo: document.getElementById('adminReportMotivo'),
+      adminReportServidor: document.getElementById('adminReportServidor'),
+      adminReportDetalle: document.getElementById('adminReportDetalle'),
+      btnAdminEnviarReporte: document.getElementById('btnAdminEnviarReporte'),
+      adminEditTitulo: document.getElementById('adminEditTitulo'),
+      adminEditUrl: document.getElementById('adminEditUrl'),
+      adminEditOpciones: document.getElementById('adminEditOpciones'),
+      btnAdminGuardarCambios: document.getElementById('btnAdminGuardarCambios'),
+      adminDeleteMotivo: document.getElementById('adminDeleteMotivo'),
+      btnAdminConfirmarEliminar: document.getElementById('btnAdminConfirmarEliminar'),
+      adminReportsList: document.getElementById('adminReportsList'),
+      btnAdminRecargarReportes: document.getElementById('btnAdminRecargarReportes'),
+      adminReportesBadge: document.getElementById('adminReportesBadge'),
       toast: document.getElementById('toast')
     };
 
@@ -1844,6 +2339,7 @@
     // 1. INICIALIZAR Y GESTIÓN DE VISTAS
     function init() {
       setupEventListeners();
+      actualizarBadgeReportes();
       cargarInicio();
     }
 
@@ -2059,6 +2555,348 @@
         state.currentTrailerWatchUrl = null;
         state.currentTrailerVideoId = null;
       }, 300);
+    }
+
+    // 3.2 PANEL DE ADMINISTRACIÓN Y REPORTES (ADMIN MODAL)
+    async function actualizarBadgeReportes() {
+      try {
+        const res = await fetch('/api/admin/reportes');
+        const data = await res.json();
+        if (data && el.adminReportesBadge) {
+          el.adminReportesBadge.innerText = data.total !== undefined ? data.total : (data.reportes ? data.reportes.length : 0);
+        }
+      } catch (e) {
+        // Silencioso
+      }
+    }
+
+    function abrirModalAdmin(tabInicial = 'reportar') {
+      const item = state.currentPlayerItem;
+
+      if (item) {
+        if (el.adminModalSubtitle) {
+          el.adminModalSubtitle.innerText = `Título: ${item.titulo || ''} (${item.anio || 2026})`;
+        }
+        if (el.adminReportServidor) {
+          const srvActivo = state.currentSelectedServerUrl || item.url || '';
+          el.adminReportServidor.value = srvActivo;
+        }
+        if (el.adminReportDetalle) {
+          el.adminReportDetalle.value = '';
+        }
+        if (el.adminEditTitulo) {
+          el.adminEditTitulo.value = item.titulo || '';
+        }
+        if (el.adminEditUrl) {
+          el.adminEditUrl.value = item.url || '';
+        }
+        if (el.adminEditOpciones) {
+          const opts = Array.isArray(item.opciones) ? item.opciones : [];
+          el.adminEditOpciones.value = opts.join('\n');
+        }
+        if (el.adminDeleteMotivo) {
+          el.adminDeleteMotivo.value = '';
+        }
+        if (el.tabBtnReportar) el.tabBtnReportar.disabled = false;
+        if (el.tabBtnModificar) el.tabBtnModificar.disabled = false;
+        if (el.tabBtnEliminar) el.tabBtnEliminar.disabled = false;
+      } else {
+        if (el.adminModalSubtitle) {
+          el.adminModalSubtitle.innerText = 'Panel Global de Administración y Reportes';
+        }
+        tabInicial = 'lista_reportes';
+        if (el.tabBtnReportar) el.tabBtnReportar.disabled = true;
+        if (el.tabBtnModificar) el.tabBtnModificar.disabled = true;
+        if (el.tabBtnEliminar) el.tabBtnEliminar.disabled = true;
+      }
+
+      cambiarTabAdmin(tabInicial);
+      actualizarBadgeReportes();
+
+      if (el.adminModal) {
+        el.adminModal.style.display = 'flex';
+        setTimeout(() => el.adminModal.classList.add('open'), 10);
+      }
+    }
+
+    function cerrarModalAdmin() {
+      if (!el.adminModal) return;
+      el.adminModal.classList.remove('open');
+      setTimeout(() => {
+        el.adminModal.style.display = 'none';
+      }, 300);
+    }
+
+    function cambiarTabAdmin(tabName) {
+      const tabs = [
+        { name: 'reportar', btn: el.tabBtnReportar, content: el.tabContentReportar },
+        { name: 'modificar', btn: el.tabBtnModificar, content: el.tabContentModificar },
+        { name: 'eliminar', btn: el.tabBtnEliminar, content: el.tabContentEliminar },
+        { name: 'lista_reportes', btn: el.tabBtnListaReportes, content: el.tabContentListaReportes }
+      ];
+
+      tabs.forEach(t => {
+        if (t.btn) t.btn.classList.toggle('active', t.name === tabName);
+        if (t.content) t.content.classList.toggle('active', t.name === tabName);
+      });
+
+      if (tabName === 'lista_reportes') {
+        cargarReportesAdmin();
+      }
+    }
+
+    async function cargarReportesAdmin() {
+      if (!el.adminReportsList) return;
+      el.adminReportsList.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div></div>';
+
+      try {
+        const res = await fetch('/api/admin/reportes');
+        const data = await res.json();
+        const reportes = (data && data.reportes) ? data.reportes : [];
+
+        if (el.adminReportesBadge) {
+          el.adminReportesBadge.innerText = reportes.length;
+        }
+
+        if (reportes.length === 0) {
+          el.adminReportsList.innerHTML = `
+            <div style="text-align: center; padding: 40px 10px; color: var(--text-muted);">
+              <div style="font-size: 2.5rem; margin-bottom: 10px;">🎉</div>
+              <h4 style="color: #fff; margin-bottom: 6px;">No hay reportes registrados</h4>
+              <p style="font-size: 0.9rem;">Cuando reportes un video caído o con problemas, figurará en esta lista y en <code>reportes.json</code> para su análisis y reparación.</p>
+            </div>
+          `;
+          return;
+        }
+
+        el.adminReportsList.innerHTML = '';
+        reportes.forEach(rep => {
+          const card = document.createElement('div');
+          card.className = 'admin-report-card';
+
+          const fechaLegible = rep.fecha ? new Date(rep.fecha).toLocaleString() : 'Reciente';
+          const isResuelto = rep.estado === 'resuelto';
+
+          card.innerHTML = `
+            <div class="admin-report-card-top">
+              <span class="admin-report-card-title">${escapeHtml(rep.titulo || 'Sin título')}</span>
+              <div class="admin-report-pills">
+                <span class="report-badge-status ${isResuelto ? 'resuelto' : 'pendiente'}">${isResuelto ? '✓ Resuelto' : '⚠️ Pendiente'}</span>
+                <span class="report-badge-date">${fechaLegible}</span>
+              </div>
+            </div>
+            <div class="admin-report-meta">
+              <div><strong>Motivo:</strong> ${escapeHtml(rep.motivo || 'No especificado')}</div>
+              ${rep.servidor ? `<div><strong>Servidor / URL:</strong> <code style="word-break: break-all; font-size: 0.8rem; background: rgba(0,0,0,0.4); padding: 2px 6px; border-radius: 4px;">${escapeHtml(rep.servidor)}</code></div>` : ''}
+              ${rep.detalle ? `<div><strong>Detalle:</strong> ${escapeHtml(rep.detalle)}</div>` : ''}
+            </div>
+            <div class="admin-report-card-actions">
+              ${!isResuelto ? `<button class="btn-report-action btn-resolve" data-id="${rep.id}">✓ Marcar Resuelto</button>` : ''}
+              <button class="btn-report-action btn-delete-rep" data-id="${rep.id}">🗑️ Borrar</button>
+            </div>
+          `;
+
+          const btnResolve = card.querySelector('.btn-resolve');
+          if (btnResolve) {
+            btnResolve.addEventListener('click', async () => {
+              btnResolve.disabled = true;
+              try {
+                const r = await fetch(`/api/admin/reportes/${encodeURIComponent(rep.id)}/resolver`, { method: 'POST' });
+                if (r.ok) {
+                  showToast('✓ Reporte marcado como resuelto');
+                  cargarReportesAdmin();
+                } else {
+                  showToast('Error al resolver reporte');
+                  btnResolve.disabled = false;
+                }
+              } catch (e) {
+                showToast('Error de red');
+                btnResolve.disabled = false;
+              }
+            });
+          }
+
+          const btnDelRep = card.querySelector('.btn-delete-rep');
+          if (btnDelRep) {
+            btnDelRep.addEventListener('click', async () => {
+              if (!confirm(`¿Eliminar reporte de "${rep.titulo}"?`)) return;
+              btnDelRep.disabled = true;
+              try {
+                const r = await fetch(`/api/admin/reportes/${encodeURIComponent(rep.id)}`, { method: 'DELETE' });
+                if (r.ok) {
+                  showToast('🗑️ Reporte eliminado');
+                  cargarReportesAdmin();
+                } else {
+                  showToast('Error al eliminar reporte');
+                  btnDelRep.disabled = false;
+                }
+              } catch (e) {
+                showToast('Error de red');
+                btnDelRep.disabled = false;
+              }
+            });
+          }
+
+          el.adminReportsList.appendChild(card);
+        });
+
+      } catch (e) {
+        el.adminReportsList.innerHTML = `
+          <div style="text-align: center; padding: 20px; color: #ef4444;">
+            Error al cargar la lista de reportes desde el servidor.
+          </div>
+        `;
+      }
+    }
+
+    async function enviarReporteAdmin() {
+      const item = state.currentPlayerItem;
+      if (!item) {
+        showToast('No hay ninguna película abierta para reportar');
+        return;
+      }
+
+      const motivo = el.adminReportMotivo ? el.adminReportMotivo.value : 'No especificado';
+      const servidor = el.adminReportServidor ? el.adminReportServidor.value : (state.currentSelectedServerUrl || item.url || '');
+      const detalle = el.adminReportDetalle ? el.adminReportDetalle.value.trim() : '';
+
+      el.btnAdminEnviarReporte.disabled = true;
+      el.btnAdminEnviarReporte.innerText = 'Enviando...';
+
+      try {
+        const res = await fetch('/api/admin/reportar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            item_id: item.id,
+            titulo: item.titulo,
+            servidor: servidor,
+            url_activa: servidor,
+            motivo: motivo,
+            detalle: detalle
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast('📨 Reporte guardado en reportes.json');
+          if (el.adminReportDetalle) el.adminReportDetalle.value = '';
+          actualizarBadgeReportes();
+          cambiarTabAdmin('lista_reportes');
+        } else {
+          showToast('Error al registrar reporte: ' + (data.error || 'Desconocido'));
+        }
+      } catch (e) {
+        showToast('Error de conexión al enviar reporte');
+      } finally {
+        el.btnAdminEnviarReporte.disabled = false;
+        el.btnAdminEnviarReporte.innerText = '📨 Enviar Reporte';
+      }
+    }
+
+    async function guardarCambiosAdmin() {
+      const item = state.currentPlayerItem;
+      if (!item) {
+        showToast('No hay ninguna película abierta para modificar');
+        return;
+      }
+
+      const nuevoTitulo = el.adminEditTitulo ? el.adminEditTitulo.value.trim() : '';
+      const nuevaUrl = el.adminEditUrl ? el.adminEditUrl.value.trim() : '';
+      const opcionesTexto = el.adminEditOpciones ? el.adminEditOpciones.value.trim() : '';
+      const nuevasOpciones = opcionesTexto ? opcionesTexto.split('\n').map(l => l.trim()).filter(Boolean) : [];
+
+      if (!nuevaUrl) {
+        showToast('⚠️ La URL principal no puede estar vacía');
+        return;
+      }
+
+      if (!nuevasOpciones.includes(nuevaUrl)) {
+        nuevasOpciones.unshift(nuevaUrl);
+      }
+
+      el.btnAdminGuardarCambios.disabled = true;
+      el.btnAdminGuardarCambios.innerText = 'Guardando...';
+
+      try {
+        const res = await fetch('/api/admin/modificar_item', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            item_id: item.id,
+            titulo: nuevoTitulo || item.titulo,
+            url: nuevaUrl,
+            opciones: nuevasOpciones
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast('💾 Cambios guardados permanentemente');
+
+          if (nuevoTitulo) {
+            item.titulo = nuevoTitulo;
+            if (el.playerTitleText) el.playerTitleText.innerText = nuevoTitulo;
+            if (el.playerHeroTitle) el.playerHeroTitle.innerText = nuevoTitulo;
+          }
+          item.url = nuevaUrl;
+          item.opciones = nuevasOpciones;
+
+          ejecutarReproduccion(item);
+          cerrarModalAdmin();
+        } else {
+          showToast('Error al guardar cambios: ' + (data.error || 'Desconocido'));
+        }
+      } catch (e) {
+        showToast('Error de conexión al guardar cambios');
+      } finally {
+        el.btnAdminGuardarCambios.disabled = false;
+        el.btnAdminGuardarCambios.innerText = '💾 Guardar Cambios';
+      }
+    }
+
+    async function confirmarEliminarAdmin() {
+      const item = state.currentPlayerItem;
+      if (!item) {
+        showToast('No hay ninguna película abierta para eliminar');
+        return;
+      }
+
+      const seguro = confirm(`⚠️ ATENCIÓN:\n\n¿Estás completamente seguro de que deseás eliminar permanentemente "${item.titulo}" del catálogo de Hydra TV?\n\nEsta película ya no aparecerá en las categorías, recomendaciones ni búsquedas.`);
+      if (!seguro) return;
+
+      const motivo = el.adminDeleteMotivo ? el.adminDeleteMotivo.value.trim() : 'Eliminado por el usuario';
+
+      el.btnAdminConfirmarEliminar.disabled = true;
+      el.btnAdminConfirmarEliminar.innerText = 'Eliminando...';
+
+      try {
+        const res = await fetch('/api/admin/eliminar_item', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            item_id: item.id,
+            titulo: item.titulo,
+            motivo: motivo || 'Eliminado desde panel de administración'
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(`🗑️ "${item.titulo}" eliminado permanentemente`);
+          cerrarModalAdmin();
+          cerrarReproductorEnMismaVentana();
+          actualizarBadgeReportes();
+          cargarInicio();
+        } else {
+          showToast('Error al eliminar: ' + (data.error || 'Desconocido'));
+        }
+      } catch (e) {
+        showToast('Error de conexión al eliminar');
+      } finally {
+        el.btnAdminConfirmarEliminar.disabled = false;
+        el.btnAdminConfirmarEliminar.innerText = '🗑️ Confirmar Eliminación del Catálogo';
+      }
     }
 
     // 4. VISTA DE CUADRÍCULA PAGINADA (SIN SCROLL INFINITO)
@@ -2404,6 +3242,10 @@
         };
       }
 
+      if (el.playerHeroBtnAdmin) {
+        el.playerHeroBtnAdmin.onclick = () => abrirModalAdmin('reportar');
+      }
+
       // 2. Configurar Servidores / Opciones priorizando PoseidonHD
       let opciones = (Array.isArray(item.opciones) && item.opciones.length > 0 ? [...item.opciones] : [urlAUsar]);
       opciones.sort((a, b) => {
@@ -2517,6 +3359,11 @@
         state.genre = 'todos';
         cargarGrid('mi_lista', 1, '', 'todos');
       });
+      if (el.btnNavAdmin) {
+        el.btnNavAdmin.addEventListener('click', () => {
+          abrirModalAdmin('lista_reportes');
+        });
+      }
 
       el.btnGridBack.addEventListener('click', cargarInicio);
 
@@ -2536,6 +3383,26 @@
       // Eventos del Modal de Trailer Oficial
       el.trailerModalClose.addEventListener('click', cerrarModalTrailer);
       el.trailerModalBackdrop.addEventListener('click', cerrarModalTrailer);
+
+      // Eventos del Modal de Administración y Reportes
+      if (el.adminModalClose) {
+        el.adminModalClose.addEventListener('click', cerrarModalAdmin);
+      }
+      if (el.adminModalBackdrop) {
+        el.adminModalBackdrop.addEventListener('click', cerrarModalAdmin);
+      }
+
+      // Pestañas del Modal Admin
+      if (el.tabBtnReportar) el.tabBtnReportar.addEventListener('click', () => cambiarTabAdmin('reportar'));
+      if (el.tabBtnModificar) el.tabBtnModificar.addEventListener('click', () => cambiarTabAdmin('modificar'));
+      if (el.tabBtnEliminar) el.tabBtnEliminar.addEventListener('click', () => cambiarTabAdmin('eliminar'));
+      if (el.tabBtnListaReportes) el.tabBtnListaReportes.addEventListener('click', () => cambiarTabAdmin('lista_reportes'));
+
+      // Acciones del Modal Admin
+      if (el.btnAdminEnviarReporte) el.btnAdminEnviarReporte.addEventListener('click', enviarReporteAdmin);
+      if (el.btnAdminGuardarCambios) el.btnAdminGuardarCambios.addEventListener('click', guardarCambiosAdmin);
+      if (el.btnAdminConfirmarEliminar) el.btnAdminConfirmarEliminar.addEventListener('click', confirmarEliminarAdmin);
+      if (el.btnAdminRecargarReportes) el.btnAdminRecargarReportes.addEventListener('click', cargarReportesAdmin);
 
       if (el.btnTrailerOpenYt) {
         el.btnTrailerOpenYt.addEventListener('click', () => {
@@ -2649,6 +3516,10 @@
 
         // Tecla Escape para salir de vistas o modales
         if (e.key === 'Escape') {
+          if (el.adminModal && el.adminModal.classList.contains('open')) {
+            cerrarModalAdmin();
+            return;
+          }
           if (state.view === 'player') {
             cerrarReproductorEnMismaVentana();
             return;
