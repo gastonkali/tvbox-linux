@@ -1466,85 +1466,23 @@
       letter-spacing: 0.5px;
     }
 
-    .player-hero-actions {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-
-    .btn-hero-browser {
-      background: #2563eb;
-      color: #fff;
-      border: 1px solid #3b82f6;
-      font-size: 1.05rem;
-      font-weight: 800;
-      padding: 14px 26px;
-      border-radius: 50px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      transition: all 0.2s ease;
-      outline: none;
-      box-shadow: 0 4px 18px rgba(37, 99, 235, 0.45);
-    }
-
-    .btn-hero-browser:hover,
-    .btn-hero-browser:focus {
-      background: #1d4ed8;
-      transform: scale(1.04);
-      box-shadow: 0 6px 24px rgba(37, 99, 235, 0.6);
-    }
-
-    .btn-hero-embed {
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      color: #e2e8f0;
-      font-size: 0.95rem;
-      font-weight: 700;
-      padding: 12px 20px;
-      border-radius: 50px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.2s ease;
-      outline: none;
-    }
-
-    .btn-hero-embed:hover,
-    .btn-hero-embed:focus {
-      background: rgba(255, 255, 255, 0.22);
-      color: #fff;
-      transform: scale(1.03);
-    }
-
     .player-viewport-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
-      padding: 12px 36px;
+      padding: 10px 36px;
       background: #111318;
       border-top: 1px solid var(--border-subtle);
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      flex-wrap: wrap;
     }
 
-    .player-viewport-tip {
-      font-size: 0.88rem;
-      color: var(--text-muted);
+    .player-viewport-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
       display: flex;
       align-items: center;
-      gap: 6px;
-    }
-
-    .player-viewport-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
     /* RESPONSIVE */
@@ -1685,7 +1623,7 @@
       <!-- Barra superior del reproductor -->
       <div class="player-theater-bar">
         <button class="player-btn-back" id="playerBtnBack" title="Volver al catálogo (Esc o Retroceso)">
-          ← Volver al Catálogo
+          ← Volver
         </button>
         <div class="player-title-info">
           <span class="player-brand-badge">⚡ HYDRA TV</span>
@@ -1693,20 +1631,9 @@
           <span class="badge-pill" id="playerYearBadge">2026</span>
           <span class="badge-pill" id="playerTypeBadge">FULL HD</span>
         </div>
-        <div class="player-bar-actions">
-          <button class="player-action-btn" id="playerBtnTvTop" title="Reproducir en la TV (Pantalla Completa)">
-            📺 Reproducir en TV
-          </button>
-          <button class="player-action-btn" id="playerBtnDirectTop" title="Abrir reproductor en pestaña directa sin iframe">
-            💻 Reproductor Directo
-          </button>
-          <button class="player-action-btn" id="playerBtnTrailerTop" title="Ver Trailer Oficial">
-            🎬 Trailer
-          </button>
-        </div>
       </div>
 
-      <!-- 1. PRESENTACIÓN CINEMATOGRÁFICA HERO DE LA PELÍCULA (PRIMERO EN PANTALLA) -->
+      <!-- 1. PRESENTACIÓN / FICHA DE LA PELÍCULA (PRIMERO EN PANTALLA) -->
       <section class="player-hero-billboard" id="playerHeroBillboard">
         <img class="player-hero-backdrop" id="playerHeroBackdrop" src="" alt="Backdrop">
         <div class="player-hero-gradient"></div>
@@ -1725,43 +1652,28 @@
             <h1 class="player-hero-title" id="playerHeroTitle">Cargando película...</h1>
             <p class="player-hero-desc" id="playerHeroDesc">Cargando sinopsis oficial...</p>
 
-            <!-- Barra de Selección de Servidores -->
-            <div class="player-servers-section" id="playerServersBar" style="display: none;">
-              <span class="servers-label">Servidores / Enlaces disponibles:</span>
-              <div class="servers-list" id="playerServersList"></div>
-            </div>
-
-            <!-- Botones de Acción de Reproducción -->
+            <!-- Acciones secundarias limpias -->
             <div class="player-hero-actions">
-              <button class="btn-hero-tv" id="playerHeroBtnTv" title="Lanzar en pantalla completa en la TV Box">
-                📺 Reproducir en TV (Kiosk)
-              </button>
-              <button class="btn-hero-browser" id="playerHeroBtnBrowser" title="Abrir video en nueva pestaña directa (Sin restricciones de iframe)">
-                💻 Abrir en este Navegador
-              </button>
               <button class="btn-hero-trailer" id="playerHeroBtnTrailer" title="Ver trailer oficial en YouTube">
-                🎬 Ver Trailer Oficial
-              </button>
-              <button class="btn-hero-embed" id="playerHeroBtnScrollToFrame" title="Ver reproductor embebido en esta misma pantalla">
-                ▼ Ver Reproductor Aquí
+                🎬 Ver Trailer
               </button>
               <button class="btn-hero-list" id="playerHeroBtnList">+ Mi Lista</button>
+            </div>
+
+            <!-- Barra de Selección de Servidores (Si hay más de una fuente disponible) -->
+            <div class="player-servers-section" id="playerServersBar" style="display: none;">
+              <span class="servers-label">Servidor / Opción de reproducción:</span>
+              <div class="servers-list" id="playerServersList"></div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- 2. REPRODUCTOR INTEGRADO EMBEBIDO -->
+      <!-- 2. REPRODUCTOR INTEGRADO (DIRECTAMENTE DEBAJO DE LA DESCRIPCIÓN) -->
       <div class="player-theater-viewport" id="playerTheaterViewport">
         <div class="player-viewport-header">
-          <div class="player-viewport-tip">
-            💡 <em>Reproductor integrado en ventana. Si tu navegador bloquea la reproducción con pantalla gris, hacé clic en <strong>"📺 Reproducir en TV"</strong> o <strong>"💻 Abrir en este Navegador"</strong>.</em>
-          </div>
-          <div class="player-viewport-actions">
-            <button class="player-action-btn" id="playerBtnTvFromFrame">📺 Enviar a TV</button>
-            <button class="player-action-btn" id="playerBtnBrowserFromFrame">💻 Abrir Fuera de Iframe</button>
-            <button class="player-action-btn" id="playerBtnFullscreen">⛶ Pantalla Completa</button>
-          </div>
+          <span class="player-viewport-title">▶ Reproductor de Video</span>
+          <button class="player-action-btn" id="playerBtnFullscreen" title="Pantalla Completa">⛶ Pantalla Completa</button>
         </div>
         <div class="player-frame-container">
           <iframe id="playerIframe" src="" allow="autoplay; encrypted-media; fullscreen" allowfullscreen frameborder="0"></iframe>
@@ -1847,17 +1759,12 @@
       playerTitleText: document.getElementById('playerTitleText'),
       playerYearBadge: document.getElementById('playerYearBadge'),
       playerTypeBadge: document.getElementById('playerTypeBadge'),
-      playerBtnTvTop: document.getElementById('playerBtnTvTop'),
-      playerBtnDirectTop: document.getElementById('playerBtnDirectTop'),
-      playerBtnTrailerTop: document.getElementById('playerBtnTrailerTop'),
       playerBtnFullscreen: document.getElementById('playerBtnFullscreen'),
       playerServersBar: document.getElementById('playerServersBar'),
       playerServersList: document.getElementById('playerServersList'),
       playerTheaterViewport: document.getElementById('playerTheaterViewport'),
       playerIframe: document.getElementById('playerIframe'),
       playerFrameContainer: document.querySelector('.player-frame-container'),
-      playerBtnTvFromFrame: document.getElementById('playerBtnTvFromFrame'),
-      playerBtnBrowserFromFrame: document.getElementById('playerBtnBrowserFromFrame'),
       playerHeroBillboard: document.getElementById('playerHeroBillboard'),
       playerHeroBackdrop: document.getElementById('playerHeroBackdrop'),
       playerHeroPoster: document.getElementById('playerHeroPoster'),
@@ -1866,10 +1773,7 @@
       playerHeroCategory: document.getElementById('playerHeroCategory'),
       playerHeroTitle: document.getElementById('playerHeroTitle'),
       playerHeroDesc: document.getElementById('playerHeroDesc'),
-      playerHeroBtnTv: document.getElementById('playerHeroBtnTv'),
-      playerHeroBtnBrowser: document.getElementById('playerHeroBtnBrowser'),
       playerHeroBtnTrailer: document.getElementById('playerHeroBtnTrailer'),
-      playerHeroBtnScrollToFrame: document.getElementById('playerHeroBtnScrollToFrame'),
       playerHeroBtnList: document.getElementById('playerHeroBtnList'),
       heroBillboard: document.getElementById('heroBillboard'),
       heroBackdrop: document.getElementById('heroBackdrop'),
@@ -2471,22 +2375,7 @@
       if (targetUrl.endsWith('.html/')) targetUrl = targetUrl.slice(0, -1);
       else if (targetUrl.endsWith('.php/')) targetUrl = targetUrl.slice(0, -1);
 
-      if (state.playbackTarget === 'here') {
-        abrirReproductorEnMismaVentana(item, targetUrl);
-      } else {
-        showToast('📺 Enviando a la TV: ' + item.titulo + '...');
-        fetch('/play/' + item.id, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ opcion_url: targetUrl })
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.error) showToast('Error: ' + data.error);
-          else showToast('✅ Reproduciendo en TV: ' + item.titulo);
-        })
-        .catch(() => showToast('Error de conexión con la TV'));
-      }
+      abrirReproductorEnMismaVentana(item, targetUrl);
     }
 
     function abrirReproductorEnMismaVentana(item, opcionUrl) {
@@ -2497,14 +2386,13 @@
         showToast('Error: No se encontró enlace para reproducir');
         return;
       }
-      state.currentSelectedServerUrl = urlAUsar;
 
       el.playerTitleText.innerText = item.titulo || 'Reproduciendo Video';
       el.playerTitleText.title = item.titulo || '';
       el.playerYearBadge.innerText = item.anio || (new Date().getFullYear());
       el.playerTypeBadge.innerText = item.es_serie ? 'SERIE HD' : 'PELÍCULA HD';
 
-      // 1. Configurar Presentación Cinematográfica Hero de la película
+      // 1. Configurar Presentación / Ficha de la película
       const posterUrl = item.poster || '';
       if (el.playerHeroBackdrop) el.playerHeroBackdrop.src = posterUrl;
       if (el.playerHeroPoster) el.playerHeroPoster.src = posterUrl;
@@ -2515,7 +2403,7 @@
         el.playerHeroSpotlight.innerText = (item.anio && item.anio >= 2025) ? '🔥 ESTRENO EXCLUSIVO' : '⭐ RECOMENDADO';
       }
 
-      // Sinopsis inicial legible y atractiva
+      // Sinopsis inicial legible y limpia
       const sinopsisInicial = item.sinopsis || item.descripcion || `Disfruta de ${item.titulo} (${item.anio || 2026}) en calidad Full HD y audio latino sin cortes ni publicidad, disponible en Hydra TV.`;
       if (el.playerHeroDesc) el.playerHeroDesc.innerText = sinopsisInicial;
 
@@ -2532,55 +2420,9 @@
           .catch(() => {});
       }
 
-      // Acciones unificadas de reproducción
-      function reproducirEnTv() {
-        const urlParaTv = state.currentSelectedServerUrl || item.url;
-        showToast('📺 Transmitiendo a la TV: ' + item.titulo + '...');
-        fetch('/play/' + item.id, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ opcion_url: urlParaTv })
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.error) showToast('Error: ' + data.error);
-          else showToast('✅ Reproduciendo en TV: ' + item.titulo);
-        })
-        .catch(() => showToast('Error de conexión con la TV'));
-      }
-
-      function abrirNavegadorDirecto() {
-        const urlDirecta = state.currentSelectedServerUrl || item.url;
-        showToast('💻 Abriendo reproductor directo: ' + item.titulo);
-        if (item.tipo === 'directo') {
-          window.open('/reproductor?url=' + encodeURIComponent(urlDirecta) + '&titulo=' + encodeURIComponent(item.titulo || ''), '_blank');
-        } else {
-          window.open(urlDirecta, '_blank');
-        }
-      }
-
-      // Conectar botones del Hero y de la barra superior
-      if (el.playerHeroBtnTv) el.playerHeroBtnTv.onclick = reproducirEnTv;
-      if (el.playerBtnTvTop) el.playerBtnTvTop.onclick = reproducirEnTv;
-      if (el.playerBtnTvFromFrame) el.playerBtnTvFromFrame.onclick = reproducirEnTv;
-
-      if (el.playerHeroBtnBrowser) el.playerHeroBtnBrowser.onclick = abrirNavegadorDirecto;
-      if (el.playerBtnDirectTop) el.playerBtnDirectTop.onclick = abrirNavegadorDirecto;
-      if (el.playerBtnBrowserFromFrame) el.playerBtnBrowserFromFrame.onclick = abrirNavegadorDirecto;
-
+      // Conectar botones del Hero
       if (el.playerHeroBtnTrailer) {
         el.playerHeroBtnTrailer.onclick = () => abrirModalTrailer(item.titulo, item.anio);
-      }
-      if (el.playerBtnTrailerTop) {
-        el.playerBtnTrailerTop.onclick = () => abrirModalTrailer(item.titulo, item.anio);
-      }
-
-      if (el.playerHeroBtnScrollToFrame) {
-        el.playerHeroBtnScrollToFrame.onclick = () => {
-          if (el.playerTheaterViewport) {
-            el.playerTheaterViewport.scrollIntoView({ behavior: 'smooth' });
-          }
-        };
       }
 
       if (el.playerHeroBtnList) {
@@ -2593,18 +2435,28 @@
         };
       }
 
-      // 2. Configurar Servidores / Opciones si existen (máximo 5 servidores para mantener diseño limpio)
-      const opciones = (Array.isArray(item.opciones) && item.opciones.length > 0 ? item.opciones : [urlAUsar]).slice(0, 5);
+      // 2. Configurar Servidores / Opciones priorizando PoseidonHD
+      let opciones = (Array.isArray(item.opciones) && item.opciones.length > 0 ? [...item.opciones] : [urlAUsar]);
+      opciones.sort((a, b) => {
+        const aPos = a.includes('poseidon');
+        const bPos = b.includes('poseidon');
+        if (aPos && !bPos) return -1;
+        if (!aPos && bPos) return 1;
+        return 0;
+      });
+      const urlPrincipal = opciones[0] || urlAUsar;
+      state.currentSelectedServerUrl = urlPrincipal;
+
       if (opciones.length > 1) {
         el.playerServersBar.style.display = 'flex';
         el.playerServersList.innerHTML = '';
-        opciones.forEach((optUrl, idx) => {
+        opciones.slice(0, 5).forEach((optUrl, idx) => {
           const pill = document.createElement('button');
-          pill.className = 'server-pill' + (optUrl === urlAUsar ? ' active' : '');
+          pill.className = 'server-pill' + (optUrl === urlPrincipal ? ' active' : '');
           let nombreServidor = `Servidor ${idx + 1}`;
-          if (optUrl.includes('poseidon')) nombreServidor += ' (PoseidonHD)';
+          if (optUrl.includes('poseidon')) nombreServidor += ' (Poseidon)';
           else if (optUrl.includes('cinemitas')) nombreServidor += ' (Cinemitas)';
-          else if (optUrl.includes('pelicine')) nombreServidor += ' (PelicineHD)';
+          else if (optUrl.includes('pelicine')) nombreServidor += ' (Pelicine)';
           else if (optUrl.includes('maspeliculashd')) nombreServidor += ' (PeliculasHD)';
           pill.innerText = `⚡ ${nombreServidor}`;
           pill.addEventListener('click', () => {
@@ -2621,7 +2473,7 @@
         el.playerServersList.innerHTML = '';
       }
 
-      cargarFrameReproductor(item, urlAUsar);
+      cargarFrameReproductor(item, urlPrincipal);
       switchView('player');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       showToast('🎬 ' + item.titulo);

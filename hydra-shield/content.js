@@ -313,7 +313,7 @@
     (document.head || document.documentElement).appendChild(style);
   }
 
-  // 1.1 Limpieza y Reemplazo de Textos de Terceros (Poseidon, PeliculasHD, Cinemitas, etc.)
+  // 1.1 Limpieza de Título (Hydra TV)
   function camuflarTextos() {
     try {
       if (document.title) {
@@ -330,60 +330,6 @@
           .replace(/argflix/gi, 'Hydra TV')
           .replace(/verpel[ií]culas/gi, 'Hydra TV')
           .replace(/cuevana\s*\d*/gi, 'Hydra TV');
-      }
-
-      if (!document.body) return;
-
-      const walker = document.createTreeWalker(
-        document.body,
-        NodeFilter.SHOW_TEXT,
-        null,
-        false
-      );
-
-      const bannedRegexes = [
-        /peliculashd/gi,
-        /maspeliculashd/gi,
-        /poseidonhd\s*2?/gi,
-        /cinemitas\s*(hd)?/gi,
-        /pelicinehd/gi,
-        /repelishd/gi,
-        /repelis/gi,
-        /argflix/gi,
-        /verpel[ií]culas/gi,
-        /cuevana\s*\d*/gi,
-        /tuanime/gi
-      ];
-      let node;
-      while (node = walker.nextNode()) {
-        const val = node.nodeValue;
-        if (!val || val.length < 3) continue;
-
-        const lower = val.toLowerCase();
-        if (lower.includes('no guardamos tus contraseñas') ||
-            lower.includes('recuerda que no') ||
-            lower.includes('servidores gratuitos de terceros') ||
-            lower.includes('reportar link caido') ||
-            lower.includes('donaciones') ||
-            lower.includes('donar') ||
-            lower.includes('bienvenido a verpelículas') ||
-            lower.includes('tuanime.net')) {
-          const parent = node.parentElement;
-          if (parent && !parent.closest('#player') && !parent.closest('#reproductor') && !parent.closest('#video') && !parent.closest('.movie-header') && !parent.closest('.movie-content') && !parent.closest('.movie-main')) {
-            parent.style.display = 'none';
-          }
-          continue;
-        }
-
-        let updatedVal = val;
-        for (const reg of bannedRegexes) {
-          if (reg.test(updatedVal)) {
-            updatedVal = updatedVal.replace(reg, 'Hydra TV');
-          }
-        }
-        if (updatedVal !== val) {
-          node.nodeValue = updatedVal;
-        }
       }
     } catch(e) {}
   }
@@ -518,8 +464,6 @@
           e.stopImmediatePropagation();
           return;
         }
-        // Para otros enlaces, no abrir nueva ventana fuera de Hydra TV
-        a.setAttribute('target', '_self');
       }
     }
 
