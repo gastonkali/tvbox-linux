@@ -10,6 +10,15 @@
     return;
   }
 
+  // No intervenir en reproductores de video embebidos para no romper descifrado ni controles
+  if (window.self !== window.top && (
+      host.includes('streamwish') || host.includes('vidhide') || host.includes('voe') ||
+      host.includes('dood') || host.includes('filemoon') || host.includes('streamtape') ||
+      host.includes('waaw') || host.includes('netu') || host.includes('player.poseidon')
+  )) {
+    return;
+  }
+
   // 1. Anular window.open incondicionalmente en todos los reproductores y frames
   const dummyWindow = {
     closed: false,

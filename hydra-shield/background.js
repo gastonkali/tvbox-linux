@@ -18,6 +18,9 @@ function esUrlPublicitaria(url) {
   const u = url.toLowerCase();
   if (u.startsWith('brave://') || u.startsWith('chrome://')) return false;
   if (u.includes('youtube.com') || u.includes('youtu.be') || u.includes(':5000')) return false;
+  if (u.includes('streamwish') || u.includes('vidhide') || u.includes('voe.sx') ||
+      u.includes('dood') || u.includes('poseidonhd') || u.includes('cinemitas') ||
+      u.includes('pelicine') || u.includes('maspeliculashd')) return false;
   return AD_PATTERNS.some(p => u.includes(p));
 }
 

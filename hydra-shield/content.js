@@ -9,6 +9,15 @@
     return;
   }
 
+  // No modificar DOM ni estilos en reproductores de streaming embebidos
+  if (window.self !== window.top && (
+      host.includes('streamwish') || host.includes('vidhide') || host.includes('voe') ||
+      host.includes('dood') || host.includes('filemoon') || host.includes('streamtape') ||
+      host.includes('waaw') || host.includes('netu') || host.includes('player.poseidon')
+  )) {
+    return;
+  }
+
   // 1. Inyectar Estilos de Camuflaje Oficial Hydra TV (Oculta logos y menús de terceros)
   function inyectarEstilosHydraTV() {
     if (document.getElementById('hydra-brand-cloak-style')) return;
@@ -596,9 +605,9 @@
 
   // 5. Acelerador de Reproducción Inmediata
   function acelerarReproduccion() {
+    // Permitir interacción 100% manual y limpia en PoseidonHD sin desplegar menús solos
+    if (host.includes('poseidon')) return;
     try {
-      // A. PoseidonHD: No disparar clics sintéticos automáticos en li.clili para que el desplegable "Español Latino" no se abra solo ni estorbe.
-      // El usuario interactúa libremente con los servidores.
 
       // B. Cinemitas: Clic en primer servidor
       if (host.includes('cinemitas') || document.querySelector('#playeroptionsul')) {

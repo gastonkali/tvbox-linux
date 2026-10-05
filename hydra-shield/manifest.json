@@ -4,11 +4,21 @@
   "version": "1.3",
   "description": "Bloquea anuncios, ventanas emergentes y acelera la carga inmediata de reproductores de streaming para Hydra TV.",
   "permissions": [
-    "tabs"
+    "tabs",
+    "declarativeNetRequest"
   ],
   "host_permissions": [
     "<all_urls>"
   ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "ruleset_1",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
+  },
   "background": {
     "service_worker": "background.js"
   },
