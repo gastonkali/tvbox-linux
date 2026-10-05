@@ -611,6 +611,14 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .admin-modal.open {
+      opacity: 1;
+      pointer-events: auto;
     }
 
     .admin-modal-backdrop {
@@ -2020,7 +2028,10 @@
       <div class="player-theater-viewport" id="playerTheaterViewport">
         <div class="player-viewport-header">
           <span class="player-viewport-title">▶ Reproductor de Video</span>
-          <button class="player-action-btn" id="playerBtnFullscreen" title="Pantalla Completa">⛶ Pantalla Completa</button>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <button class="player-action-btn" id="playerBtnOpenTab" title="Abrir video directamente en pestaña si el servidor bloquea el marco embebido">↗ Abrir en Nueva Pestaña</button>
+            <button class="player-action-btn" id="playerBtnFullscreen" title="Pantalla Completa">⛶ Pantalla Completa</button>
+          </div>
         </div>
         <div class="player-frame-container" id="playerFrameContainer">
           <iframe id="playerIframe" src="" allow="autoplay; encrypted-media; fullscreen" allowfullscreen frameborder="0"></iframe>
@@ -2055,6 +2066,8 @@
         </div>
       </div>
     </div>
+  </div>
+
   <!-- MODAL DE ADMINISTRACIÓN Y REPORTES -->
   <div class="admin-modal" id="adminModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
     <div class="admin-modal-backdrop" id="adminModalBackdrop"></div>
@@ -2198,6 +2211,7 @@
       playerYearBadge: document.getElementById('playerYearBadge'),
       playerTypeBadge: document.getElementById('playerTypeBadge'),
       playerBtnFullscreen: document.getElementById('playerBtnFullscreen'),
+      playerBtnOpenTab: document.getElementById('playerBtnOpenTab'),
       playerServersBar: document.getElementById('playerServersBar'),
       playerServersList: document.getElementById('playerServersList'),
       playerTheaterViewport: document.getElementById('playerTheaterViewport'),
@@ -3403,6 +3417,9 @@
       if (el.btnAdminGuardarCambios) el.btnAdminGuardarCambios.addEventListener('click', guardarCambiosAdmin);
       if (el.btnAdminConfirmarEliminar) el.btnAdminConfirmarEliminar.addEventListener('click', confirmarEliminarAdmin);
       if (el.btnAdminRecargarReportes) el.btnAdminRecargarReportes.addEventListener('click', cargarReportesAdmin);
+      if (el.playerHeroBtnAdmin) {
+        el.playerHeroBtnAdmin.addEventListener('click', () => abrirModalAdmin('reportar'));
+      }
 
       if (el.btnTrailerOpenYt) {
         el.btnTrailerOpenYt.addEventListener('click', () => {
@@ -3415,6 +3432,17 @@
       // Eventos del Reproductor Integrado (Misma Ventana)
       if (el.playerBtnBack) {
         el.playerBtnBack.addEventListener('click', cerrarReproductorEnMismaVentana);
+      }
+
+      if (el.playerBtnOpenTab) {
+        el.playerBtnOpenTab.addEventListener('click', () => {
+          const urlToOpen = state.currentSelectedServerUrl || (state.currentPlayerItem && state.currentPlayerItem.url);
+          if (urlToOpen) {
+            window.open(urlToOpen, '_blank');
+          } else {
+            showToast('No hay URL activa para abrir');
+          }
+        });
       }
 
       if (el.playerBtnFullscreen) {

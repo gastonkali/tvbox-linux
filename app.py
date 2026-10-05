@@ -337,10 +337,10 @@ def construir_home_feed():
             peliculas.append(x)
 
         anio = extraer_anio(x)
-        if anio == 2026:
+        if anio in (2025, 2026):
             estrenos.append(x)
 
-    estrenos.sort(key=lambda x: x.get("id", 0), reverse=True)
+    estrenos.sort(key=lambda x: (1 if extraer_anio(x) == 2025 else 0, x.get("id", 0)), reverse=True)
 
     ultimos_agregados = [x for x in CATALOGO_CACHE if x.get("poster") and "ultrapeli" not in x.get("poster", "")]
     ultimos_agregados.sort(key=lambda x: x.get("id", 0), reverse=True)
@@ -359,10 +359,10 @@ def construir_home_feed():
                     break
         return out
 
-    # Candidatos a portada principal (Superproducciones taquilleras reconocidas)
+    # Candidatos a portada principal (Superproducciones taquilleras reconocidas disponibles)
     hero_blockbusters = [
         'gladiador ii', 'deadpool & wolverine', 'bad boys hasta la muerte',
-        'alien romulus', 'furiosa de la saga mad max', 'scream 7', 'dune'
+        'alien romulus', 'furiosa de la saga mad max', 'dune parte dos', 'dune'
     ]
     hero_candidates = []
     for b in hero_blockbusters:
@@ -951,8 +951,8 @@ def api_canales():
     elif seccion == "peliculas":
         filtrados = [x for x in filtrados if not es_serie(x)]
     elif seccion == "estrenos":
-        filtrados = [x for x in filtrados if extraer_anio(x) == 2026]
-        filtrados.sort(key=lambda x: x.get("id", 0), reverse=True)
+        filtrados = [x for x in filtrados if extraer_anio(x) in (2025, 2026)]
+        filtrados.sort(key=lambda x: (1 if extraer_anio(x) == 2025 else 0, x.get("id", 0)), reverse=True)
     elif seccion == "ultimos_agregados":
         filtrados = sorted(filtrados, key=lambda x: x.get("id", 0), reverse=True)
 

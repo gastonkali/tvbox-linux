@@ -273,7 +273,7 @@
         contain: none !important;
       }
 
-      /* Ocultar ABSOLUTAMENTE TODA la interfaz externa, fichas, listas de episodios y recomendaciones */
+      /* Ocultar interfaz externa, banners y elementos innecesarios */
       html.in-hydra-frame header,
       html.in-hydra-frame footer,
       html.in-hydra-frame #header,
@@ -283,35 +283,8 @@
       html.in-hydra-frame .site-header,
       html.in-hydra-frame .Header,
       html.in-hydra-frame .ft,
-      html.in-hydra-frame .backdrop > h1,
-      html.in-hydra-frame .backdrop > h2,
-      html.in-hydra-frame h1.Title,
-      html.in-hydra-frame h2.SubTitle,
-      html.in-hydra-frame .Title,
-      html.in-hydra-frame .SubTitle,
-      html.in-hydra-frame .TPost,
-      html.in-hydra-frame .movtv-info,
-      html.in-hydra-frame .movie-layout,
-      html.in-hydra-frame .movie-header,
-      html.in-hydra-frame .movie-main,
       html.in-hydra-frame .movie-sidebar,
       html.in-hydra-frame .movie-sidebar-right,
-      html.in-hydra-frame .movie-content,
-      html.in-hydra-frame .Description,
-      html.in-hydra-frame .InfoList,
-      html.in-hydra-frame .VotesCn,
-      html.in-hydra-frame .Prct,
-      html.in-hydra-frame .meta,
-      html.in-hydra-frame .MvTbCn,
-      html.in-hydra-frame .all-episodes,
-      html.in-hydra-frame .episodes,
-      html.in-hydra-frame .episodes-nav,
-      html.in-hydra-frame .select-season,
-      html.in-hydra-frame #select-season,
-      html.in-hydra-frame .mb3,
-      html.in-hydra-frame .cont.mb3,
-      html.in-hydra-frame .TpRwCont,
-      html.in-hydra-frame .MovieList,
       html.in-hydra-frame .top-movies,
       html.in-hydra-frame .s-related,
       html.in-hydra-frame .related-movies,
@@ -341,7 +314,7 @@
         pointer-events: none !important;
       }
 
-      /* Expandir el contenedor del reproductor al 100vw x 100vh */
+      /* Contenedor del reproductor ocupando el área de visualización */
       html.in-hydra-frame .video-container,
       html.in-hydra-frame .TPlayer,
       html.in-hydra-frame .TPlayerCn,
@@ -356,29 +329,19 @@
       html.in-hydra-frame .video-content,
       html.in-hydra-frame .player_content,
       html.in-hydra-frame .player-holder {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-        width: 100vw !important;
+        width: 100% !important;
+        min-height: 480px !important;
         height: 100vh !important;
         max-width: 100vw !important;
         max-height: 100vh !important;
-        min-width: 100vw !important;
-        min-height: 100vh !important;
-        margin: 0 !important;
+        margin: 0 auto !important;
         padding: 0 !important;
-        padding-bottom: 0 !important; /* Neutraliza padding-bottom: 56.25% */
-        border: none !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
+        position: relative !important;
         background: #000 !important;
-        z-index: 2147483640 !important;
         overflow: hidden !important;
       }
 
-      /* Iframe o video interno ocupando exactamente el 100% */
+      /* Iframe y video interno ocupando el 100% del contenedor */
       html.in-hydra-frame .video-container iframe,
       html.in-hydra-frame .TPlayer iframe,
       html.in-hydra-frame .TPlayerCn iframe,
@@ -391,21 +354,11 @@
       html.in-hydra-frame .play-box iframe,
       html.in-hydra-frame #play-video iframe,
       html.in-hydra-frame video {
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100vw !important;
-        height: 100vh !important;
-        max-width: 100vw !important;
-        max-height: 100vh !important;
-        min-width: 100vw !important;
-        min-height: 100vh !important;
+        width: 100% !important;
+        height: 100% !important;
         border: none !important;
-        border-radius: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
         background: #000 !important;
-        z-index: 2147483641 !important;
+        display: block !important;
       }
 
       /* Botón de inicio Play previo a la carga (overlay PoseidonHD) */
@@ -569,7 +522,7 @@
         const elems = document.querySelectorAll(sel);
         elems.forEach(el => {
           if (el.id === 'hydra-tv-topbar' || el.closest('#hydra-tv-topbar')) return;
-          if (el.id === 'player' || el.id === 'video' || el.id === 'reproductor' || el.closest('#video')) return;
+          if (el.id === 'player' || el.id === 'video' || el.id === 'reproductor' || el.closest('#video') || el.closest('#player') || el.closest('.video-container') || el.closest('.TPlayer') || el.closest('.TPlayerCn') || el.closest('.embed_div')) return;
           if (el.closest('.movie-header') || el.closest('.movie-main') || el.closest('.movie-sidebar')) return;
           el.remove();
         });
@@ -721,16 +674,17 @@
       const target = (a.getAttribute('target') || '').toLowerCase();
       const href = (a.getAttribute('href') || '').toLowerCase();
       if (target === '_blank' || target === '_new') {
-        // En sitios de streaming NINGÚN enlace target="_blank" es legítimo (todos son popups o anuncios)
-        console.warn('[Hydra Shield CAPTURE] target="_blank" en sitio de streaming neutralizado:', href);
-        a.removeAttribute('target');
-        a.target = '';
-        if (href && !href.startsWith('javascript:') && !href.includes(window.location.hostname)) {
+        const esAdUrl = ['adsterra', 'popcash', 'popads', 'propeller', 'onclick', 'monetag', 'exoclick', 'doubleclick', 'ad-maven', 'richpush', 'trafficjunky', 'bet365', '1xbet'].some(ad => href.includes(ad));
+        if (esAdUrl) {
+          console.warn('[Hydra Shield CAPTURE] Enlace publicitario bloqueado:', href);
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
           return;
         }
+        // Para reproductores y enlaces de servidores legítimos, permitir apertura en el mismo frame
+        a.removeAttribute('target');
+        a.target = '_self';
       }
     }
 
