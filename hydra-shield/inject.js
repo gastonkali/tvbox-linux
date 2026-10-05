@@ -50,7 +50,8 @@
     HTMLAnchorElement.prototype.click = function() {
       const target = (this.getAttribute('target') || '').toLowerCase();
       const href = (this.getAttribute('href') || '').toLowerCase();
-      if (target === '_blank' || target === '_new' || href.startsWith('javascript:')) {
+      // Solo neutralizar si es target="_blank" hacia un dominio externo real (NUNCA enlaces javascript: ni internos)
+      if ((target === '_blank' || target === '_new') && href && !href.startsWith('javascript:')) {
         if (!href.startsWith(window.location.origin) && !href.startsWith('/') && !href.startsWith('#')) {
           console.warn('[Hydra Shield MAIN] Enlace publicitario simulado bloqueado:', href);
           return;
@@ -58,16 +59,6 @@
       }
       return originalAnchorClick.apply(this, arguments);
     };
-  } catch(e) {}
-
-  // 4. Neutralizar scripts de frame-busting que intentan redirigir fuera del reproductor de Hydra TV
-  try {
-    if (window.top !== window.self) {
-      Object.defineProperty(window, 'top', {
-        get: function() { return window.self; },
-        set: function() {}
-      });
-    }
   } catch(e) {}
 
   // 5. Interceptar y filtrar temporadas vacías (Temporada 0) en Next.js (PoseidonHD, etc.)

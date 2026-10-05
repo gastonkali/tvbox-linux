@@ -494,6 +494,9 @@
       const elements = document.querySelectorAll('div, a, span, section');
       for (const el of elements) {
         if (el.id === 'hydra-tv-topbar' || el.closest('#hydra-tv-topbar')) continue;
+        if (el.id === 'start' || el.id === 'container' || el.id === 'player' || el.id === 'video' ||
+            el.closest('#player') || el.closest('#video') || el.closest('#container') || el.closest('.TPlayer')) continue;
+
         const style = window.getComputedStyle(el);
         const isOverlay = (style.position === 'fixed' || style.position === 'absolute');
         const zIndex = parseInt(style.zIndex, 10);
@@ -510,10 +513,18 @@
         }
       }
 
-      // Eliminar iframes publicitarios obvios
-      const adIframes = document.querySelectorAll('iframe[src*="ad"], iframe[src*="banner"], iframe[src*="pop"], iframe[src*="click"], iframe[src*="track"]');
+      // Eliminar únicamente iframes publicitarios confirmados externos (NUNCA reproductores)
+      const adIframes = document.querySelectorAll('iframe');
       adIframes.forEach(f => {
-        if (f.id !== 'hydra-player-iframe') f.remove();
+        if (f.id === 'playerIframe' || f.id === 'hydra-player-iframe') return;
+        if (f.closest('#player') || f.closest('#video') || f.closest('#reproductor') ||
+            f.closest('.video-container') || f.closest('.TPlayer') || f.closest('#container')) return;
+
+        const src = (f.src || '').toLowerCase();
+        const esAdUrl = ['adsterra', 'popcash', 'popads', 'propeller', 'onclick', 'monetag', 'exoclick', 'doubleclick', 'ad-maven', 'richpush', 'trafficjunky'].some(ad => src.includes(ad));
+        if (esAdUrl) {
+          f.remove();
+        }
       });
     } catch(e) {}
   }
@@ -524,20 +535,22 @@
     if (!el) return;
     if (el.id === 'hydra-btn-back' || el.closest('#hydra-tv-topbar')) return;
 
-    // Si el usuario hace clic en un enlace con target="_blank"
+    // Si el usuario hace clic en un enlace publicitario con target="_blank"
     const a = el.closest('a');
     if (a) {
       const target = (a.getAttribute('target') || '').toLowerCase();
       const href = (a.getAttribute('href') || '').toLowerCase();
-      if (target === '_blank' || target === '_new') {
-        if (!href.startsWith(window.location.origin) && !href.startsWith('/') && !href.startsWith('#')) {
-          console.warn('[Hydra Shield CAPTURE] Clic en enlace emergente bloqueado:', href);
+      if ((target === '_blank' || target === '_new') && href && !href.startsWith('javascript:')) {
+        const esAdUrl = ['adsterra', 'popcash', 'popads', 'propeller', 'onclick', 'monetag', 'exoclick', 'bet365', '1xbet', 'ad-maven'].some(ad => href.includes(ad));
+        if (esAdUrl) {
+          console.warn('[Hydra Shield CAPTURE] Anuncio externo bloqueado:', href);
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
-          a.remove();
           return;
         }
+        // Para otros enlaces, no abrir nueva ventana fuera de Hydra TV
+        a.setAttribute('target', '_self');
       }
     }
 
@@ -545,6 +558,9 @@
     try {
       const style = window.getComputedStyle(el);
       if ((style.position === 'fixed' || style.position === 'absolute') && parseInt(style.zIndex, 10) > 90) {
+        if (el.id === 'start' || el.id === 'container' || el.id === 'player' || el.id === 'video' ||
+            el.closest('#player') || el.closest('#video') || el.closest('#container') || el.closest('.TPlayer')) return;
+
         const rect = el.getBoundingClientRect();
         if (rect.width >= window.innerWidth * 0.6 && rect.height >= window.innerHeight * 0.6) {
           if (!el.querySelector('video') && el.tagName !== 'VIDEO') {
@@ -581,18 +597,8 @@
   // 5. Acelerador de Reproducción Inmediata
   function acelerarReproduccion() {
     try {
-      // A. PoseidonHD: Selección automática inicial una sola vez sin parpadeo de pestaña
-      if (host.includes('poseidon')) {
-        const primerServidor = document.querySelector('li.clili[data-tr]');
-        if (primerServidor && !primerServidor.dataset.hydraSelected) {
-          primerServidor.dataset.hydraSelected = 'true';
-          primerServidor.click();
-          setTimeout(() => {
-            const subTabs = document.querySelectorAll('.sub-tab-lang');
-            subTabs.forEach(st => st.classList.add('hide'));
-          }, 120);
-        }
-      }
+      // A. PoseidonHD: No disparar clics sintéticos automáticos en li.clili para que el desplegable "Español Latino" no se abra solo ni estorbe.
+      // El usuario interactúa libremente con los servidores.
 
       // B. Cinemitas: Clic en primer servidor
       if (host.includes('cinemitas') || document.querySelector('#playeroptionsul')) {

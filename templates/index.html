@@ -1180,11 +1180,16 @@
       to { transform: rotate(360deg); }
     }
 
+    /* Ocultar barra superior fija cuando el usuario está en el reproductor para no tapar la pantalla */
+    body.in-player-mode .navbar {
+      display: none !important;
+    }
+
     /* REPRODUCTOR INTEGRADO EN LA MISMA VENTANA (SPA THEATER) */
     #viewPlayer {
       display: none;
       width: 100%;
-      min-height: calc(100vh - 68px);
+      min-height: 100vh;
       background: #0a0b0e;
       position: relative;
       z-index: 50;
@@ -1195,12 +1200,15 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 36px;
-      background: rgba(15, 17, 23, 0.96);
+      padding: 10px 32px;
+      background: rgba(12, 14, 18, 0.98);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border-subtle);
       gap: 16px;
       flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
 
     .player-btn-back {
@@ -1351,18 +1359,20 @@
       display: block;
     }
 
-    /* PRESENTACIÓN HERO DE LA PELÍCULA EN REPRODUCTOR (IGUAL A LA PORTADA DE INICIO) */
+    /* PRESENTACIÓN HERO DE LA PELÍCULA EN REPRODUCTOR (UBICADA DEBAJO DEL VIDEO PARA NO OBSTRUIR) */
     .player-hero-billboard {
       position: relative;
       width: 100%;
-      min-height: 380px;
+      min-height: 360px;
       overflow: hidden;
       display: flex;
       align-items: center;
       padding: 36px 48px;
       box-sizing: border-box;
+      border-top: 1px solid var(--border-subtle);
       border-bottom: 1px solid var(--border-subtle);
       background: #0a0b0e;
+      margin-top: 8px;
     }
 
     .player-hero-backdrop {
@@ -1598,6 +1608,9 @@
           <span class="badge-pill" id="playerTypeBadge">FULL HD</span>
         </div>
         <div class="player-bar-actions">
+          <button class="player-action-btn" id="playerBtnInfoScroll" title="Ver ficha y sinopsis oficial">
+            ℹ Ver Sinopsis
+          </button>
           <button class="player-action-btn" id="playerBtnTvCast" title="Enviar video a la pantalla de la TV">
             📺 Enviar a la TV
           </button>
@@ -1607,7 +1620,19 @@
         </div>
       </div>
 
-      <!-- PRESENTACIÓN CINEMATOGRÁFICA DE LA PELÍCULA (HERO BILLBOARD) -->
+      <!-- 1. CONTENEDOR DEL VIDEO Y SERVIDORES (PRIMERO EN PANTALLA, 100% VISIBLE Y DESPEJADO) -->
+      <div class="player-theater-viewport">
+        <div class="player-servers-bar" id="playerServersBar" style="display: none;">
+          <span class="servers-label">Servidor / Opción:</span>
+          <div class="servers-list" id="playerServersList"></div>
+        </div>
+
+        <div class="player-frame-container">
+          <iframe id="playerIframe" src="" allow="autoplay; encrypted-media; fullscreen" allowfullscreen frameborder="0"></iframe>
+        </div>
+      </div>
+
+      <!-- 2. PRESENTACIÓN CINEMATOGRÁFICA DE LA PELÍCULA (DEBAJO DEL VIDEO, NO LO TAPA) -->
       <section class="player-hero-billboard" id="playerHeroBillboard">
         <img class="player-hero-backdrop" id="playerHeroBackdrop" src="" alt="Backdrop">
         <div class="player-hero-gradient"></div>
@@ -1626,7 +1651,7 @@
             <h1 class="player-hero-title" id="playerHeroTitle">Cargando película...</h1>
             <p class="player-hero-desc" id="playerHeroDesc">Cargando sinopsis oficial...</p>
             <div class="player-hero-actions">
-              <button class="btn-hero-play" id="playerHeroBtnPlay">▶ Ver Video Abajo</button>
+              <button class="btn-hero-play" id="playerHeroBtnBackToVideo">▲ Volver al Video</button>
               <button class="btn-hero-trailer" id="playerHeroBtnTrailer">🎬 Ver Trailer Oficial</button>
               <button class="btn-hero-tv" id="playerHeroBtnTv">📺 Enviar a la TV</button>
               <button class="btn-hero-list" id="playerHeroBtnList">+ Mi Lista</button>
@@ -1634,18 +1659,6 @@
           </div>
         </div>
       </section>
-
-      <!-- Contenedor del video y servidores -->
-      <div class="player-theater-viewport">
-        <div class="player-servers-bar" id="playerServersBar" style="display: none;">
-          <span class="servers-label">Servidor / Opción:</span>
-          <div class="servers-list" id="playerServersList"></div>
-        </div>
-
-        <div class="player-frame-container">
-          <iframe id="playerIframe" src="" allow="autoplay; encrypted-media; fullscreen" allowfullscreen frameborder="0"></iframe>
-        </div>
-      </div>
     </div>
   </main>
 
@@ -1725,6 +1738,7 @@
       playerTitleText: document.getElementById('playerTitleText'),
       playerYearBadge: document.getElementById('playerYearBadge'),
       playerTypeBadge: document.getElementById('playerTypeBadge'),
+      playerBtnInfoScroll: document.getElementById('playerBtnInfoScroll'),
       playerBtnTvCast: document.getElementById('playerBtnTvCast'),
       playerBtnFullscreen: document.getElementById('playerBtnFullscreen'),
       playerServersBar: document.getElementById('playerServersBar'),
@@ -1739,7 +1753,7 @@
       playerHeroCategory: document.getElementById('playerHeroCategory'),
       playerHeroTitle: document.getElementById('playerHeroTitle'),
       playerHeroDesc: document.getElementById('playerHeroDesc'),
-      playerHeroBtnPlay: document.getElementById('playerHeroBtnPlay'),
+      playerHeroBtnBackToVideo: document.getElementById('playerHeroBtnBackToVideo'),
       playerHeroBtnTrailer: document.getElementById('playerHeroBtnTrailer'),
       playerHeroBtnTv: document.getElementById('playerHeroBtnTv'),
       playerHeroBtnList: document.getElementById('playerHeroBtnList'),
@@ -1852,16 +1866,19 @@
       }
       state.view = viewName;
       if (viewName === 'home') {
+        document.body.classList.remove('in-player-mode');
         el.viewHome.style.display = 'block';
         el.viewGrid.style.display = 'none';
         if (el.viewPlayer) el.viewPlayer.style.display = 'none';
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else if (viewName === 'grid') {
+        document.body.classList.remove('in-player-mode');
         el.viewHome.style.display = 'none';
         el.viewGrid.style.display = 'block';
         if (el.viewPlayer) el.viewPlayer.style.display = 'none';
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else if (viewName === 'player') {
+        document.body.classList.add('in-player-mode');
         el.viewHome.style.display = 'none';
         el.viewGrid.style.display = 'none';
         if (el.viewPlayer) el.viewPlayer.style.display = 'flex';
@@ -2400,13 +2417,16 @@
           .catch(() => {});
       }
 
-      // Botones de acción del Hero de presentación
-      if (el.playerHeroBtnPlay) {
-        el.playerHeroBtnPlay.onclick = () => {
-          if (el.playerServersBar && el.playerServersBar.style.display !== 'none') {
-            el.playerServersBar.scrollIntoView({ behavior: 'smooth' });
-          } else if (el.playerFrameContainer) {
-            el.playerFrameContainer.scrollIntoView({ behavior: 'smooth' });
+      // Botones de acción del Hero y de la barra del reproductor
+      if (el.playerHeroBtnBackToVideo) {
+        el.playerHeroBtnBackToVideo.onclick = () => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+      }
+      if (el.playerBtnInfoScroll) {
+        el.playerBtnInfoScroll.onclick = () => {
+          if (el.playerHeroBillboard) {
+            el.playerHeroBillboard.scrollIntoView({ behavior: 'smooth' });
           }
         };
       }
@@ -2480,6 +2500,7 @@
     }
 
     function cerrarReproductorEnMismaVentana() {
+      document.body.classList.remove('in-player-mode');
       if (document.fullscreenElement) {
         try { document.exitFullscreen(); } catch (e) {}
       }
