@@ -32,6 +32,30 @@ DEAD_KEYWORDS = [
     'cant connect to server', 'manifestloaderror', 'hls.js error'
 ]
 
+class ErrorConexionRed(Exception):
+    """Excepción lanzada cuando una petición falla por falta de internet o error de red DNS/socket."""
+    pass
+
+def verificar_conexion_internet(timeout=3):
+    """
+    Comprueba de forma rápida y confiable si la máquina tiene acceso a Internet.
+    Prueba contra endpoints de altísima disponibilidad.
+    """
+    test_urls = [
+        "https://1.1.1.1",
+        "https://www.google.com",
+        "https://cloudflare.com"
+    ]
+    for u in test_urls:
+        try:
+            req = urllib.request.Request(u, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                if resp.status in (200, 301, 302, 307):
+                    return True
+        except Exception:
+            continue
+    return False
+
 def verificar_url_cyberlocker(embed_url, timeout=5):
     """
     Verifica si una URL de cyberlocker (voe, doodstream, streamtape, waaw, etc.) está viva.
@@ -106,6 +130,7 @@ def verificar_url_cyberlocker(embed_url, timeout=5):
             'alive': False,
             'status_code': he.code,
             'motivo': f'HTTP Error {he.code}',
+            'error_red': False,
             'tiempo_ms': t_ms
         }
     except urllib.error.URLError as ue:
@@ -114,20 +139,34 @@ def verificar_url_cyberlocker(embed_url, timeout=5):
             'alive': False,
             'status_code': 0,
             'motivo': f'Conexión fallida ({ue.reason})',
+            'error_red': True,
             'tiempo_ms': t_ms
         }
-    except Exception as e:
+    except (TimeoutError, ConnectionError) as ce:
         t_ms = int((time.time() - t0) * 1000)
         return {
             'alive': False,
             'status_code': 0,
+            'motivo': f'Conexión fallida ({str(ce)})',
+            'error_red': True,
+            'tiempo_ms': t_ms
+        }
+    except Exception as e:
+        t_ms = int((time.time() - t0) * 1000)
+        err_msg = str(e).lower()
+        es_red = any(k in err_msg for k in ['timeout', 'connection', 'name resolution', 'unreachable'])
+        return {
+            'alive': False,
+            'status_code': 0,
             'motivo': f'Error ({str(e)})',
+            'error_red': es_red,
             'tiempo_ms': t_ms
         }
 
 def extraer_cyberlockers_poseidon(page_url, timeout=6):
     """
     Extrae la lista completa de opciones y servidores de una página de PoseidonHD (__NEXT_DATA__).
+    Si hay un fallo de red o caída de internet, lanza ErrorConexionRed para evitar falsos descartes.
     """
     try:
         req = urllib.request.Request(page_url, headers=HEADERS_STD)
@@ -161,7 +200,18 @@ def extraer_cyberlockers_poseidon(page_url, timeout=6):
                     })
                     
         return enlaces_encontrados
+    except urllib.error.HTTPError as he:
+        if he.code in (404, 410):
+            return []
+        print(f"[Verificador] HTTP {he.code} en PoseidonHD {page_url}")
+        raise ErrorConexionRed(f"HTTP {he.code} en proveedor")
+    except (urllib.error.URLError, TimeoutError, ConnectionError) as ue:
+        print(f"[Verificador] Error de red en PoseidonHD {page_url}: {ue}")
+        raise ErrorConexionRed(f"Fallo de conexión ({ue})")
     except Exception as e:
+        err_msg = str(e).lower()
+        if any(k in err_msg for k in ['timeout', 'temporary failure', 'name resolution', 'unreachable']):
+            raise ErrorConexionRed(f"Fallo de conexión ({e})")
         print(f"[Verificador] Error extrayendo PoseidonHD {page_url}: {e}")
         return []
 
@@ -449,7 +499,16 @@ def resolver_servidores_inteligente(item, catalogo_cache=None):
         url_poseidon = orig['url']
             
     if url_poseidon:
-        lockers = extraer_cyberlockers_poseidon(url_poseidon)
+        try:
+            lockers = extraer_cyberlockers_poseidon(url_poseidon)
+        except ErrorConexionRed as e_red:
+            return {
+                'disponible': False,
+                'motivo': f'Error de red ({e_red})',
+                'error_red': True,
+                'servidores': []
+            }
+
         if not lockers:
             # PoseidonHD no tiene videos subidos para este título
             # Verificar si hay opciones alternativas
@@ -458,11 +517,15 @@ def resolver_servidores_inteligente(item, catalogo_cache=None):
                 return {
                     'disponible': False,
                     'motivo': 'Este título fue catalogado pero el proveedor aún no ha publicado los archivos de video.',
+                    'error_red': False,
                     'servidores': []
                 }
             cands_alt = []
+            fallos_red_alt = 0
             for opt in opts_alternativas:
                 check = verificar_url_cyberlocker(opt)
+                if check.get('error_red'):
+                    fallos_red_alt += 1
                 if check['alive']:
                     cands_alt.append({
                         'nombre': detectar_nombre_locker(opt),
@@ -471,9 +534,17 @@ def resolver_servidores_inteligente(item, catalogo_cache=None):
                         'idioma': 'latino'
                     })
             if not cands_alt:
+                if fallos_red_alt > 0 and fallos_red_alt == len(opts_alternativas):
+                    return {
+                        'disponible': False,
+                        'motivo': 'Error de red con servidores alternativos',
+                        'error_red': True,
+                        'servidores': []
+                    }
                 return {
                     'disponible': False,
                     'motivo': 'Todos los servidores alternativos de este título se encuentran caídos.',
+                    'error_red': False,
                     'servidores': []
                 }
             return {
@@ -512,6 +583,7 @@ def resolver_servidores_inteligente(item, catalogo_cache=None):
                 'l': l,
                 'alive': check['alive'],
                 'motivo': check['motivo'],
+                'error_red': check.get('error_red', False),
                 'url': p_url,
                 'dest': dest
             }
@@ -520,7 +592,10 @@ def resolver_servidores_inteligente(item, catalogo_cache=None):
             resultados = list(executor.map(probar_locker, candidatos_a_testear))
             
         servidores_vivos = []
+        fallos_red_test = 0
         for r in resultados:
+            if r.get('error_red') or ('conexión fallida' in r.get('motivo', '').lower()):
+                fallos_red_test += 1
             if r['alive']:
                 l = r['l']
                 servidores_vivos.append({
@@ -549,9 +624,17 @@ def resolver_servidores_inteligente(item, catalogo_cache=None):
                 })
                 
         if not servidores_vivos:
+            if fallos_red_test > 0 and fallos_red_test == len(resultados):
+                return {
+                    'disponible': False,
+                    'motivo': 'Error de red: los servidores de video no respondieron por timeout de conexión',
+                    'error_red': True,
+                    'servidores': []
+                }
             return {
                 'disponible': False,
                 'motivo': 'Todos los servidores de este título se encuentran temporalmente caídos.',
+                'error_red': False,
                 'servidores': []
             }
             
@@ -581,8 +664,11 @@ def resolver_servidores_inteligente(item, catalogo_cache=None):
     # 3. Proveedores no-poseidon (Cinemitas, Pelicine, etc.)
     opciones = item.get('opciones', [url_actual])
     vivos_otros = []
+    fallos_red_otros = 0
     for opt in opciones[:4]:
         check = verificar_url_cyberlocker(opt)
+        if check.get('error_red'):
+            fallos_red_otros += 1
         if check['alive']:
             vivos_otros.append({
                 'nombre': detectar_nombre_locker(opt),
@@ -592,9 +678,17 @@ def resolver_servidores_inteligente(item, catalogo_cache=None):
             })
             
     if not vivos_otros:
+        if fallos_red_otros > 0 and fallos_red_otros == len(opciones[:4]):
+            return {
+                'disponible': False,
+                'motivo': 'Error de red: no se pudo conectar con los servidores.',
+                'error_red': True,
+                'servidores': []
+            }
         return {
             'disponible': False,
             'motivo': 'Servidores de video no disponibles.',
+            'error_red': False,
             'servidores': []
         }
         

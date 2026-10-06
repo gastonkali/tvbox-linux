@@ -3572,7 +3572,11 @@
         if (el.auditProgressPct) el.auditProgressPct.innerText = `${pct}% completado (${proc}/${st.total || 0})`;
 
         if (st.activo) {
-          if (el.auditProgressStatusText) el.auditProgressStatusText.innerHTML = '<span style="color: #4ade80;">● En ejecución en segundo plano</span>';
+          if (st.pausado_por_red) {
+            if (el.auditProgressStatusText) el.auditProgressStatusText.innerHTML = '<span style="color: #facc15; font-weight: bold;">⚠️ Pausado por corte de Internet (esperando reconexión)</span>';
+          } else {
+            if (el.auditProgressStatusText) el.auditProgressStatusText.innerHTML = '<span style="color: #4ade80;">● En ejecución en segundo plano</span>';
+          }
           if (el.btnAuditorIniciar) el.btnAuditorIniciar.style.display = 'none';
           if (el.btnAuditorDetener) el.btnAuditorDetener.style.display = 'inline-block';
         } else {
