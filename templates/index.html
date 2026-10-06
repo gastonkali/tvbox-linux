@@ -949,6 +949,145 @@
       background: rgba(255, 255, 255, 0.2);
     }
 
+    /* AUDITOR Y PURGADOR DE CYBERLOCKERS */
+    .admin-audit-section {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin: 16px 0;
+    }
+
+    .admin-audit-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .admin-audit-title {
+      display: block;
+      font-weight: 700;
+      color: #38bdf8;
+      font-size: 0.95rem;
+    }
+
+    .admin-audit-sub {
+      display: block;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+
+    .admin-audit-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-audit-action {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+      padding: 7px 13px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-audit-action:hover {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: #38bdf8;
+      color: #fff;
+    }
+
+    .btn-purge-action {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: rgba(16, 185, 129, 0.5);
+      color: #34d399;
+    }
+
+    .btn-purge-action:hover {
+      background: rgba(16, 185, 129, 0.35);
+      border-color: #34d399;
+      color: #fff;
+    }
+
+    .admin-audit-status {
+      margin-top: 10px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      background: rgba(255, 255, 255, 0.05);
+      color: #e2e8f0;
+    }
+
+    .admin-audit-list {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 180px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .audit-server-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.25);
+      font-size: 0.82rem;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .audit-server-item.alive {
+      border-left: 3px solid #10b981;
+    }
+
+    .audit-server-item.dead {
+      border-left: 3px solid #ef4444;
+      opacity: 0.75;
+    }
+
+    .audit-server-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .audit-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .audit-badge.viva {
+      background: rgba(16, 185, 129, 0.25);
+      color: #34d399;
+    }
+
+    .audit-badge.caida {
+      background: rgba(239, 68, 68, 0.25);
+      color: #f87171;
+    }
+
+    .audit-server-info {
+      color: #94a3b8;
+      font-size: 0.78rem;
+    }
+
     /* FILAS HORIZONTALES (RAILS TIPO NETFLIX) */
     .rails-container {
       padding: 20px 48px 60px 48px;
@@ -2143,7 +2282,24 @@
 
         <!-- PESTAÑA 2: MODIFICAR URL / SERVIDORES -->
         <div class="admin-tab-content" id="tabContentModificar">
-          <p class="admin-tab-desc">Podés actualizar la URL de origen de este título o añadir servidores de streaming de respaldo:</p>
+          <p class="admin-tab-desc">Podés actualizar la URL de origen de este título o auditar y purgar los servidores caídos de forma automática:</p>
+
+          <!-- HERRAMIENTA DE AUDITORÍA Y PURGA EN VIVO -->
+          <div class="admin-audit-section">
+            <div class="admin-audit-header">
+              <div>
+                <span class="admin-audit-title">⚡ Auditor y Purgador de Servidores</span>
+                <span class="admin-audit-sub">Detecta enlaces 200 OK y purga automáticamente los caídos (404/eliminados)</span>
+              </div>
+              <div class="admin-audit-btns">
+                <button type="button" class="btn-audit-action" id="btnAdminVerificarServidores">🔍 Analizar Servidores</button>
+                <button type="button" class="btn-audit-action btn-purge-action" id="btnAdminPurgarServidores">⚡ Purgar Caídos y Aplicar</button>
+              </div>
+            </div>
+            <div class="admin-audit-status" id="adminAuditStatus" style="display: none;"></div>
+            <div class="admin-audit-list" id="adminAuditList" style="display: none;"></div>
+          </div>
+
           <div class="admin-form-group">
             <label class="admin-label">Título:</label>
             <input type="text" class="admin-input" id="adminEditTitulo">
@@ -2300,6 +2456,10 @@
       adminEditUrl: document.getElementById('adminEditUrl'),
       adminEditOpciones: document.getElementById('adminEditOpciones'),
       btnAdminGuardarCambios: document.getElementById('btnAdminGuardarCambios'),
+      btnAdminVerificarServidores: document.getElementById('btnAdminVerificarServidores'),
+      btnAdminPurgarServidores: document.getElementById('btnAdminPurgarServidores'),
+      adminAuditStatus: document.getElementById('adminAuditStatus'),
+      adminAuditList: document.getElementById('adminAuditList'),
       adminDeleteMotivo: document.getElementById('adminDeleteMotivo'),
       btnAdminConfirmarEliminar: document.getElementById('btnAdminConfirmarEliminar'),
       adminReportsList: document.getElementById('adminReportsList'),
@@ -2636,6 +2796,23 @@
         if (el.adminDeleteMotivo) {
           el.adminDeleteMotivo.value = '';
         }
+        if (el.adminAuditStatus) {
+          el.adminAuditStatus.style.display = 'none';
+          el.adminAuditStatus.innerHTML = '';
+        }
+        if (el.adminAuditList) {
+          el.adminAuditList.style.display = 'none';
+          el.adminAuditList.innerHTML = '';
+        }
+        if (el.btnAdminVerificarServidores) {
+          el.btnAdminVerificarServidores.disabled = false;
+          el.btnAdminVerificarServidores.innerText = '🔍 Analizar Servidores';
+        }
+        if (el.btnAdminPurgarServidores) {
+          el.btnAdminPurgarServidores.disabled = false;
+          el.btnAdminPurgarServidores.innerText = '⚡ Purgar Caídos y Aplicar';
+        }
+        state.ultimoReporteAuditoria = null;
         if (el.tabBtnReportar) el.tabBtnReportar.disabled = false;
         if (el.tabBtnModificar) el.tabBtnModificar.disabled = false;
         if (el.tabBtnEliminar) el.tabBtnEliminar.disabled = false;
@@ -2891,6 +3068,142 @@
       } finally {
         el.btnAdminGuardarCambios.disabled = false;
         el.btnAdminGuardarCambios.innerText = '💾 Guardar Cambios';
+      }
+    }
+
+    async function verificarServidoresAdmin() {
+      const item = state.currentPlayerItem;
+      if (!item) {
+        showToast('No hay ninguna película abierta para verificar');
+        return;
+      }
+
+      if (el.btnAdminVerificarServidores) {
+        el.btnAdminVerificarServidores.disabled = true;
+        el.btnAdminVerificarServidores.innerText = '⏳ Analizando...';
+      }
+      if (el.adminAuditStatus) {
+        el.adminAuditStatus.style.display = 'block';
+        el.adminAuditStatus.innerHTML = 'Probando códigos HTTP 200 y conectividad en paralelo...';
+      }
+      if (el.adminAuditList) {
+        el.adminAuditList.style.display = 'block';
+        el.adminAuditList.innerHTML = '<div style="text-align: center; padding: 12px; color: #94a3b8;"><div class="spinner" style="margin: 0 auto 8px auto;"></div>Comprobando cyberlockers...</div>';
+      }
+
+      try {
+        const res = await fetch('/api/admin/verificar_servidores', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ item_id: item.id })
+        });
+        const data = await res.json();
+        if (res.ok && data.success && data.reporte) {
+          const rep = data.reporte;
+          state.ultimoReporteAuditoria = rep;
+
+          const total = rep.total || 0;
+          const vivos = rep.vivos || 0;
+          const caidos = rep.caidos || 0;
+
+          if (el.adminAuditStatus) {
+            el.adminAuditStatus.innerHTML = `<strong>Resultado:</strong> ${vivos} vivos 🟢 | ${caidos} caídos 🔴 (Total analizados: ${total})`;
+          }
+
+          if (el.adminAuditList) {
+            if (!rep.servidores || rep.servidores.length === 0) {
+              el.adminAuditList.innerHTML = '<div style="padding: 8px; color: #94a3b8;">No se detectaron servidores para auditar.</div>';
+            } else {
+              el.adminAuditList.innerHTML = '';
+              rep.servidores.forEach(s => {
+                const row = document.createElement('div');
+                row.className = `audit-server-item ${s.alive ? 'alive' : 'dead'}`;
+                row.innerHTML = `
+                  <div class="audit-server-left">
+                    <span class="audit-badge ${s.alive ? 'viva' : 'caida'}">${s.alive ? '✓ VIVO' : '✕ CAÍDO'}</span>
+                    <strong style="color: #fff;">${escapeHtml(s.nombre || 'Servidor')}</strong>
+                    <span class="audit-server-info">(${s.status_code || 0} - ${escapeHtml(s.motivo || '')})</span>
+                  </div>
+                  <span style="color: #64748b; font-size: 0.75rem;">${s.tiempo_ms || 0}ms</span>
+                `;
+                el.adminAuditList.appendChild(row);
+              });
+            }
+          }
+
+          if (vivos > 0) {
+            showToast(`🔍 Auditoría: ${vivos} servidores funcionando`);
+          } else {
+            showToast(`⚠️ Ningún servidor respondió HTTP 200`);
+          }
+        } else {
+          showToast('Error en la auditoría: ' + (data.error || 'Desconocido'));
+        }
+      } catch (e) {
+        showToast('Error de red al auditar servidores');
+      } finally {
+        if (el.btnAdminVerificarServidores) {
+          el.btnAdminVerificarServidores.disabled = false;
+          el.btnAdminVerificarServidores.innerText = '🔍 Analizar Servidores';
+        }
+      }
+    }
+
+    async function purgarServidoresAdmin() {
+      const item = state.currentPlayerItem;
+      if (!item) {
+        showToast('No hay ninguna película abierta para purgar');
+        return;
+      }
+
+      if (el.btnAdminPurgarServidores) {
+        el.btnAdminPurgarServidores.disabled = true;
+        el.btnAdminPurgarServidores.innerText = '⚡ Purgando...';
+      }
+
+      try {
+        const payload = { item_id: item.id };
+        if (state.ultimoReporteAuditoria && state.ultimoReporteAuditoria.id === item.id) {
+          payload.reporte = state.ultimoReporteAuditoria;
+        }
+
+        const res = await fetch('/api/admin/purgar_servidores', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast('⚡ ' + (data.message || 'Servidores purgados'));
+          
+          const itemActualizado = data.item;
+          if (itemActualizado) {
+            item.url = itemActualizado.url;
+            item.opciones = itemActualizado.opciones || [];
+            
+            // Actualizar campos del formulario en el modal
+            if (el.adminEditUrl) el.adminEditUrl.value = item.url;
+            if (el.adminEditOpciones) el.adminEditOpciones.value = item.opciones.join('\n');
+            
+            // Re-ejecutar reproducción con la mejor opción viva de inmediato
+            ejecutarReproduccion(item);
+          }
+
+          if (el.adminAuditStatus) {
+            el.adminAuditStatus.style.display = 'block';
+            el.adminAuditStatus.innerHTML = `✅ <strong>Servidores purgados con éxito:</strong> Ahora sólo se reproducirán fuentes verificadas 200 OK.`;
+          }
+        } else {
+          showToast('No se pudo purgar: ' + (data.message || data.error || 'Desconocido'));
+        }
+      } catch (e) {
+        showToast('Error de red al purgar servidores');
+      } finally {
+        if (el.btnAdminPurgarServidores) {
+          el.btnAdminPurgarServidores.disabled = false;
+          el.btnAdminPurgarServidores.innerText = '⚡ Purgar Caídos y Aplicar';
+        }
       }
     }
 
@@ -3449,6 +3762,8 @@
       // Acciones del Modal Admin
       if (el.btnAdminEnviarReporte) el.btnAdminEnviarReporte.addEventListener('click', enviarReporteAdmin);
       if (el.btnAdminGuardarCambios) el.btnAdminGuardarCambios.addEventListener('click', guardarCambiosAdmin);
+      if (el.btnAdminVerificarServidores) el.btnAdminVerificarServidores.addEventListener('click', verificarServidoresAdmin);
+      if (el.btnAdminPurgarServidores) el.btnAdminPurgarServidores.addEventListener('click', purgarServidoresAdmin);
       if (el.btnAdminConfirmarEliminar) el.btnAdminConfirmarEliminar.addEventListener('click', confirmarEliminarAdmin);
       if (el.btnAdminRecargarReportes) el.btnAdminRecargarReportes.addEventListener('click', cargarReportesAdmin);
       if (el.playerHeroBtnAdmin) {

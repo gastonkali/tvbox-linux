@@ -9,6 +9,7 @@ import time
 import datetime
 from collections import defaultdict
 from flask import Flask, render_template, jsonify, request
+from verificador_cyberlockers import auditar_item_completo, purgar_item_a_vivos
 
 app = Flask(__name__)
 brave_process = None
@@ -1328,6 +1329,79 @@ def api_admin_modificar_item():
     construir_home_feed()
     print(f"[Admin] Título modificado: {item.get('titulo')} -> {item.get('url')}")
     return jsonify({"status": "ok", "success": True, "item": formatear_item_api(item)})
+
+@app.route("/api/admin/verificar_servidores", methods=["POST"])
+def api_admin_verificar_servidores():
+    """Audita en vivo el estado HTTP y disponibilidad de todos los servidores y cyberlockers de un título."""
+    global CATALOGO_CACHE, ITEMS_BY_ID
+    data = request.get_json(silent=True) or {}
+    item_id = data.get("item_id")
+    if not item_id:
+        return jsonify({"error": "Falta item_id"}), 400
+        
+    try:
+        item_id = int(item_id)
+    except (ValueError, TypeError):
+        return jsonify({"error": "ID inválido"}), 400
+        
+    item = ITEMS_BY_ID.get(item_id)
+    if not item:
+        for it in CATALOGO_CACHE:
+            if it.get("id") == item_id:
+                item = it
+                break
+                
+    if not item:
+        return jsonify({"error": "Título no encontrado"}), 404
+        
+    reporte = auditar_item_completo(item, catalogo_cache=CATALOGO_CACHE)
+    return jsonify({
+        "status": "ok",
+        "success": True,
+        "reporte": reporte
+    })
+
+@app.route("/api/admin/purgar_servidores", methods=["POST"])
+def api_admin_purgar_servidores():
+    """Purga automáticamente servidores caídos (404/rotos) y deja únicamente opciones vivas y funcionando."""
+    global CATALOGO_CACHE, ITEMS_BY_ID
+    data = request.get_json(silent=True) or {}
+    item_id = data.get("item_id")
+    if not item_id:
+        return jsonify({"error": "Falta item_id"}), 400
+        
+    try:
+        item_id = int(item_id)
+    except (ValueError, TypeError):
+        return jsonify({"error": "ID inválido"}), 400
+        
+    item = ITEMS_BY_ID.get(item_id)
+    if not item:
+        return jsonify({"error": "Título no encontrado"}), 404
+        
+    reporte = data.get("reporte")
+    if not reporte:
+        reporte = auditar_item_completo(item, catalogo_cache=CATALOGO_CACHE)
+        
+    ok, msg, item_actualizado = purgar_item_a_vivos(item, reporte, guardar_en_archivo=True)
+    if not ok:
+        return jsonify({"status": "error", "message": msg}), 400
+        
+    ITEMS_BY_ID[item_id] = item_actualizado
+    for i, it in enumerate(CATALOGO_CACHE):
+        if it.get("id") == item_id:
+            CATALOGO_CACHE[i] = item_actualizado
+            break
+            
+    construir_home_feed()
+    print(f"[Admin Purgador] Item {item_id} ({item.get('titulo')}) purgado: {msg}")
+    return jsonify({
+        "status": "ok",
+        "success": True,
+        "message": msg,
+        "item": formatear_item_api(item_actualizado),
+        "reporte": reporte
+    })
 
 @app.route("/api/admin/eliminar_item", methods=["POST"])
 def api_admin_eliminar_item():
