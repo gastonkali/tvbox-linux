@@ -45,6 +45,38 @@ def verificar_url_cyberlocker(embed_url, timeout=5):
         elif 'netu.to/f/' in embed_url:
             target_url = embed_url.replace('/f/', '/e/')
 
+        # Verificación directa para Filemoon / Byse (SPA que retorna 200 pero su API interna da 404 si el archivo fue borrado)
+        if 'bysejikuar' in target_url or 'filemoon' in target_url:
+            m_code = re.search(r'/(?:e|d)/([a-zA-Z0-9]+)', target_url)
+            if m_code:
+                code_fm = m_code.group(1)
+                api_fm = f'https://bysejikuar.com/api/videos/{code_fm}/'
+                try:
+                    req_fm = urllib.request.Request(api_fm, headers=HEADERS_STD)
+                    resp_fm = urllib.request.urlopen(req_fm, timeout=timeout)
+                    content_fm = resp_fm.read(2048).decode('utf-8', errors='ignore').lower()
+                    if 'error' in content_fm or 'missing' in content_fm or 'not found' in content_fm:
+                        return {
+                            'alive': False,
+                            'status_code': 404,
+                            'motivo': 'Archivo eliminado en Filemoon (404)',
+                            'tiempo_ms': int((time.time() - t0) * 1000)
+                        }
+                except urllib.error.HTTPError as he:
+                    return {
+                        'alive': False,
+                        'status_code': he.code,
+                        'motivo': f'Archivo eliminado en Filemoon ({he.code})',
+                        'tiempo_ms': int((time.time() - t0) * 1000)
+                    }
+                except Exception as efm:
+                    return {
+                        'alive': False,
+                        'status_code': 0,
+                        'motivo': f'Fallo Filemoon ({efm})',
+                        'tiempo_ms': int((time.time() - t0) * 1000)
+                    }
+
         req = urllib.request.Request(target_url, headers=HEADERS_STD)
         resp = urllib.request.urlopen(req, timeout=timeout)
         code = resp.getcode()
@@ -156,6 +188,7 @@ def detectar_nombre_locker(url):
     if 'dood' in u: return 'Doodstream'
     if 'waaw' in u or 'netu' in u: return 'Netu / Waaw'
     if 'vidhide' in u: return 'Vidhide'
+    if 'filemoon' in u or 'byse' in u: return 'Filemoon'
     if 'voe' in u: return 'VOE'
     if 'streamtape' in u: return 'Streamtape'
     if 'streamwish' in u: return 'Streamwish'
@@ -454,7 +487,9 @@ def resolver_servidores_inteligente(item, catalogo_cache=None):
             score = 0
             locker = l.get('locker', '').lower()
             if 'vidhide' in locker: score += 100
+            elif 'filelions' in locker: score += 95
             elif 'dood' in locker: score += 70
+            elif 'filemoon' in locker: score += 60
             elif 'netu' in locker or 'waaw' in locker: score += 40
             elif 'voe' in locker: score += 20
             elif 'streamtape' in locker: score += 10

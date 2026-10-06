@@ -149,5 +149,23 @@
       }
     ],
     "fecha": "2026-10-05T22:33:54-0300"
+  },
+  "8697": {
+    "item_id": 8697,
+    "titulo": "Duplicidad (2025) | Tyler Perry’s Duplicity",
+    "url": "https://player.poseidonhd2.co/player.php?h=3HIdfUNk1x9FKqhEuaYLNgXnbml._IWEgU7whR9gMP.dHsp46J6NJbvAtyg5wg9T",
+    "opciones": [
+      "https://player.poseidonhd2.co/player.php?h=3HIdfUNk1x9FKqhEuaYLNgXnbml._IWEgU7whR9gMP.dHsp46J6NJbvAtyg5wg9T"
+    ],
+    "servidores_detalle": [
+      {
+        "nombre": "Vidhide (Latino HD)",
+        "locker": "vidhide",
+        "idioma": "latino",
+        "calidad": "HD",
+        "url": "https://player.poseidonhd2.co/player.php?h=3HIdfUNk1x9FKqhEuaYLNgXnbml._IWEgU7whR9gMP.dHsp46J6NJbvAtyg5wg9T"
+      }
+    ],
+    "fecha": "2026-10-05T23:06:40-0300"
   }
 }
