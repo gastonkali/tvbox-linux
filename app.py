@@ -1477,5 +1477,106 @@ def api_admin_eliminar_item():
     print(f"[Admin] Título eliminado del catálogo: {titulo} (ID {item_id})")
     return jsonify({"status": "ok", "success": True, "message": f"'{titulo}' eliminado del catálogo"})
 
+# ==============================================================================
+# AUDITOR DE CATÁLOGO EN SEGUNDO PLANO
+# ==============================================================================
+AUDITOR_THREAD = None
+AUDITOR_ESTADO_FILE = os.path.join(BASE_DIR, "auditoria_estado.json")
+AUDITOR_STOP_FLAG = os.path.join(BASE_DIR, "auditoria_stop.flag")
+
+from auditor_catalogo import AuditorCatalogo
+
+def _ejecutar_auditor_hilo(workers=4, auto_clean=False, resume=True, limit=None):
+    global AUDITOR_THREAD
+    try:
+        auditor = AuditorCatalogo(workers=workers, auto_clean=auto_clean, resume=resume, limit=limit)
+        auditor.ejecutar()
+    except Exception as e:
+        print(f"[Auditor Hilo] Error en ejecución: {e}")
+    finally:
+        AUDITOR_THREAD = None
+
+@app.route("/api/admin/auditor/estado")
+def api_admin_auditor_estado():
+    """Consulta el progreso en tiempo real de la auditoría de catálogo."""
+    global AUDITOR_THREAD
+    estado = cargar_json_seguro(AUDITOR_ESTADO_FILE, {
+        "activo": False,
+        "indice_actual": 0,
+        "total": 0,
+        "porcentaje": 0,
+        "vivos": 0,
+        "caidos": 0,
+        "ultimo_titulo": "",
+        "ultimo_resultado": "",
+        "auto_clean": False
+    })
+    hilo_vivo = AUDITOR_THREAD is not None and AUDITOR_THREAD.is_alive()
+    estado["activo"] = hilo_vivo
+    return jsonify(estado)
+
+@app.route("/api/admin/auditor/iniciar", methods=["POST"])
+def api_admin_auditor_iniciar():
+    """Inicia el auditor de catálogo en un hilo en segundo plano."""
+    global AUDITOR_THREAD
+    if AUDITOR_THREAD and AUDITOR_THREAD.is_alive():
+        return jsonify({"status": "warning", "message": "El auditor ya se encuentra en ejecución"}), 400
+
+    data = request.get_json(silent=True) or {}
+    workers = int(data.get("workers", 4))
+    auto_clean = bool(data.get("auto_clean", False))
+    resume = bool(data.get("resume", True))
+    limit = data.get("limit")
+    if limit is not None:
+        limit = int(limit)
+
+    if os.path.exists(AUDITOR_STOP_FLAG):
+        try: os.remove(AUDITOR_STOP_FLAG)
+        except Exception: pass
+
+    AUDITOR_THREAD = threading.Thread(
+        target=_ejecutar_auditor_hilo,
+        kwargs={"workers": workers, "auto_clean": auto_clean, "resume": resume, "limit": limit},
+        daemon=True
+    )
+    AUDITOR_THREAD.start()
+    return jsonify({
+        "status": "ok",
+        "message": f"Auditor iniciado ({workers} hilos, auto-purga: {'ON' if auto_clean else 'OFF'})"
+    })
+
+@app.route("/api/admin/auditor/detener", methods=["POST"])
+def api_admin_auditor_detener():
+    """Envía la señal de detención al auditor en segundo plano."""
+    try:
+        with open(AUDITOR_STOP_FLAG, "w", encoding="utf-8") as f:
+            f.write("stop")
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+    return jsonify({"status": "ok", "message": "Señal de detención enviada al auditor."})
+
+@app.route("/api/admin/auditor/reiniciar", methods=["POST"])
+def api_admin_auditor_reiniciar():
+    """Reinicia las estadísticas de auditoría a cero."""
+    global AUDITOR_THREAD
+    if AUDITOR_THREAD and AUDITOR_THREAD.is_alive():
+        return jsonify({"status": "error", "message": "Detenga la auditoría antes de reiniciar el progreso"}), 400
+
+    estado_inicial = {
+        "activo": False,
+        "indice_actual": 0,
+        "total": len(CATALOGO_CACHE),
+        "porcentaje": 0,
+        "vivos": 0,
+        "caidos": 0,
+        "ultimo_titulo": "",
+        "ultimo_resultado": "",
+        "auto_clean": False,
+        "actualizado": datetime.datetime.now().astimezone().isoformat()
+    }
+    guardar_json_seguro(AUDITOR_ESTADO_FILE, estado_inicial)
+    return jsonify({"status": "ok", "message": "Progreso de auditoría reiniciado a 0."})
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=False)

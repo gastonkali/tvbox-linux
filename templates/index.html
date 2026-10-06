@@ -1088,6 +1088,135 @@
       font-size: 0.78rem;
     }
 
+    /* DASHBOARD AUDITOR DE CATÁLOGO AUTÓNOMO */
+    .audit-dashboard-card {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .audit-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 768px) {
+      .audit-metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .audit-metric-box {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .audit-metric-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #94a3b8;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .audit-metric-value {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #fff;
+      font-family: monospace;
+    }
+
+    .audit-progress-container {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .audit-progress-bar-bg {
+      width: 100%;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 5px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .audit-progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #38bdf8, #10b981);
+      border-radius: 5px;
+      transition: width 0.3s ease;
+    }
+
+    .audit-progress-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      color: #cbd5e1;
+    }
+
+    .audit-config-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      flex-wrap: wrap;
+    }
+
+    .audit-checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.88rem;
+      color: #e2e8f0;
+      cursor: pointer;
+    }
+
+    .audit-checkbox-label input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: var(--accent);
+    }
+
+    .audit-live-status-box {
+      background: #0b0d13;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: monospace;
+      font-size: 0.82rem;
+    }
+
+    .audit-live-status-header {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .audit-live-status-body {
+      color: #38bdf8;
+      word-break: break-all;
+    }
+
     /* FILAS HORIZONTALES (RAILS TIPO NETFLIX) */
     .rails-container {
       padding: 20px 48px 60px 48px;
@@ -2300,6 +2429,7 @@
         <button class="admin-tab-btn" id="tabBtnModificar" data-tab="modificar">✏️ Cambiar URL / Servidores</button>
         <button class="admin-tab-btn" id="tabBtnEliminar" data-tab="eliminar">🗑️ Eliminar Video</button>
         <button class="admin-tab-btn" id="tabBtnListaReportes" data-tab="lista_reportes">📋 Reportes Guardados (<span id="adminReportesBadge">0</span>)</button>
+        <button class="admin-tab-btn" id="tabBtnAuditor" data-tab="auditor">🤖 Auditor de Catálogo</button>
       </div>
 
       <div class="admin-modal-body">
@@ -2391,6 +2521,85 @@
           </div>
           <div class="admin-reports-list" id="adminReportsList">
             <div class="spinner-wrap"><div class="spinner"></div></div>
+          </div>
+        </div>
+
+        <!-- PESTAÑA 5: AUDITOR AUTÓNOMO DE CATÁLOGO -->
+        <div class="admin-tab-content" id="tabContentAuditor">
+          <p class="admin-tab-desc">
+            Auditor autónomo e independiente: analiza los 24,700+ títulos en segundo plano, prueba los enlaces de streaming directamente en los cyberlockers, descarta pantallas negras y archivos borrados, y oculta automáticamente títulos sin video.
+          </p>
+
+          <div class="audit-dashboard-card">
+            <!-- Métricas -->
+            <div class="audit-metrics-grid">
+              <div class="audit-metric-box">
+                <span class="audit-metric-title">TOTAL TÍTULOS</span>
+                <span class="audit-metric-value" id="auditMetricTotal">24,723</span>
+              </div>
+              <div class="audit-metric-box">
+                <span class="audit-metric-title">AUDITADOS</span>
+                <span class="audit-metric-value" id="auditMetricAuditados">0</span>
+              </div>
+              <div class="audit-metric-box">
+                <span class="audit-metric-title" style="color: #4ade80;">VIVOS / OK</span>
+                <span class="audit-metric-value" id="auditMetricVivos" style="color: #4ade80;">0</span>
+              </div>
+              <div class="audit-metric-box">
+                <span class="audit-metric-title" style="color: #f87171;">CAÍDOS / VACÍOS</span>
+                <span class="audit-metric-value" id="auditMetricCaidos" style="color: #f87171;">0</span>
+              </div>
+            </div>
+
+            <!-- Barra de Progreso -->
+            <div class="audit-progress-container">
+              <div class="audit-progress-bar-bg">
+                <div class="audit-progress-bar-fill" id="auditProgressBarFill" style="width: 0%;"></div>
+              </div>
+              <div class="audit-progress-labels">
+                <span id="auditProgressPct">0% completado</span>
+                <span id="auditProgressStatusText" style="color: var(--text-muted);">Inactivo</span>
+              </div>
+            </div>
+
+            <!-- Configuración del Auditor -->
+            <div class="audit-config-row">
+              <label class="audit-checkbox-label">
+                <input type="checkbox" id="auditAutoCleanToggle" checked>
+                <span><strong>Auto-Purga inteligente:</strong> Ocultar automáticamente títulos sin servidores funcionales</span>
+              </label>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <label for="auditWorkersSelect" style="font-size: 0.85rem; color: #cbd5e1;">Hilos:</label>
+                <select id="auditWorkersSelect" class="admin-select" style="padding: 4px 10px; font-size: 0.85rem; width: auto;">
+                  <option value="2">2 (Suave)</option>
+                  <option value="4" selected>4 (Recomendado)</option>
+                  <option value="6">6 (Rápido)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="admin-actions-row" style="margin-top: 6px; justify-content: space-between;">
+              <button type="button" class="btn-audit-action" id="btnAuditorReiniciar" title="Reiniciar progreso">
+                🔄 Reiniciar Contador
+              </button>
+              <div style="display: flex; gap: 10px;">
+                <button type="button" class="btn-admin-danger" id="btnAuditorDetener" style="display: none;">
+                  ⏹ Detener Auditoría
+                </button>
+                <button type="button" class="btn-admin-submit" id="btnAuditorIniciar">
+                  ▶ Iniciar Auditoría en Segundo Plano
+                </button>
+              </div>
+            </div>
+
+            <!-- Consola de Estado / Último Título -->
+            <div class="audit-live-status-box">
+              <span class="audit-live-status-header">Última actividad en vivo:</span>
+              <div class="audit-live-status-body" id="auditLiveStatusLog">
+                Auditor listo. Presioná 'Iniciar Auditoría en Segundo Plano' para comenzar el escaneo autónomo.
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -2522,6 +2731,21 @@
       adminReportsList: document.getElementById('adminReportsList'),
       btnAdminRecargarReportes: document.getElementById('btnAdminRecargarReportes'),
       adminReportesBadge: document.getElementById('adminReportesBadge'),
+      tabBtnAuditor: document.getElementById('tabBtnAuditor'),
+      tabContentAuditor: document.getElementById('tabContentAuditor'),
+      auditMetricTotal: document.getElementById('auditMetricTotal'),
+      auditMetricAuditados: document.getElementById('auditMetricAuditados'),
+      auditMetricVivos: document.getElementById('auditMetricVivos'),
+      auditMetricCaidos: document.getElementById('auditMetricCaidos'),
+      auditProgressBarFill: document.getElementById('auditProgressBarFill'),
+      auditProgressPct: document.getElementById('auditProgressPct'),
+      auditProgressStatusText: document.getElementById('auditProgressStatusText'),
+      auditAutoCleanToggle: document.getElementById('auditAutoCleanToggle'),
+      auditWorkersSelect: document.getElementById('auditWorkersSelect'),
+      btnAuditorIniciar: document.getElementById('btnAuditorIniciar'),
+      btnAuditorDetener: document.getElementById('btnAuditorDetener'),
+      btnAuditorReiniciar: document.getElementById('btnAuditorReiniciar'),
+      auditLiveStatusLog: document.getElementById('auditLiveStatusLog'),
       toast: document.getElementById('toast')
     };
 
@@ -2894,6 +3118,7 @@
 
     function cerrarModalAdmin() {
       if (!el.adminModal) return;
+      detenerPollingAuditor();
       el.adminModal.classList.remove('open');
       setTimeout(() => {
         el.adminModal.style.display = 'none';
@@ -2905,7 +3130,8 @@
         { name: 'reportar', btn: el.tabBtnReportar, content: el.tabContentReportar },
         { name: 'modificar', btn: el.tabBtnModificar, content: el.tabContentModificar },
         { name: 'eliminar', btn: el.tabBtnEliminar, content: el.tabContentEliminar },
-        { name: 'lista_reportes', btn: el.tabBtnListaReportes, content: el.tabContentListaReportes }
+        { name: 'lista_reportes', btn: el.tabBtnListaReportes, content: el.tabContentListaReportes },
+        { name: 'auditor', btn: el.tabBtnAuditor, content: el.tabContentAuditor }
       ];
 
       tabs.forEach(t => {
@@ -2914,7 +3140,12 @@
       });
 
       if (tabName === 'lista_reportes') {
+        detenerPollingAuditor();
         cargarReportesAdmin();
+      } else if (tabName === 'auditor') {
+        iniciarPollingAuditor();
+      } else {
+        detenerPollingAuditor();
       }
     }
 
@@ -3308,6 +3539,117 @@
       }
     }
 
+    // FUNCIONES DEL AUDITOR AUTÓNOMO DE CATÁLOGO
+    let auditorPollingInterval = null;
+
+    function iniciarPollingAuditor() {
+      actualizarEstadoAuditor();
+      if (!auditorPollingInterval) {
+        auditorPollingInterval = setInterval(actualizarEstadoAuditor, 2000);
+      }
+    }
+
+    function detenerPollingAuditor() {
+      if (auditorPollingInterval) {
+        clearInterval(auditorPollingInterval);
+        auditorPollingInterval = null;
+      }
+    }
+
+    async function actualizarEstadoAuditor() {
+      try {
+        const res = await fetch('/api/admin/auditor/estado');
+        const st = await res.json();
+
+        if (el.auditMetricTotal && st.total) el.auditMetricTotal.innerText = st.total.toLocaleString();
+        const proc = st.indice_actual || 0;
+        if (el.auditMetricAuditados) el.auditMetricAuditados.innerText = proc.toLocaleString();
+        if (el.auditMetricVivos) el.auditMetricVivos.innerText = (st.vivos || 0).toLocaleString();
+        if (el.auditMetricCaidos) el.auditMetricCaidos.innerText = (st.caidos || 0).toLocaleString();
+
+        const pct = st.porcentaje || 0;
+        if (el.auditProgressBarFill) el.auditProgressBarFill.style.width = pct + '%';
+        if (el.auditProgressPct) el.auditProgressPct.innerText = `${pct}% completado (${proc}/${st.total || 0})`;
+
+        if (st.activo) {
+          if (el.auditProgressStatusText) el.auditProgressStatusText.innerHTML = '<span style="color: #4ade80;">● En ejecución en segundo plano</span>';
+          if (el.btnAuditorIniciar) el.btnAuditorIniciar.style.display = 'none';
+          if (el.btnAuditorDetener) el.btnAuditorDetener.style.display = 'inline-block';
+        } else {
+          if (el.auditProgressStatusText) el.auditProgressStatusText.innerHTML = '<span style="color: var(--text-muted);">Inactivo</span>';
+          if (el.btnAuditorIniciar) el.btnAuditorIniciar.style.display = 'inline-block';
+          if (el.btnAuditorDetener) el.btnAuditorDetener.style.display = 'none';
+        }
+
+        if (st.ultimo_titulo && el.auditLiveStatusLog) {
+          el.auditLiveStatusLog.innerText = `[${proc}] ${st.ultimo_titulo} -> ${st.ultimo_resultado || 'OK'}`;
+        }
+      } catch (e) {
+        console.error('Error consultando auditor:', e);
+      }
+    }
+
+    async function iniciarAuditorAdmin() {
+      const autoClean = el.auditAutoCleanToggle ? el.auditAutoCleanToggle.checked : false;
+      const workers = el.auditWorkersSelect ? parseInt(el.auditWorkersSelect.value) : 4;
+
+      if (el.btnAuditorIniciar) {
+        el.btnAuditorIniciar.disabled = true;
+        el.btnAuditorIniciar.innerText = 'Iniciando...';
+      }
+
+      try {
+        const res = await fetch('/api/admin/auditor/iniciar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ auto_clean: autoClean, workers: workers, resume: true })
+        });
+        const data = await res.json();
+        showToast(data.message || 'Auditor iniciado en segundo plano');
+        actualizarEstadoAuditor();
+      } catch (err) {
+        showToast('Error al iniciar auditor');
+      } finally {
+        if (el.btnAuditorIniciar) {
+          el.btnAuditorIniciar.disabled = false;
+          el.btnAuditorIniciar.innerText = '▶ Iniciar Auditoría en Segundo Plano';
+        }
+      }
+    }
+
+    async function detenerAuditorAdmin() {
+      if (el.btnAuditorDetener) {
+        el.btnAuditorDetener.disabled = true;
+        el.btnAuditorDetener.innerText = 'Deteniendo...';
+      }
+
+      try {
+        const res = await fetch('/api/admin/auditor/detener', { method: 'POST' });
+        const data = await res.json();
+        showToast(data.message || 'Señal de detención enviada');
+        setTimeout(actualizarEstadoAuditor, 1200);
+      } catch (err) {
+        showToast('Error al detener auditor');
+      } finally {
+        if (el.btnAuditorDetener) {
+          el.btnAuditorDetener.disabled = false;
+          el.btnAuditorDetener.innerText = '⏹ Detener Auditoría';
+        }
+      }
+    }
+
+    async function reiniciarAuditorAdmin() {
+      if (!confirm('¿Deseás reiniciar el contador de la auditoría a cero para comenzar un escaneo desde el inicio?')) return;
+      try {
+        const res = await fetch('/api/admin/auditor/reiniciar', { method: 'POST' });
+        const data = await res.json();
+        showToast(data.message || 'Contador reiniciado');
+        actualizarEstadoAuditor();
+      } catch (err) {
+        showToast('Error al reiniciar auditor');
+      }
+    }
+
     // 4. VISTA DE CUADRÍCULA PAGINADA (SIN SCROLL INFINITO)
     async function cargarGrid(seccion, page = 1, query = '', genero = 'todos') {
       switchView('grid');
@@ -3591,7 +3933,7 @@
       if (targetUrl.endsWith('.html/')) targetUrl = targetUrl.slice(0, -1);
       else if (targetUrl.endsWith('.php/')) targetUrl = targetUrl.slice(0, -1);
 
-      abrirReproductorEnMismaVentana(item, targetUrl);
+      abrirReproductorEnMismaVentana(item);
     }
 
     function abrirReproductorEnMismaVentana(item, opcionUrl) {
@@ -3864,6 +4206,7 @@
       if (el.tabBtnModificar) el.tabBtnModificar.addEventListener('click', () => cambiarTabAdmin('modificar'));
       if (el.tabBtnEliminar) el.tabBtnEliminar.addEventListener('click', () => cambiarTabAdmin('eliminar'));
       if (el.tabBtnListaReportes) el.tabBtnListaReportes.addEventListener('click', () => cambiarTabAdmin('lista_reportes'));
+      if (el.tabBtnAuditor) el.tabBtnAuditor.addEventListener('click', () => cambiarTabAdmin('auditor'));
 
       // Acciones del Modal Admin
       if (el.btnAdminEnviarReporte) el.btnAdminEnviarReporte.addEventListener('click', enviarReporteAdmin);
@@ -3872,6 +4215,9 @@
       if (el.btnAdminPurgarServidores) el.btnAdminPurgarServidores.addEventListener('click', purgarServidoresAdmin);
       if (el.btnAdminConfirmarEliminar) el.btnAdminConfirmarEliminar.addEventListener('click', confirmarEliminarAdmin);
       if (el.btnAdminRecargarReportes) el.btnAdminRecargarReportes.addEventListener('click', cargarReportesAdmin);
+      if (el.btnAuditorIniciar) el.btnAuditorIniciar.addEventListener('click', iniciarAuditorAdmin);
+      if (el.btnAuditorDetener) el.btnAuditorDetener.addEventListener('click', detenerAuditorAdmin);
+      if (el.btnAuditorReiniciar) el.btnAuditorReiniciar.addEventListener('click', reiniciarAuditorAdmin);
       if (el.playerHeroBtnAdmin) {
         el.playerHeroBtnAdmin.addEventListener('click', () => abrirModalAdmin('reportar'));
       }

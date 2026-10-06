@@ -27,7 +27,9 @@ DEAD_KEYWORDS = [
     'video was removed', 'file has been expired', 'video deleted', '404 not found',
     'deleted for copyright', 'borrado por derechos', 'archivo no encontrado',
     'no se encuentra el video', 'el archivo ha sido eliminado', 'error 404',
-    'page is loading', 'cannot load m3u8', 'error: 232011', 'no se puede reproducir'
+    'page is loading', 'cannot load m3u8', 'error: 232011', 'no se puede reproducir',
+    'is no longer available', 'expired or has been deleted', '153311550983uua',
+    'cant connect to server', 'manifestloaderror', 'hls.js error'
 ]
 
 def verificar_url_cyberlocker(embed_url, timeout=5):
@@ -37,12 +39,18 @@ def verificar_url_cyberlocker(embed_url, timeout=5):
     """
     t0 = time.time()
     try:
-        req = urllib.request.Request(embed_url, headers=HEADERS_STD)
+        target_url = embed_url
+        if 'waaw.to/f/' in embed_url:
+            target_url = embed_url.replace('/f/', '/e/')
+        elif 'netu.to/f/' in embed_url:
+            target_url = embed_url.replace('/f/', '/e/')
+
+        req = urllib.request.Request(target_url, headers=HEADERS_STD)
         resp = urllib.request.urlopen(req, timeout=timeout)
         code = resp.getcode()
         
-        # Leer primeros 8KB para detectar mensajes de archivo borrado
-        content = resp.read(8192).decode('utf-8', errors='ignore').lower()
+        # Leer primeros 64KB para detectar mensajes de archivo borrado o placeholders fake
+        content = resp.read(65536).decode('utf-8', errors='ignore').lower()
         t_ms = int((time.time() - t0) * 1000)
         
         for kw in DEAD_KEYWORDS:
@@ -391,21 +399,21 @@ def resolver_servidores_inteligente(item, catalogo_cache=None):
             'cached': True
         }
         
+    orig = None
+    if catalogo_cache:
+        for it in catalogo_cache:
+            if (it.get('id') or it.get('item_id')) == item_id:
+                orig = it
+                break
+    if not orig and item_id:
+        orig = buscar_item_original_catalogo(item_id)
+
     # 2. Si es PoseidonHD
     url_poseidon = None
     if 'poseidon' in url_actual and ('/pelicula/' in url_actual or '/serie/' in url_actual):
         url_poseidon = url_actual
-    else:
-        orig = None
-        if catalogo_cache:
-            for it in catalogo_cache:
-                if (it.get('id') or it.get('item_id')) == item_id:
-                    orig = it
-                    break
-        if not orig and item_id:
-            orig = buscar_item_original_catalogo(item_id)
-        if orig and 'poseidon' in orig.get('url', '') and ('/pelicula/' in orig['url'] or '/serie/' in orig['url']):
-            url_poseidon = orig['url']
+    elif orig and 'poseidon' in orig.get('url', '') and ('/pelicula/' in orig['url'] or '/serie/' in orig['url']):
+        url_poseidon = orig['url']
             
     if url_poseidon:
         lockers = extraer_cyberlockers_poseidon(url_poseidon)
@@ -445,12 +453,12 @@ def resolver_servidores_inteligente(item, catalogo_cache=None):
         def calcular_prioridad(l):
             score = 0
             locker = l.get('locker', '').lower()
-            if 'netu' in locker or 'waaw' in locker: score += 100
-            elif 'vidhide' in locker: score += 80
+            if 'vidhide' in locker: score += 100
             elif 'dood' in locker: score += 70
-            elif 'streamwish' in locker: score += 15
-            elif 'voe' in locker: score += 10
-            elif 'streamtape' in locker: score += 5
+            elif 'netu' in locker or 'waaw' in locker: score += 40
+            elif 'voe' in locker: score += 20
+            elif 'streamtape' in locker: score += 10
+            elif 'streamwish' in locker: score += 5
             
             idioma = l.get('idioma', '').lower()
             if 'latino' in idioma: score += 30
@@ -486,6 +494,23 @@ def resolver_servidores_inteligente(item, catalogo_cache=None):
                     'idioma': l['idioma'],
                     'calidad': l['calidad'],
                     'url': r['url']
+                })
+
+        # Incluir también todas las opciones alternativas del catálogo (Cinemitas, Pelicine, Repelis, etc.)
+        opciones_catalogo = list(item.get('opciones', []))
+        if orig:
+            for o in orig.get('opciones', []):
+                if o not in opciones_catalogo:
+                    opciones_catalogo.append(o)
+
+        for opt in opciones_catalogo:
+            if opt and 'poseidon' not in opt and not any(s['url'] == opt for s in servidores_vivos):
+                servidores_vivos.append({
+                    'nombre': f"{detectar_nombre_locker(opt)} (Alternativo)",
+                    'locker': 'web',
+                    'idioma': 'latino',
+                    'calidad': 'HD',
+                    'url': opt
                 })
                 
         if not servidores_vivos:
