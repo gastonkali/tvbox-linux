@@ -220,6 +220,15 @@ def extraer_anio(item):
     m = re.search(r'\b(202[0-9]|201[0-9]|19[0-9]{2})\b', t)
     return int(m.group(1)) if m else 0
 
+def limpiar_poster_url(poster):
+    if not poster:
+        return ""
+    if "gnularetro" in poster or "wp-content" in poster:
+        m = re.search(r'/([a-zA-Z0-9]{20,40})(?:-\d+x\d+)?\.(?:jpg|png|webp)', str(poster))
+        if m:
+            return f"https://image.tmdb.org/t/p/w500/{m.group(1)}.jpg"
+    return poster
+
 def formatear_item_api(item):
     if not item:
         return {}
@@ -228,7 +237,7 @@ def formatear_item_api(item):
         "titulo": item.get("titulo_limpio", item.get("titulo")),
         "tipo": item.get("tipo", "web"),
         "categoria": item.get("categoria", ""),
-        "poster": item.get("poster", ""),
+        "poster": limpiar_poster_url(item.get("poster", "")),
         "url": item.get("url_resuelta", item.get("url", "")),
         "opciones": item.get("opciones", []),
         "anio": extraer_anio(item),

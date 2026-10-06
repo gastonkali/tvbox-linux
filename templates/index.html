@@ -2508,7 +2508,7 @@
         <div class="card-poster-wrap">
           ${yearBadge}
           ${typeBadge}
-          <img class="card-poster" src="${posterUrl}" alt="${escapeHtml(item.titulo)}" loading="lazy">
+          <img class="card-poster" src="${posterUrl}" alt="${escapeHtml(item.titulo)}" loading="lazy" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'185\\' height=\\'275\\' fill=\\'%23181a24\\'><rect width=\\'100%\\' height=\\'100%\\'/><text x=\\'50%\\' y=\\'50%\\' fill=\\'%23888\\' text-anchor=\\'middle\\' font-size=\\'13\\' font-family=\\'sans-serif\\'>Sin Poster</text></svg>';">
           <button class="card-trailer-btn" title="Ver Trailer Oficial">🎬</button>
           <button class="card-fav-btn" title="${isFav ? 'Quitar de Mi Lista' : 'Agregar a Mi Lista'}">${isFav ? '★' : '☆'}</button>
         </div>
