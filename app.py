@@ -7,6 +7,7 @@ import urllib.request
 import urllib.parse
 import time
 import datetime
+import threading
 from collections import defaultdict
 from flask import Flask, render_template, jsonify, request
 from verificador_cyberlockers import auditar_item_completo, purgar_item_a_vivos, resolver_servidores_inteligente
