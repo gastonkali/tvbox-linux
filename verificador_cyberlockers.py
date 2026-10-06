@@ -26,7 +26,8 @@ DEAD_KEYWORDS = [
     'video not found', 'file was deleted', 'file not found', 'has been removed',
     'video was removed', 'file has been expired', 'video deleted', '404 not found',
     'deleted for copyright', 'borrado por derechos', 'archivo no encontrado',
-    'no se encuentra el video', 'el archivo ha sido eliminado', 'error 404'
+    'no se encuentra el video', 'el archivo ha sido eliminado', 'error 404',
+    'page is loading', 'cannot load m3u8', 'error: 232011', 'no se puede reproducir'
 ]
 
 def verificar_url_cyberlocker(embed_url, timeout=5):
@@ -146,6 +147,7 @@ def detectar_nombre_locker(url):
     u = url.lower()
     if 'dood' in u: return 'Doodstream'
     if 'waaw' in u or 'netu' in u: return 'Netu / Waaw'
+    if 'vidhide' in u: return 'Vidhide'
     if 'voe' in u: return 'VOE'
     if 'streamtape' in u: return 'Streamtape'
     if 'streamwish' in u: return 'Streamwish'
@@ -247,14 +249,15 @@ def auditar_item_completo(item, catalogo_cache=None):
                 'fuente': 'catalogo'
             })
             
-    # 3. Si no hay candidatos, añadir URL actual
+    # 3. Si no hay candidatos, añadir URL actual (excepto si es página de Poseidon sin videos)
     if not candidatos and url_actual:
-        candidatos.append({
-            'nombre': detectar_nombre_locker(url_actual),
-            'locker': 'directo',
-            'url_player': url_actual,
-            'fuente': 'principal'
-        })
+        if not poseidon_page:
+            candidatos.append({
+                'nombre': detectar_nombre_locker(url_actual),
+                'locker': 'directo',
+                'url_player': url_actual,
+                'fuente': 'principal'
+            })
         
     # Función auxiliar para chequear un candidato individual
     def chequear_candidato(cand):
@@ -345,6 +348,201 @@ def purgar_item_a_vivos(item, reporte=None, guardar_en_archivo=True):
             return False, f"Error guardando modificaciones: {e}", item
             
     return True, f"Encontrados {len(nuevas_opciones)} servidores vivos.", item
+
+def resolver_servidores_inteligente(item, catalogo_cache=None):
+    """
+    Resuelve y filtra en vivo las opciones de streaming funcionales de un título.
+    Prioriza lockers fiables (Netu/Waaw, Vidhide, Doodstream), descarta servidores 404 o rotos,
+    y detecta si un título de Poseidon no tiene videos (videos: []).
+    """
+    item_id = item.get('id') or item.get('item_id')
+    titulo = item.get('titulo', 'Sin título')
+    url_actual = item.get('url', '')
+    
+    # 1. Si ya tiene modificaciones guardadas con reproductor limpio verificado
+    modificaciones = {}
+    if os.path.exists(MODIFICACIONES_FILE):
+        try:
+            with open(MODIFICACIONES_FILE, 'r', encoding='utf-8') as f:
+                modificaciones = json.load(f)
+        except Exception:
+            pass
+            
+    mod_item = modificaciones.get(str(item_id))
+    if mod_item and mod_item.get('opciones') and 'player.poseidon' in mod_item.get('url', ''):
+        if mod_item.get('servidores_detalle'):
+            servs = mod_item['servidores_detalle']
+        else:
+            servs = []
+            for idx, opt in enumerate(mod_item['opciones']):
+                dest = resolver_enlace_destino_player(opt)
+                locker = detectar_nombre_locker(dest)
+                nombre = f"{locker}" if locker != 'Servidor Directo' else f"Servidor {idx + 1}"
+                servs.append({
+                    'nombre': nombre,
+                    'url': opt,
+                    'calidad': 'HD',
+                    'idioma': 'latino'
+                })
+        return {
+            'disponible': True,
+            'servidores': servs,
+            'mejor_url': mod_item.get('url') or servs[0]['url'],
+            'cached': True
+        }
+        
+    # 2. Si es PoseidonHD
+    url_poseidon = None
+    if 'poseidon' in url_actual and ('/pelicula/' in url_actual or '/serie/' in url_actual):
+        url_poseidon = url_actual
+    else:
+        orig = None
+        if catalogo_cache:
+            for it in catalogo_cache:
+                if (it.get('id') or it.get('item_id')) == item_id:
+                    orig = it
+                    break
+        if not orig and item_id:
+            orig = buscar_item_original_catalogo(item_id)
+        if orig and 'poseidon' in orig.get('url', '') and ('/pelicula/' in orig['url'] or '/serie/' in orig['url']):
+            url_poseidon = orig['url']
+            
+    if url_poseidon:
+        lockers = extraer_cyberlockers_poseidon(url_poseidon)
+        if not lockers:
+            # PoseidonHD no tiene videos subidos para este título
+            # Verificar si hay opciones alternativas
+            opts_alternativas = [opt for opt in item.get('opciones', []) if 'poseidon' not in opt]
+            if not opts_alternativas:
+                return {
+                    'disponible': False,
+                    'motivo': 'Este título fue catalogado pero el proveedor aún no ha publicado los archivos de video.',
+                    'servidores': []
+                }
+            cands_alt = []
+            for opt in opts_alternativas:
+                check = verificar_url_cyberlocker(opt)
+                if check['alive']:
+                    cands_alt.append({
+                        'nombre': detectar_nombre_locker(opt),
+                        'url': opt,
+                        'calidad': 'HD',
+                        'idioma': 'latino'
+                    })
+            if not cands_alt:
+                return {
+                    'disponible': False,
+                    'motivo': 'Todos los servidores alternativos de este título se encuentran caídos.',
+                    'servidores': []
+                }
+            return {
+                'disponible': True,
+                'servidores': cands_alt,
+                'mejor_url': cands_alt[0]['url']
+            }
+            
+        # Ponderar y ordenar por fiabilidad de locker e idioma
+        def calcular_prioridad(l):
+            score = 0
+            locker = l.get('locker', '').lower()
+            if 'netu' in locker or 'waaw' in locker: score += 100
+            elif 'vidhide' in locker: score += 80
+            elif 'dood' in locker: score += 70
+            elif 'streamwish' in locker: score += 15
+            elif 'voe' in locker: score += 10
+            elif 'streamtape' in locker: score += 5
+            
+            idioma = l.get('idioma', '').lower()
+            if 'latino' in idioma: score += 30
+            elif 'spanish' in idioma or 'castellano' in idioma: score += 20
+            elif 'english' in idioma: score += 10
+            return score
+            
+        lockers_ordenados = sorted(lockers, key=calcular_prioridad, reverse=True)
+        candidatos_a_testear = lockers_ordenados[:8]
+        
+        def probar_locker(l):
+            p_url = l['player_url']
+            dest = resolver_enlace_destino_player(p_url)
+            check = verificar_url_cyberlocker(dest)
+            return {
+                'l': l,
+                'alive': check['alive'],
+                'motivo': check['motivo'],
+                'url': p_url,
+                'dest': dest
+            }
+            
+        with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
+            resultados = list(executor.map(probar_locker, candidatos_a_testear))
+            
+        servidores_vivos = []
+        for r in resultados:
+            if r['alive']:
+                l = r['l']
+                servidores_vivos.append({
+                    'nombre': f"{l['locker'].capitalize()} ({l['idioma'].capitalize()} {l['calidad']})",
+                    'locker': l['locker'],
+                    'idioma': l['idioma'],
+                    'calidad': l['calidad'],
+                    'url': r['url']
+                })
+                
+        if not servidores_vivos:
+            return {
+                'disponible': False,
+                'motivo': 'Todos los servidores de este título se encuentran temporalmente caídos.',
+                'servidores': []
+            }
+            
+        mejor_url = servidores_vivos[0]['url']
+        
+        # Persistir en modificaciones.json para que las próximas veces sea instantáneo (0ms)
+        try:
+            modificaciones[str(item_id)] = {
+                "item_id": item_id,
+                "titulo": titulo,
+                "url": mejor_url,
+                "opciones": [s['url'] for s in servidores_vivos],
+                "servidores_detalle": servidores_vivos,
+                "fecha": time.strftime("%Y-%m-%dT%H:%M:%S%z")
+            }
+            with open(MODIFICACIONES_FILE, "w", encoding="utf-8") as f:
+                json.dump(modificaciones, f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
+            
+        return {
+            'disponible': True,
+            'servidores': servidores_vivos,
+            'mejor_url': mejor_url
+        }
+        
+    # 3. Proveedores no-poseidon (Cinemitas, Pelicine, etc.)
+    opciones = item.get('opciones', [url_actual])
+    vivos_otros = []
+    for opt in opciones[:4]:
+        check = verificar_url_cyberlocker(opt)
+        if check['alive']:
+            vivos_otros.append({
+                'nombre': detectar_nombre_locker(opt),
+                'url': opt,
+                'calidad': 'HD',
+                'idioma': 'latino'
+            })
+            
+    if not vivos_otros:
+        return {
+            'disponible': False,
+            'motivo': 'Servidores de video no disponibles.',
+            'servidores': []
+        }
+        
+    return {
+        'disponible': True,
+        'servidores': vivos_otros,
+        'mejor_url': vivos_otros[0]['url']
+    }
 
 if __name__ == '__main__':
     import argparse

@@ -9,7 +9,7 @@ import time
 import datetime
 from collections import defaultdict
 from flask import Flask, render_template, jsonify, request
-from verificador_cyberlockers import auditar_item_completo, purgar_item_a_vivos
+from verificador_cyberlockers import auditar_item_completo, purgar_item_a_vivos, resolver_servidores_inteligente
 
 app = Flask(__name__)
 brave_process = None
@@ -1154,6 +1154,30 @@ def api_detalle(item_id):
 
     res["sinopsis"] = sinopsis
     return jsonify(res)
+
+@app.route("/api/reproductor/servidores/<int:item_id>")
+def api_reproductor_servidores(item_id):
+    """Resuelve en vivo y filtra los mejores servidores funcionales para un título al reproducirlo."""
+    global CATALOGO_CACHE, ITEMS_BY_ID
+    item = ITEMS_BY_ID.get(item_id)
+    if not item:
+        for it in CATALOGO_CACHE:
+            if it.get("id") == item_id:
+                item = it
+                break
+    if not item:
+        return jsonify({"disponible": False, "motivo": "Título no encontrado"}), 404
+
+    resultado = resolver_servidores_inteligente(item, catalogo_cache=CATALOGO_CACHE)
+    
+    # Si se resolvieron servidores y no estaban en memoria, sincronizar memoria
+    if resultado.get("disponible") and resultado.get("servidores"):
+        item["url"] = resultado["mejor_url"]
+        item["url_resuelta"] = resultado["mejor_url"]
+        item["opciones"] = [s["url"] for s in resultado["servidores"]]
+        ITEMS_BY_ID[item_id] = item
+
+    return jsonify(resultado)
 
 @app.route("/play_url", methods=["POST"])
 def play_url():
