@@ -284,6 +284,7 @@ class AuditorCatalogo:
 
         self.activo = True
         self.estado["activo"] = True
+        self.estado["pausado_por_red"] = False
         self.estado["inicio"] = time.strftime("%Y-%m-%dT%H:%M:%S%z")
         guardar_json(ESTADO_FILE, self.estado)
 
@@ -329,6 +330,10 @@ class AuditorCatalogo:
                                     simbolo = "[OK]" if res["vivo"] else "[X]"
                                     pct = round((idx_global / total_a_procesar) * 100, 1)
                                     print(f"[{idx_global}/{total_a_procesar}] ({pct}%) {simbolo} {res['titulo'][:36]} -> {res['detalle']}")
+                                    
+                                    if procesados_sesion % 500 == 0:
+                                        import gc
+                                        gc.collect()
                         except Exception as err:
                             print(f"[{idx_global}] Error auditando {item.get('titulo')}: {err}")
 
